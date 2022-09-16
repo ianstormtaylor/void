@@ -1,0 +1,72 @@
+{
+  "name": "electron-vite-react",
+  "productName": "Electron",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Vite React Electron boilerplate.",
+  "author": "草鞋没号 <308487730@qq.com>",
+  "license": "MIT",
+  "main": "dist/electron/main/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder"
+  },
+  "env": {
+    "VITE_DEV_SERVER_HOST": "localhost",
+    "VITE_DEV_SERVER_PORT": 42000
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  },
+  "dependencies": {
+    "@types/tmp": "^0.2.3",
+    "@vitejs/plugin-react": "^1.3.2",
+    "autoprefixer": "^10.4.7",
+    "electron-builder": "^23.0.3",
+    "electron-store": "^8.0.1",
+    "electron": "^19.0.3",
+    "esbuild": "^0.14.48",
+    "postcss": "^8.4.13",
+    "prettier": "^2.6.2",
+    "sass": "^1.52.2",
+    "tailwindcss": "^3.0.24",
+    "tmp": "^0.2.1",
+    "typescript": "^4.7.3",
+    "vite-plugin-electron": "^0.6.2",
+    "vite": "^2.9.10"
+  },
+  "devDependencies": {
+    "@headlessui/react": "^1.6.5",
+    "@heroicons/react": "^1.0.6",
+    "@mathigon/core": "^1.1.1",
+    "@mathigon/euclid": "^1.1.1",
+    "@mathigon/fermat": "^1.1.1",
+    "@mui/icons-material": "^5.8.4",
+    "@mui/material": "^5.8.5",
+    "@types/lodash": "^4.14.182",
+    "@types/p5": "^1.4.2",
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "change-case": "^4.1.2",
+    "immer": "^9.0.15",
+    "jspdf": "^2.5.1",
+    "lodash": "^4.17.21",
+    "next": "^12.1.6",
+    "p5": "^1.4.1",
+    "p5.js-svg": "^1.3.3",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-icons": "^4.4.0",
+    "react-merge-refs": "^2.0.1",
+    "react-router-dom": "^6.3.0",
+    "react-use": "^17.4.0",
+    "seed-random": "^2.2.0",
+    "simplex-noise": "^3.0.1",
+    "svg2pdf.js": "^2.2.0",
+    "svgcanvas": "^2.3.0",
+    "to-case": "^2.0.0",
+    "use-immer": "^0.7.0",
+    "use-local-storage": "^2.3.6",
+    "vexes": "^0.0.25"
+  }
+}
