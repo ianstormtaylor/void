@@ -1,95 +1,98 @@
-import { BrowserWindow } from 'electron'
 import Path from 'path'
-import { serve, ServeResult } from 'esbuild'
-import fs from 'fs'
-import { IS_DEV, VITE_DEV_SERVER_HOST, VITE_DEV_SERVER_PORT } from './env'
+import { BrowserWindow, dialog } from 'electron'
+import { IS_DEV, VITE_DEV_SERVER_URL } from './env'
+import { Tab } from './tab'
+import { store } from './store'
+import crypto from 'node:crypto'
 
 /** References to all the open windows by ID. */
-let WINDOWS: Record<number, Window> = {}
+let WINDOWS: Record<string, Window> = {}
 
-/** The footer that we inject to capture sketch exports. */
-let FOOTER = fs.readFileSync(
-  Path.resolve(__dirname, '../../../electron/main/footer.js'),
-  'utf-8'
-)
+/** A JSON representation of a `Window`. */
+export type WindowJSON = {
+  id: string
+}
 
-/** A `Window` class to hold state for the opened sketch. */
+/** A `Window` class to hold state for a series of tabs. */
 export class Window {
-  id: number
-  tmp: string
-  path: string
-  stat: fs.Stats
-  isFile: boolean
-  isDir: boolean
-  browser: BrowserWindow
-  server: ServeResult | null
-  entrypoint: string | null
+  id: string
+  browserWindow: BrowserWindow
 
-  /** Get a window by `id`. */
-  static get(id: number): Window {
-    return WINDOWS[id]
-  }
-
-  /** Get all the current windows. */
-  static all(): Window[] {
-    return Object.values(WINDOWS)
-  }
-
-  /** Create a new window with a sketch `path`. */
-  constructor(path: string) {
-    console.log('constructing window…')
-    this.server = null
-    this.path = path
-    this.stat = fs.statSync(path)
-    this.isFile = this.stat.isFile()
-    this.isDir = this.stat.isDirectory()
-
-    // Create a new Electron browser window.
-    this.browser = new BrowserWindow({
+  /** Create a new window. */
+  constructor(id = crypto.randomUUID()) {
+    console.log('Constructing window…', id)
+    let browserWindow = new BrowserWindow({
       x: 0,
       y: 0,
       width: 1250,
-      titleBarStyle: 'hidden',
       height: 750,
+      // titleBarStyle: 'hidden',
       webPreferences: {
         preload: Path.join(__dirname, '../preload/index.js'),
         nodeIntegration: true,
         contextIsolation: false,
+        webviewTag: true,
       },
     })
 
     // Load the entrypoint to the Vite dev server.
-    let url = `http://${VITE_DEV_SERVER_HOST}:${VITE_DEV_SERVER_PORT}`
-    this.browser.loadURL(url)
-    if (IS_DEV) this.browser.webContents.openDevTools()
+    browserWindow.loadURL(VITE_DEV_SERVER_URL)
+    if (IS_DEV) browserWindow.webContents.openDevTools()
 
     // Save a reference to the window for later, and cleanup on close.
-    this.id = this.browser.webContents.id
-    WINDOWS[this.id] = this
-    this.browser.on('closed', () => {
-      if (this.server) this.server.stop()
-      delete WINDOWS[this.id]
-    })
+    WINDOWS[id] = this
+    browserWindow.on('closed', () => delete WINDOWS[this.id])
 
-    // Serve the sketch's entrypoint with esbuild from memory.
-    console.log('esbuilding…', this.path)
-    let dir = Path.dirname(this.path)
-    let file = `${Path.basename(this.path, Path.extname(this.path))}.js`
-    serve(
-      {
-        servedir: dir,
-      },
-      {
-        entryPoints: [this.path],
-        outdir: dir,
-        bundle: true,
-        sourcemap: true,
-        format: 'esm',
-        footer: { js: FOOTER },
-      }
-    ).then((server) => {
-      this.server = server
-      this.entrypoint = `http://${server.host}:${server.port}/${file}`
+    this.id = id
+    this.browserWindow = browserWindow
+
+    // Add the new window to the shared store.
+    store.setState((s) => {
+      s.windows[id] = { id }
     })
+  }
+
+  /** Get the active (or most recently active) window. */
+  static active(): Window {
+    return Object.values(WINDOWS)[0]
+  }
+
+  /** Get all the open windows. */
+  static all(): Window[] {
+    return Object.values(WINDOWS)
+  }
+
+  /** Get a window by `id`. */
+  static get(id: string): Window {
+    return WINDOWS[id]
+  }
+
+  /** Get the tabs of a window by `id`. */
+  static tabs(id: string): Tab[] {
+    return Tab.all().filter((t) => t.windowId === id)
+  }
+
+  /** Prompt to open a sketch file or directory. */
+  async openFile() {
+    let result = await dialog.showOpenDialog({ properties: ['openFile'] })
+
+    for (let path of result.filePaths) {
+      let tab = new Tab(this, path)
+      let view = tab.browserView
+      let { x, y, width, height } = this.browserWindow.getBounds()
+      let padding = 40 + 3 // not quite exact for some reason
+      this.browserWindow.setBrowserView(view)
+      view.setBounds({ x, y: y + padding, width, height: height - padding })
+      view.setAutoResize({ width: true, height: true })
+    }
+  }
+
+  /** Send a message to the window and all its tabs. */
+  send(event: string, ...args: any[]) {
+    this.browserWindow.webContents.send(event, ...args)
+
+    for (let tab of Window.tabs(this.id)) {
+      tab.browserView.webContents.send(event, ...args)
+    }
   }
 }

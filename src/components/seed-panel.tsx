@@ -8,12 +8,12 @@ import {
   MdGridView,
   MdWest,
 } from 'react-icons/md'
-import { Store, useUpdateStore } from '../contexts/store'
+import { SketchStore, useUpdateSketchStore } from '../contexts/sketch-store'
 import { Popover } from '@headlessui/react'
 
-export let SeedPanel = (props: { state: State; store: Store }) => {
+export let SeedPanel = (props: { state: State; store: SketchStore }) => {
   let { state, store } = props
-  let updateStore = useUpdateStore()
+  let updateStore = useUpdateSketchStore()
   return (
     <div className="p-5 space-y-1">
       <div className="flex justify-between items-center">

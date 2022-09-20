@@ -9,7 +9,7 @@ export class Random {
 
   /** Create randomness helpers with a `seed`. */
   constructor(seed: number) {
-    this.#random = seeded(seed)
+    this.#random = seeded(`${seed}`)
     this.#simplex = new SimplexNoise(seed)
   }
 
@@ -53,14 +53,14 @@ export class Random {
 
   /** Generate a floating point number, with optional `min` and `max`. */
   float(min?: number, max?: number): number {
-    if (min == null && max == null) (min = 0), (max = 1)
+    if (min == null) (min = 0), (max = 1)
     if (max == null) (max = min), (min = 0)
     return min + this.#random() * (max - min)
   }
 
   /** Generate an integer, with optional `min` and `max`. */
   int(min?: number, max?: number): number {
-    if (min == null && max == null) (min = 0), (max = 1)
+    if (min == null) (min = 0), (max = 1)
     if (max == null) (max = min), (min = 0)
     return Math.floor(this.float(min, max + 1))
   }

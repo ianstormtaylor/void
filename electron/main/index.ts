@@ -1,32 +1,26 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app } from 'electron'
 import { IS_MAC } from './env'
-import { appMenu, dockMenu } from './menus'
-import { open } from './open'
+import { initializeMenus } from './menus'
+import { Tab } from './tab'
 import { Window } from './window'
 
 // When the app is first started and ready.
 app.on('ready', () => {
+  console.log('Event: app.ready')
+
   if (!app.requestSingleInstanceLock()) {
+    console.log('Quitting for single instance lock…')
     app.quit()
+    return
   }
 
-  Menu.setApplicationMenu(appMenu)
-
-  if (IS_MAC) {
-    app.dock.setMenu(dockMenu)
-  }
-
-  ipcMain.handle('get-entrypoint', (e) => {
-    let id = e.sender.id
-    let w = Window.get(id)
-    return w.entrypoint
-  })
-
-  open()
+  initializeMenus(app)
+  new Window()
 })
 
 // When all windows are closed, except on Mac where it stays active.
 app.on('window-all-closed', () => {
+  console.log('Event: app.window-all-closed')
   if (!IS_MAC) {
     app.quit()
   }
@@ -34,15 +28,20 @@ app.on('window-all-closed', () => {
 
 // When the app has been re-activated on Mac, after all windows were closed.
 app.on('activate', () => {
-  let [win] = Window.all()
-  if (win) {
-    win.browser.focus()
+  console.log('Event: app.activate')
+  let window = Window.active()
+  if (window) {
+    window.browserWindow.focus()
   } else {
-    open()
+    console.log('activating new window…')
+    new Window()
   }
 })
 
 // When the app is being quit.
 app.on('before-quit', () => {
-  app.clearRecentDocuments()
+  console.log('Event: app.before-quit')
+  for (let tab of Tab.all()) {
+    tab.stop()
+  }
 })

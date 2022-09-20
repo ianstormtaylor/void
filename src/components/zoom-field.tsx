@@ -1,9 +1,9 @@
 import { MdAdd, MdClose, MdRemove, MdSearch } from 'react-icons/md'
-import { useStore, useUpdateStore } from '../contexts/store'
+import { useSketchStore, useUpdateSketchStore } from '../contexts/sketch-store'
 
 export let ZoomField = () => {
-  let { zoom } = useStore()
-  let updateStore = useUpdateStore()
+  let { zoom } = useSketchStore()
+  let updateStore = useUpdateSketchStore()
   return (
     <div className="flex space-x-2 -mr-1.5">
       <div className="flex-1 flex items-center -mx-2 p-2 space-x-2">

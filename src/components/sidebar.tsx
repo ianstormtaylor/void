@@ -18,15 +18,15 @@ import {
   MdUndo,
   MdWest,
 } from 'react-icons/md'
-import { Store, useUpdateStore } from '../contexts/store'
+import { SketchStore, useUpdateSketchStore } from '../contexts/sketch-store'
 import { SeedPanel } from './seed-panel'
 import { ExportPanel } from './export-panel'
 import { ZoomField } from './zoom-field'
 import { BooleanField } from './boolean-field'
 import { IconButton } from './icon-button'
 
-export let Sidebar = (props: { state: State; store: Store }) => {
-  let updateStore = useUpdateStore()
+export let Sidebar = (props: { state: State; store: SketchStore }) => {
+  let updateStore = useUpdateSketchStore()
   let { state, store } = props
   let { orientation } = state
   return (

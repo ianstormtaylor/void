@@ -3,9 +3,9 @@ import { Module, Settings, State } from '../engine/sketch'
 import { Sidebar } from './sidebar'
 import { useMeasure } from 'react-use'
 import { Canvas, CanvasRefContext } from './canvas'
-import { Store } from '../contexts/store'
+import { SketchStore } from '../contexts/sketch-store'
 
-export let Editor = (props: { module: Module; store: Store }) => {
+export let Editor = (props: { module: Module; store: SketchStore }) => {
   let { module, store } = props
   let canvasRef = useRef<HTMLCanvasElement>()
   let [parentRef, { width: parentWidth, height: parentHeight }] = useMeasure()
