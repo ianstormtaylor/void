@@ -1,6 +1,9 @@
 import { app } from 'electron'
-import { IS_MAC } from './env'
+import { IS_MAC } from '../shared/env'
+import { initializeIpc } from './ipc'
 import { initializeMenus } from './menus'
+import { STATUS } from './status'
+import { store } from './store'
 import { Tab } from './tab'
 import { Window } from './window'
 
@@ -15,7 +18,30 @@ app.on('ready', () => {
   }
 
   initializeMenus(app)
-  new Window()
+  initializeIpc(app)
+
+  let state = store.getState()
+  let opened = false
+
+  for (let t of Object.values(state.tabs)) {
+    new Tab({
+      id: t.id,
+      path: t.path,
+    })
+  }
+
+  for (let w of Object.values(state.windows)) {
+    opened = true
+    new Window({
+      id: w.id,
+      tabIds: w.tabIds,
+      activeTabId: w.activeTabId,
+    })
+  }
+
+  if (!opened) {
+    new Window()
+  }
 })
 
 // When all windows are closed, except on Mac where it stays active.
@@ -38,10 +64,11 @@ app.on('activate', () => {
   }
 })
 
-// When the app is being quit.
 app.on('before-quit', () => {
   console.log('Event: app.before-quit')
-  for (let tab of Tab.all()) {
-    tab.stop()
-  }
+  STATUS.quitting = true
+})
+
+app.on('quit', () => {
+  STATUS.quitting = false
 })

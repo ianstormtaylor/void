@@ -1,5 +1,5 @@
 import { App, app, Menu } from 'electron'
-import { IS_MAC } from './env'
+import { IS_MAC } from '../shared/env'
 import { Window } from './window'
 
 /**
@@ -17,7 +17,7 @@ export let dockMenu = Menu.buildFromTemplate([
     label: 'Open Sketch…',
     click() {
       let window = Window.active()
-      window.openFile()
+      window.openTabs()
     },
   },
   { role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] },
@@ -47,7 +47,7 @@ export let appMenu = Menu.buildFromTemplate([
         accelerator: 'CmdOrCtrl+O',
         click() {
           let window = Window.active()
-          window.openFile()
+          window.openTabs()
         },
       },
       { role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] },

@@ -1,21 +1,20 @@
 import ElectronStore from 'electron-store'
 
+export type WindowConfig = {
+  id: string
+  tabIds: string[]
+  activeTabId: string | null
+}
+
+export type TabConfig = {
+  id: string
+  path: string
+  entrypoint: string | null
+}
+
 export type Config = {
-  windows: Record<
-    string,
-    {
-      id: string
-    }
-  >
-  tabs: Record<
-    string,
-    {
-      id: string
-      windowId: string
-      path: string
-      entrypoint: string | null
-    }
-  >
+  windows: Record<string, WindowConfig>
+  tabs: Record<string, TabConfig>
 }
 
 export let config = {

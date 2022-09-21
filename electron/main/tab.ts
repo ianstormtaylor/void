@@ -1,7 +1,7 @@
 import Path from 'path'
 import { BrowserView } from 'electron'
 import { serve, ServeResult } from 'esbuild'
-import { IS_DEV, VITE_DEV_SERVER_URL } from './env'
+import { IS_DEV, VITE_DEV_SERVER_URL } from '../shared/env'
 import { Window } from './window'
 import { store } from './store'
 import crypto from 'node:crypto'
@@ -12,11 +12,40 @@ let TABS: Record<string, Tab> = {}
 /** A `Tab` class holds a reference to a specific sketch file. */
 export class Tab {
   id: string
-  windowId: string
   path: string
   browserView: BrowserView
   server?: ServeResult
   entrypoint?: string
+
+  /** Create a new `Tab` with sketch `path`. */
+  constructor(props: { path: string; id?: string }) {
+    let { path, id = crypto.randomUUID() } = props
+    let view = new BrowserView({
+      webPreferences: {
+        preload: Path.join(__dirname, '../preload/index.js'),
+        // nodeIntegration: true,
+        // contextIsolation: false,
+      },
+    })
+
+    let url = `${VITE_DEV_SERVER_URL}/tabs/${id}`
+    view.webContents.loadURL(url)
+    if (IS_DEV) view.webContents.openDevTools()
+
+    this.browserView = view
+    this.id = id
+    this.path = path
+
+    TABS[id] = this
+    this.start()
+    store.setState((s) => {
+      s.tabs[id] = {
+        id,
+        path,
+        entrypoint: null,
+      }
+    })
+  }
 
   /** Get a tab by `id`. */
   static get(id: string): Tab {
@@ -28,33 +57,6 @@ export class Tab {
   /** Get all the open tabs. */
   static all(): Tab[] {
     return Object.values(TABS)
-  }
-
-  /** Create a new tab with a sketch `path`. */
-  constructor(window: Window, path: string, id = crypto.randomUUID()) {
-    let windowId = window.id
-    let url = `${VITE_DEV_SERVER_URL}/tabs/${id}`
-    let view = new BrowserView({
-      webPreferences: {
-        preload: Path.join(__dirname, '../preload/index.js'),
-        nodeIntegration: true,
-        contextIsolation: false,
-        webviewTag: true,
-      },
-    })
-    view.webContents.loadURL(url)
-    if (IS_DEV) view.webContents.openDevTools()
-
-    this.windowId = windowId
-    this.browserView = view
-    this.id = id
-    this.path = path
-
-    TABS[id] = this
-    this.start()
-    store.setState((s) => {
-      s.tabs[id] = { id, windowId, path, entrypoint: null }
-    })
   }
 
   /** Serve the sketch's entrypoint with esbuild from memory. */
@@ -84,20 +86,30 @@ export class Tab {
       }
     )
 
-    let entrypoint = `http://${server.host}:${server.port}/${file}`
+    let entrypoint = `http://localhost:${server.port}/${file}`
     this.entrypoint = entrypoint
     this.server = server
-    console.log('Serving sketch at:', entrypoint)
 
-    setTimeout(() => {
+    setImmediate(() => {
       store.setState((s) => {
         s.tabs[id].entrypoint = entrypoint
       })
-    }, 5000)
+    })
   }
 
-  /** Stop the esbuild server if it's started. */
-  stop() {
-    if (this.server) this.server.stop()
+  /** Close the tab. */
+  close(options: { persist?: boolean } = {}) {
+    if (!options.persist) {
+      store.setState((s) => {
+        delete s.tabs[this.id]
+      })
+    }
+
+    if (this.server) {
+      this.server.stop()
+      this.server = null
+    }
+
+    delete TABS[this.id]
   }
 }

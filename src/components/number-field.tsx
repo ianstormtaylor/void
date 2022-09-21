@@ -40,7 +40,6 @@ export let NumberField = (props: {
 
   // If the value changes, sync our internal text state.
   if (value !== prevValue) {
-    console.log('updating…')
     setText(`${value}`)
     setPrevValue(value)
   }

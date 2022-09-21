@@ -10,21 +10,24 @@ import {
 import { ModuleContext } from './contexts/module'
 import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useConfig } from './contexts/config'
-import { Banner } from './components/navigation'
+import { Banner } from './components/banner'
 
 let App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/windows/:id" element={<WindowPage />} />
         <Route path="/tabs/:id" element={<TabPage />} />
       </Routes>
     </BrowserRouter>
   )
 }
 
-let HomePage = () => {
-  return <Banner />
+let WindowPage = () => {
+  let { id } = useParams()
+  let [config] = useConfig()
+  let window = config.windows[id!]
+  return window && <Banner key={window.id} window={window} />
 }
 
 let TabPage = () => {
