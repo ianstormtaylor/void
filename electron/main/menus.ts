@@ -1,23 +1,14 @@
-import { App, app, Menu } from 'electron'
-import { IS_MAC } from '../shared/env'
+import { Menu, app } from 'electron'
+import { main } from './main'
+import { Tab } from './tab'
 import { Window } from './window'
-
-/**
- * Initialize menus.
- */
-
-export let initializeMenus = (app: App) => {
-  Menu.setApplicationMenu(appMenu)
-  if (IS_MAC) app.dock.setMenu(dockMenu)
-}
 
 /** A dock menu. */
 export let dockMenu = Menu.buildFromTemplate([
   {
     label: 'Open Sketch…',
     click() {
-      let window = Window.active()
-      window.openTabs()
+      main.open()
     },
   },
   { role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] },
@@ -46,8 +37,7 @@ export let appMenu = Menu.buildFromTemplate([
         label: 'Open Sketch…',
         accelerator: 'CmdOrCtrl+O',
         click() {
-          let window = Window.active()
-          window.openTabs()
+          main.open()
         },
       },
       { role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] },
@@ -68,7 +58,15 @@ export let appMenu = Menu.buildFromTemplate([
       { type: 'separator' },
       { role: 'togglefullscreen' },
       { type: 'separator' },
-      { role: 'toggleDevTools' },
+      {
+        // role: 'toggleDevTools',
+        label: 'Toggle Developer Tools',
+        accelerator: 'CmdOrCtrl+Alt+I',
+        click() {
+          let tab = Tab.active()
+          if (tab) tab.inspect()
+        },
+      },
     ],
   },
 ])

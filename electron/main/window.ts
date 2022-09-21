@@ -4,7 +4,7 @@ import { IS_DEV, VITE_DEV_SERVER_URL } from '../shared/env'
 import { Tab } from './tab'
 import { store } from './store'
 import crypto from 'node:crypto'
-import { STATUS } from './status'
+import { main } from './main'
 
 /** References to all the open windows by ID. */
 let WINDOWS: Record<string, Window> = {}
@@ -29,7 +29,9 @@ export class Window {
       y: 0,
       width: 1250,
       height: 750,
-      // titleBarStyle: 'hidden',
+      show: false,
+      titleBarStyle: 'hiddenInset',
+      trafficLightPosition: { x: 12, y: 12 },
       webPreferences: {
         preload: Path.join(__dirname, '../preload/index.js'),
         // nodeIntegration: true,
@@ -51,13 +53,22 @@ export class Window {
       s.windows[id] = { id, activeTabId, tabIds }
     })
 
-    win.on('closed', () => this.close({ persist: STATUS.quitting }))
+    win.on('closed', () => {
+      this.close({ persist: main.isQuitting })
+    })
+
+    win.on('resize', () => {
+      // let view = win.getBrowserView()
+      // view.setBounds(view.getBounds())
+      this.resizeView()
+    })
+
     WINDOWS[id] = this
   }
 
   /** Get the active (or most recently active) window. */
-  static active(): Window {
-    return Object.values(WINDOWS)[0]
+  static active(): Window | null {
+    return Object.values(WINDOWS)[0] ?? null
   }
 
   /** Get all the open windows. */
@@ -77,31 +88,20 @@ export class Window {
     return Tab.all().filter((t) => w.tabIds.includes(t.id))
   }
 
-  /** Prompt to open a sketch file or directory. */
-  async openTabs() {
-    let result = await dialog.showOpenDialog({ properties: ['openFile'] })
-    if (result.filePaths.length === 0) return
-
-    let tabs = result.filePaths.map((path) => new Tab({ path }))
+  /** Add `tabs` to the window. */
+  addTabs(tabs: Tab[]) {
     store.setState((s) => {
       let w = s.windows[this.id]
       w.tabIds = w.tabIds.concat(tabs.map((t) => t.id))
     })
-
-    let last = tabs.at(-1)
-    this.activateTab(last.id)
   }
 
-  /** Activate a tab in the window by `id`. */
+  /** Activate a tab by `id` in the window. */
   activateTab(id: string) {
     let tab = Tab.get(id)
-    if (!tab) return
     let view = tab.browserView
-    let { x, y, width, height } = this.browserWindow.getBounds()
-    let padding = 40 + 3 // not quite exact for some reason
     this.browserWindow.setBrowserView(view)
-    view.setBounds({ x, y: y + padding, width, height: height - padding })
-    view.setAutoResize({ width: true, height: true })
+    this.resizeView()
     store.setState((s) => {
       let w = s.windows[this.id]
       w.activeTabId = tab.id
@@ -123,5 +123,50 @@ export class Window {
     }
 
     delete WINDOWS[this.id]
+  }
+
+  resizeView() {
+    let view = this.browserWindow.getBrowserView()
+    let { x, y, width, height } = this.browserWindow.getBounds()
+    let padding = 15 // not quite exact for some reason
+    view.setBounds({ x, y: y + padding, width, height: height - padding })
+  }
+
+  /** Close a tab by `id` in the window. */
+  closeTab(id: string) {
+    let tab = Tab.get(id)
+    let nextId: string | undefined
+
+    store.setState((s) => {
+      let w = s.windows[this.id]
+      let index = w.tabIds.findIndex((i) => i == tab.id)
+      if (index === -1) return
+      w.tabIds.splice(index, 1)
+      if (tab.id === w.activeTabId) {
+        nextId = w.tabIds[index] || w.tabIds[index - 1] || w.tabIds[0]
+        w.activeTabId = nextId
+      }
+    })
+
+    if (nextId) {
+      this.activateTab(nextId)
+    }
+
+    tab.close()
+  }
+
+  /** Show the window. */
+  show() {
+    this.browserWindow.show()
+  }
+
+  /** Hide the window. */
+  hide() {
+    this.browserWindow.hide()
+  }
+
+  /** Focus the window. */
+  focus() {
+    this.browserWindow.focus()
   }
 }

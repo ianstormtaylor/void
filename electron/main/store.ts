@@ -3,7 +3,3 @@ import { config } from '../shared/config'
 
 /** The shared store for the main process. */
 export let store = createSharedStore(config.store)
-
-store.subscribe((state, patches) => {
-  console.log('State changed', patches)
-})

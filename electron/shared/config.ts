@@ -10,6 +10,7 @@ export type TabConfig = {
   id: string
   path: string
   entrypoint: string | null
+  inspecting: boolean
 }
 
 export type Config = {

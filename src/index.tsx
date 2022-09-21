@@ -11,6 +11,7 @@ import { ModuleContext } from './contexts/module'
 import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useConfig } from './contexts/config'
 import { Banner } from './components/banner'
+import { TabConfig } from 'electron/shared/config'
 
 let App = () => {
   return (
@@ -35,12 +36,12 @@ let TabPage = () => {
   let [config] = useConfig()
   let tab = config.tabs[id!]
   return tab && tab.entrypoint ? (
-    <Sketch key={tab.id} entrypoint={tab.entrypoint} />
+    <Sketch key={tab.id} entrypoint={tab.entrypoint} tab={tab} />
   ) : null
 }
 
-let Sketch = (props: { entrypoint: string }) => {
-  let { entrypoint } = props
+let Sketch = (props: { entrypoint: string; tab: TabConfig }) => {
+  let { entrypoint, tab } = props
   let [module, setModule] = useState<Module | null>(null)
   let [store, setStore] = useLoadSketchStore(entrypoint)
 
@@ -55,7 +56,7 @@ let Sketch = (props: { entrypoint: string }) => {
       <ModuleContext.Provider value={module}>
         <SetSketchStoreContext.Provider value={setStore}>
           <SketchStoreContext.Provider value={store}>
-            <Editor module={module} store={store} />
+            <Editor tab={tab} module={module} store={store} />
           </SketchStoreContext.Provider>
         </SetSketchStoreContext.Provider>
       </ModuleContext.Provider>

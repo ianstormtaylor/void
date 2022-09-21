@@ -1,10 +1,10 @@
 import Path from 'path'
-import { BrowserView } from 'electron'
+import { BrowserView, BrowserViewConstructorOptions } from 'electron'
 import { serve, ServeResult } from 'esbuild'
 import { IS_DEV, VITE_DEV_SERVER_URL } from '../shared/env'
-import { Window } from './window'
 import { store } from './store'
 import crypto from 'node:crypto'
+import { Window } from './window'
 
 /** References to all the open tabs. */
 let TABS: Record<string, Tab> = {}
@@ -20,28 +20,26 @@ export class Tab {
   /** Create a new `Tab` with sketch `path`. */
   constructor(props: { path: string; id?: string }) {
     let { path, id = crypto.randomUUID() } = props
-    let view = new BrowserView({
+    let url = `${VITE_DEV_SERVER_URL}/tabs/${id}`
+    let options: BrowserViewConstructorOptions = {
       webPreferences: {
         preload: Path.join(__dirname, '../preload/index.js'),
-        // nodeIntegration: true,
-        // contextIsolation: false,
       },
-    })
+    }
 
-    let url = `${VITE_DEV_SERVER_URL}/tabs/${id}`
+    let view = new BrowserView(options)
     view.webContents.loadURL(url)
-    if (IS_DEV) view.webContents.openDevTools()
-
     this.browserView = view
     this.id = id
     this.path = path
-
     TABS[id] = this
-    this.start()
+    this.serve()
+
     store.setState((s) => {
       s.tabs[id] = {
         id,
         path,
+        inspecting: false,
         entrypoint: null,
       }
     })
@@ -54,13 +52,24 @@ export class Tab {
     return tab
   }
 
+  /** Get the active tab in the active window. */
+  static active(): Tab | null {
+    let window = Window.active()
+    if (!window) return null
+    let state = store.getState()
+    let w = state.windows[window.id]
+    if (!w.activeTabId) return null
+    let tab = Tab.get(w.activeTabId)
+    return tab ?? null
+  }
+
   /** Get all the open tabs. */
   static all(): Tab[] {
     return Object.values(TABS)
   }
 
   /** Serve the sketch's entrypoint with esbuild from memory. */
-  async start() {
+  async serve() {
     let { id, path } = this
     let dir = Path.dirname(path)
     let file = `${Path.basename(path, Path.extname(path))}.js`
@@ -111,5 +120,14 @@ export class Tab {
     }
 
     delete TABS[this.id]
+  }
+
+  /** Open the devtools inspector for the tab. */
+  inspect() {
+    this.browserView.webContents.toggleDevTools()
+    store.setState((s) => {
+      let t = s.tabs[this.id]
+      t.inspecting = this.browserView.webContents.isDevToolsOpened()
+    })
   }
 }
