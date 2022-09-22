@@ -136,7 +136,8 @@ export class Main {
       return
     }
 
-    let window = Window.byActive() ?? Window.create()
+    let window = Window.getFocused() ?? Window.create()
+
     for (let path of result.filePaths) {
       window.openTab(path)
     }

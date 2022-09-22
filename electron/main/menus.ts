@@ -7,6 +7,14 @@ import { Window } from './classes/window'
 /** A dock menu. */
 export let dockMenu = Menu.buildFromTemplate([
   {
+    label: 'New Window',
+    accelerator: 'CmdOrCtrl+N',
+    click() {
+      let window = Window.create()
+      window.show()
+    },
+  },
+  {
     label: 'Open Sketch…',
     click() {
       main.open()
@@ -34,6 +42,14 @@ export let appMenu = Menu.buildFromTemplate([
   {
     label: 'File',
     submenu: [
+      {
+        label: 'New Window',
+        accelerator: 'CmdOrCtrl+N',
+        click() {
+          let window = Window.create()
+          window.show()
+        },
+      },
       {
         label: 'Open Sketch…',
         accelerator: 'CmdOrCtrl+O',
@@ -83,18 +99,25 @@ export let appMenu = Menu.buildFromTemplate([
       {
         label: 'Reload Window',
         click() {
-          let window = Window.byActive()
+          let window = Window.getFocused()
           if (window) window.reload()
         },
       },
       {
         label: 'Toggle Window Developer Tools',
         click() {
-          let window = Window.byActive()
+          let window = Window.getFocused()
           if (window) window.inspect()
         },
       },
       { type: 'separator' },
+      {
+        label: 'Log Storage',
+        click() {
+          console.log('')
+          console.log('Store:', main.store)
+        },
+      },
       {
         label: 'Clear Storage and Quit',
         click() {

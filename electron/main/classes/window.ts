@@ -1,6 +1,6 @@
 import Path from 'path'
 import crypto from 'node:crypto'
-import { BrowserWindow } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import { IS_DEV, VITE_DEV_SERVER_URL } from '../../shared/env'
 import { Tab } from './tab'
 import { main } from './main'
@@ -46,6 +46,14 @@ export class Window {
         w.height = bounds.height
       })
       this.resizeView()
+    })
+
+    window.on('moved', () => {
+      let [x, y] = this.#window.getPosition()
+      this.change((w) => {
+        w.x = x
+        w.y = y
+      })
     })
 
     window.loadURL(url)
@@ -94,6 +102,13 @@ export class Window {
   /** Get all the windows. */
   static all(): Window[] {
     return Object.values(main.windows)
+  }
+
+  static getFocused(): Window | null {
+    let focused = BrowserWindow.getFocusedWindow()
+    if (!focused) return null
+    let window = Window.bySenderId(focused.webContents.id)
+    return window
   }
 
   /** Get the active (or most recently active) window. */
@@ -213,7 +228,15 @@ export class Window {
 
     let { tabIds } = this
     let nextId = tabIds[index] ?? tabIds[index - 1] ?? tabIds[0]
-    if (nextId) this.activateTab(nextId)
+
+    if (nextId) {
+      this.activateTab(nextId)
+    } else {
+      this.#window.setBrowserView(null)
+      this.change((w) => {
+        w.activeTabId = null
+      })
+    }
   }
 
   /** Focus the window. */

@@ -3,9 +3,9 @@ import { SketchConfig, TabConfig, WindowConfig } from 'electron/shared/config'
 import { MdAdd, MdClose } from 'react-icons/md'
 
 export let Banner = (props: { window: WindowConfig }) => {
-  let { window: win } = props
+  let { window } = props
   let [config] = useConfig()
-  let { tabs, sketches } = config
+  let tabs = window.tabIds.map((tid) => config.tabs[tid])
   return (
     <div className="flex h-10 pl-20 bg-gray-900 border-b border-gray-800 items-stretch app-drag">
       <div className="flex items-stretch px-px -space-x-px app-no-drag">
@@ -13,8 +13,8 @@ export let Banner = (props: { window: WindowConfig }) => {
           <Tab
             key={tab.id}
             tab={tab}
-            sketch={sketches[tab.sketchId]}
-            active={tab.id === win.activeTabId}
+            sketch={config.sketches[tab.sketchId]}
+            active={tab.id === window.activeTabId}
           />
         ))}
       </div>
