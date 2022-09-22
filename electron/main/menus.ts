@@ -2,6 +2,7 @@ import { Menu, app } from 'electron'
 import { IS_DEV } from '../shared/env'
 import { main } from './classes/main'
 import { Tab } from './classes/tab'
+import { Window } from './classes/window'
 
 /** A dock menu. */
 export let dockMenu = Menu.buildFromTemplate([
@@ -54,12 +55,18 @@ export let appMenu = Menu.buildFromTemplate([
   {
     label: 'View',
     submenu: [
-      { role: 'reload' },
+      {
+        label: 'Reload',
+        accelerator: 'CmdOrCtrl+R',
+        click() {
+          let tab = Tab.byActive()
+          if (tab) tab.reload()
+        },
+      },
       { type: 'separator' },
       { role: 'togglefullscreen' },
       { type: 'separator' },
       {
-        // role: 'toggleDevTools',
         label: 'Toggle Developer Tools',
         accelerator: 'CmdOrCtrl+Alt+I',
         click() {
@@ -73,7 +80,21 @@ export let appMenu = Menu.buildFromTemplate([
     label: 'Development',
     visible: IS_DEV,
     submenu: [
-      { role: 'toggleDevTools' },
+      {
+        label: 'Reload Window',
+        click() {
+          let window = Window.byActive()
+          if (window) window.reload()
+        },
+      },
+      {
+        label: 'Toggle Window Developer Tools',
+        click() {
+          let window = Window.byActive()
+          if (window) window.inspect()
+        },
+      },
+      { type: 'separator' },
       {
         label: 'Clear Storage and Quit',
         click() {

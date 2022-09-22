@@ -239,6 +239,11 @@ export class Window {
     return tab
   }
 
+  /** Reload the window. */
+  reload() {
+    this.#window.reload()
+  }
+
   /** Resize the current tab's view to match the window size. */
   resizeView() {
     let view = this.#window.getBrowserView()

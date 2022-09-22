@@ -137,4 +137,10 @@ export class Tab {
       t.inspecting = this.view.webContents.isDevToolsOpened()
     })
   }
+
+  /** Reload the tab. */
+  reload() {
+    console.log('Reloading tab…', this.id)
+    this.view.webContents.reload()
+  }
 }
