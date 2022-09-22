@@ -1,5 +1,6 @@
 import { app, dialog, Menu } from 'electron'
 import { Draft } from 'immer'
+import Store from 'electron-store'
 import { Config, initialConfig } from '../../shared/config'
 import { IS_MAC } from '../../shared/env'
 import { initializeIpc as loadIpc } from '../ipc'
@@ -23,16 +24,36 @@ export class Main {
   /** A flag to know when windows are closing by quit or by choice. */
   isQuitting: boolean
 
+  /** The persistent store that gets saved to a JSON file. */
+  #store: Store<Config>
+
   /** The shared store that gets synced to renderer processes. */
-  #sharedStore: ReturnType<typeof createSharedStore<Config>>
+  #shared: ReturnType<typeof createSharedStore<Config>>
 
   /** Create a new `Main` singleton. */
   constructor() {
+    let store = new Store({
+      defaults: initialConfig,
+    })
+
+    let shared = createSharedStore<Config>({
+      sketches: store.get('sketches'),
+      tabs: store.get('tabs'),
+      windows: store.get('windows'),
+    })
+
+    this.#store = store
+    this.#shared = shared
     this.isQuitting = false
     this.windows = {}
     this.tabs = {}
     this.sketches = {}
-    this.#sharedStore = createSharedStore(initialConfig)
+
+    shared.subscribe((state) => {
+      store.set('sketches', state.sketches)
+      store.set('tabs', state.tabs)
+      store.set('windows', state.windows)
+    })
 
     // On macOS, don't quit when all windows are closed.
     app.on('window-all-closed', () => {
@@ -88,17 +109,22 @@ export class Main {
 
   /** Get the main store's current state. */
   get store() {
-    return this.#sharedStore.getState()
+    return this.#shared.getState()
   }
 
   /** Set the main store's state using an Immer `recipe` function. */
   change(recipe: (draft: Draft<Config>) => void): void {
-    return this.#sharedStore.setState(recipe)
+    return this.#shared.setState(recipe)
   }
 
   /**
    * Actions.
    */
+
+  /** Clear the persistent storage. */
+  clear() {
+    this.#store.clear()
+  }
 
   /** Open sketches with the active window, or create a new one. */
   async open() {
@@ -125,6 +151,7 @@ export class Main {
 
   /** Restore any saved windows. */
   restore() {
+    console.log('Restoring store:', this.store)
     for (let id in this.store.windows) {
       let window = Window.restore(id)
       window.show()

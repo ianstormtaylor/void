@@ -1,4 +1,5 @@
 import { Menu, app } from 'electron'
+import { IS_DEV } from '../shared/env'
 import { main } from './classes/main'
 import { Tab } from './classes/tab'
 
@@ -64,6 +65,20 @@ export let appMenu = Menu.buildFromTemplate([
         click() {
           let tab = Tab.byActive()
           if (tab) tab.inspect()
+        },
+      },
+    ],
+  },
+  {
+    label: 'Development',
+    visible: IS_DEV,
+    submenu: [
+      { role: 'toggleDevTools' },
+      {
+        label: 'Clear Storage and Quit',
+        click() {
+          main.clear()
+          main.quit()
         },
       },
     ],

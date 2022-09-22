@@ -29,7 +29,6 @@ export class Tab {
 
   /** Create a new `Tab` with a sketch file `path`. */
   static create(path: string): Tab {
-    console.log('Creating tab…')
     let sketch = Sketch.load(path)
     let id = crypto.randomUUID()
     main.change((m) => {
@@ -41,7 +40,6 @@ export class Tab {
     })
 
     let tab = new Tab(id)
-    console.log('Created tab:', tab)
     main.tabs[id] = tab
     return tab
   }
@@ -50,7 +48,7 @@ export class Tab {
   static restore(id: string): Tab {
     let t = main.store.tabs[id]
     if (!t) throw new Error(`Cannot restore unknown tab: ${id}`)
-    Sketch.load(t.sketchId)
+    Sketch.restore(t.sketchId)
     let tab = new Tab(id)
     main.tabs[id] = tab
     return tab

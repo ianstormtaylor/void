@@ -22,27 +22,32 @@ export class Sketch {
    * Statics.
    */
 
-  /** Load a sketch by `path`, loading an existing one if possible. */
+  /** Load a sketch by `path`, reusing an existing one if possible. */
   static load(path: string): Sketch {
     let match = Object.values(main.sketches).find((s) => s.path === path)
     if (match) return match
 
-    // If the sketch isn't already saved, add it to the main store.
-    let json = Object.values(main.store.sketches).find((s) => s.path === path)
-    let id = crypto.randomUUID()
-    if (json) {
-      id = json.id
-    } else {
-      main.change((m) => {
-        m.sketches[id] = {
-          id,
-          path,
-          entrypoint: null,
-          traits: {},
-        }
-      })
-    }
+    let s = Object.values(main.store.sketches).find((s) => s.path === path)
+    if (s) return Sketch.restore(s.id)
 
+    let id = crypto.randomUUID()
+    main.change((m) => {
+      m.sketches[id] = {
+        id,
+        path,
+        entrypoint: null,
+        traits: {},
+      }
+    })
+    let sketch = new Sketch(id)
+    main.sketches[id] = sketch
+    return sketch
+  }
+
+  /** Restore a saved sketch. */
+  static restore(id: string): Sketch {
+    let s = main.store.sketches[id]
+    if (!s) throw new Error(`Cannot restore unknown sketch: ${id}`)
     let sketch = new Sketch(id)
     main.sketches[id] = sketch
     return sketch

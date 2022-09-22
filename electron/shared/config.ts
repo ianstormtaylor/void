@@ -3,6 +3,10 @@ export type WindowConfig = {
   id: string
   tabIds: string[]
   activeTabId: string | null
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 /** The saved state of a `Tab`. */
@@ -33,10 +37,3 @@ export let initialConfig: Config = {
   tabs: {},
   windows: {},
 }
-
-// export let config = new ElectronStore<Config>({
-//   defaults: {
-//     windows: [],
-//     tabs: [],
-//   },
-// })

@@ -38,6 +38,13 @@ export class Window {
     })
 
     window.on('resize', () => {
+      let bounds = this.#window.getBounds()
+      this.change((w) => {
+        w.x = bounds.x
+        w.y = bounds.y
+        w.width = bounds.width
+        w.height = bounds.height
+      })
       this.resizeView()
     })
 
@@ -56,6 +63,10 @@ export class Window {
         id,
         tabIds: [],
         activeTabId: null,
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 750,
       }
     })
 
@@ -106,20 +117,26 @@ export class Window {
    * Getters & setters.
    */
 
-  /** Get the `activeTabId` of the window. */
-  get activeTabId(): string | null {
-    return main.store.windows[this.id].activeTabId
-  }
-
   /** Get the active `Tab` instance of a window. */
   get activeTab(): Tab | null {
     let id = this.activeTabId
     return id ? Tab.byId(id) : null
   }
 
-  /** Get the child `tabIds` of a window. */
-  get tabIds(): string[] {
-    return main.store.windows[this.id].tabIds
+  /** Get the `activeTabId` of the window. */
+  get activeTabId(): string | null {
+    return main.store.windows[this.id].activeTabId
+  }
+
+  /** Get the windows bounds. */
+  get bounds(): { x: number; y: number; width: number; height: number } {
+    let { x, y, width, height } = main.store.windows[this.id]
+    return { x, y, width, height }
+  }
+
+  /** The electron window's `webContents` id, for IPC messages. */
+  get senderId(): number {
+    return this.#window.webContents.id
   }
 
   /** Get the child `Tab` instances of a window. */
@@ -127,9 +144,9 @@ export class Window {
     return this.tabIds.map((id) => Tab.byId(id))
   }
 
-  /** The electron window's `webContents` id, for IPC messages. */
-  get senderId(): number {
-    return this.#window.webContents.id
+  /** Get the child `tabIds` of a window. */
+  get tabIds(): string[] {
+    return main.store.windows[this.id].tabIds
   }
 
   /** Set the window's state using an Immer `recipe` function. */
@@ -226,14 +243,15 @@ export class Window {
   resizeView() {
     let view = this.#window.getBrowserView()
     if (!view) return
-    let { x, y, width, height } = this.#window.getBounds()
-    let padding = 15 // not quite exact for some reason
-    view.setBounds({ x, y: y + padding, width, height: height - padding })
+    let { width, height } = this.#window.getBounds()
+    let padding = 40
+    view.setBounds({ x: 0, y: padding, width, height: height - padding })
   }
 
   /** Show the window. */
   show() {
+    this.#window.setBounds(this.bounds)
     this.#window.show()
-    if (IS_DEV) this.inspect()
+    this.resizeView() // compat: required to keep the view aligned
   }
 }
