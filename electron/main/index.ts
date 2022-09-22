@@ -1,1 +1,1 @@
-import './main'
+import './classes/main'

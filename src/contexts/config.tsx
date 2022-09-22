@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-// import { createSharedStore } from '../../electron/shared/shared-state'
-import { config } from '../../electron/shared/config'
+import { Config } from '../../electron/shared/config'
 
 /** Use the shared Electron store as a React hook. */
-let useSharedStore = <T extends Record<string, any>>(
-  initialState: T
-): readonly [T, (recipe: (draft: T) => void) => void] => {
+let useSharedStore = (): readonly [
+  Config,
+  (recipe: (draft: Config) => void) => void
+] => {
+  let { store } = electron
   let [count, setCount] = useState(0)
   // let store = useMemo(() => createSharedStore(initialState), [initialState])
-  let store = electron.store
 
   // Create the return value memoized by the counter to react to changes.
   let ret = useMemo(() => {
@@ -26,7 +26,7 @@ let useSharedStore = <T extends Record<string, any>>(
 
 /** Use the synchronized config store. */
 export let useConfig = () => {
-  return useSharedStore(config.store)
+  return useSharedStore()
 }
 
 /** Use a tab by `id`. */

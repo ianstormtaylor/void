@@ -5,14 +5,15 @@ import { useMeasure } from 'react-use'
 import { Canvas, CanvasRefContext } from './canvas'
 import { SketchStore } from '../contexts/sketch-store'
 import { MdBuild, MdClose, MdHandyman, MdOutlineBuild } from 'react-icons/md'
-import { TabConfig } from 'electron/shared/config'
+import { SketchConfig, TabConfig } from 'electron/shared/config'
 
 export let Editor = (props: {
   tab: TabConfig
   module: Module
   store: SketchStore
+  sketch: SketchConfig
 }) => {
-  let { tab, module, store } = props
+  let { sketch, tab, module, store } = props
   let canvasRef = useRef<HTMLCanvasElement>()
   let [parentRef, { width: parentWidth, height: parentHeight }] = useMeasure()
   let state = useMemo(() => {

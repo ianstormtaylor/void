@@ -31,7 +31,7 @@ export default defineConfig({
       },
       preload: {
         input: {
-          index: Path.join(__dirname, 'electron/preload/index.ts'),
+          index: Path.join(__dirname, 'electron/renderer/preload.ts'),
         },
         vite: {
           build: {

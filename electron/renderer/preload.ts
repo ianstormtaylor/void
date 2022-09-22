@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { config } from '../shared/config'
+import { initialConfig } from '../shared/config'
 import { createSharedStore } from '../shared/shared-state'
 
 /** A shared store. */
-let store = createSharedStore(config)
+let store = createSharedStore(initialConfig)
 
 /** The global object exposed to use Electron APIs. */
 export type Electron = typeof electron

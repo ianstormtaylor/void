@@ -1,7 +1,6 @@
 import { Menu, app } from 'electron'
-import { main } from './main'
-import { Tab } from './tab'
-import { Window } from './window'
+import { main } from './classes/main'
+import { Tab } from './classes/tab'
 
 /** A dock menu. */
 export let dockMenu = Menu.buildFromTemplate([
@@ -63,7 +62,7 @@ export let appMenu = Menu.buildFromTemplate([
         label: 'Toggle Developer Tools',
         accelerator: 'CmdOrCtrl+Alt+I',
         click() {
-          let tab = Tab.active()
+          let tab = Tab.byActive()
           if (tab) tab.inspect()
         },
       },
