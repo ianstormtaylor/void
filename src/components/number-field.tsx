@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react'
-import { MdTag } from 'react-icons/md'
 import { useLatest } from 'react-use'
 
 // A tiny empty image for replacing the default drag image.
@@ -95,10 +94,9 @@ export let NumberField = (props: {
           document.body.removeEventListener('dragover', dragHandlerRef.current)
         }}
       >
-        <span className="text-base text-gray-400 -ml-0.5">
-          {icon ?? <MdTag />}
-        </span>
-        {icon == null && (
+        {icon ? (
+          <span className="text-base text-gray-400 -ml-0.5">{icon}</span>
+        ) : (
           <span className="font-light text-gray-500">{label}</span>
         )}
       </div>

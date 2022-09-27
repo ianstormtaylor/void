@@ -1,12 +1,12 @@
 import React, { createContext, useContext } from 'react'
-import { Settings } from '../engine/sketch'
+import { Settings } from '../../electron/shared/engine/sketch'
 import { produce } from 'immer'
 import useLocalStorage from 'use-local-storage'
 
 export type SketchStore = Settings & {
   hiddens: string[]
   seeds: number[]
-  variables: Record<string, any>
+  traits: Record<string, any>
   zoom?: number
 }
 
@@ -14,7 +14,7 @@ export let useLoadSketchStore = (key: string) => {
   return useLocalStorage<SketchStore>(key, {
     hiddens: [],
     seeds: [],
-    variables: {},
+    traits: {},
   })
 }
 

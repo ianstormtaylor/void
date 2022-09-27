@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
-import { Module } from './engine/sketch'
+import { Module } from '../electron/shared/engine/sketch'
 import { Editor } from './components/editor'
 import {
   SetSketchStoreContext,
@@ -35,7 +35,7 @@ let TabPage = () => {
   let { id } = useParams()
   let [config] = useConfig()
   let tab = config.tabs[id!]
-  let sketch = config.sketches[tab.sketchId]
+  let sketch = config.sketches[tab?.sketchId]
   return tab && sketch && sketch.entrypoint ? (
     <Sketch
       key={tab.id}

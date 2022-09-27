@@ -1,5 +1,5 @@
 import { MdSelectAll } from 'react-icons/md'
-import { State } from '../engine/sketch'
+import { State } from '../../electron/shared/engine/sketch'
 
 export let MarginsField = (props: { state: State }) => {
   let { state } = props

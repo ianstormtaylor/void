@@ -59,7 +59,7 @@ export let Tab = (props: {
         if (!active) electron.activateTab(id)
       }}
     >
-      <span className="pb-px">{file}</span>{' '}
+      <span className="pb-px select-none">{file}</span>{' '}
       <button
         title="Close Tab"
         className={`

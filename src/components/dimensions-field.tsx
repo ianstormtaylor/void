@@ -1,6 +1,6 @@
 import React from 'react'
 import { MdCrop } from 'react-icons/md'
-import { State } from '../engine/sketch'
+import { State } from '../../electron/shared/engine/sketch'
 
 export let DimensionsField = (props: { state: State }) => {
   let { state } = props

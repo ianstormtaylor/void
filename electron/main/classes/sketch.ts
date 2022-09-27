@@ -36,7 +36,6 @@ export class Sketch {
         id,
         path,
         entrypoint: null,
-        traits: {},
       }
     })
     let sketch = new Sketch(id)

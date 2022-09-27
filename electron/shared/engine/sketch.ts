@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash'
-import { Random } from '../helpers/random'
+import { Random } from './random'
 import {
   DIMENSIONS,
   Dimensions,
@@ -9,67 +9,11 @@ import {
   Units,
   Margins,
 } from './dimensions'
-
-/** A package that represents a sketch with settings. */
-export interface Module<T extends Record<string, any> = Record<string, any>> {
-  settings: Settings<T>
-  sketch: Sketch<T>
-}
-
-/** The optional settings for configuring a sketch. */
-export interface Settings<T extends Record<string, any> = Record<string, any>> {
-  dimensions?: Dimensions | Paper
-  dpi?: number
-  orientation?: Orientation
-  units?: Units
-  margin?: Margins
-  precision?: number
-  seed?: number
-  variables?: T
-  controls?: Record<keyof T, Partial<Control>>
-}
-
-/** A configuration for the UI controls for a variable. */
-export type Control = NumberControl | EnumControl | BooleanControl
-
-export type NumberControl = {
-  type: 'number'
-  step: number
-  min: number
-  max: number
-}
-
-export type EnumControl = {
-  type: 'enum'
-  options: string[]
-}
-
-export type BooleanControl = {
-  type: 'boolean'
-}
-
-/** A canvas layer to draw for the sketch. */
-export type Layer = {
-  name: string
-  paths: [number, number][][]
-  fill?: string
-  stroke?: string
-  thickness?: number
-  hidden?: boolean
-}
-
-export type LayerInfo = Pick<Layer, 'name' | 'stroke' | 'fill' | 'thickness'>
-
-/** The sketch factory which sets up and returns a draw function. */
-export type Sketch<T extends Record<string, any> = Record<string, any>> = (
-  state: State<T> & {
-    context: CanvasRenderingContext2D
-  }
-) => void
+import { Control, Settings } from './settings'
 
 /** A sketch object, with settings and helpers. */
 export class State<T extends Record<string, any> = Record<string, any>> {
-  readonly controls: Record<keyof T, Control>
+  readonly schema: Record<keyof T, Control>
   readonly dpi: number
   readonly dimensions: Dimensions
   readonly height: number
@@ -81,7 +25,7 @@ export class State<T extends Record<string, any> = Record<string, any>> {
   readonly seed: number
   readonly precision: number
   readonly units: Units
-  readonly vars: T
+  readonly traits: T
   readonly width: number
 
   frame: number
@@ -106,9 +50,12 @@ export class State<T extends Record<string, any> = Record<string, any>> {
       precision = 0,
       units,
     } = settings
+
     if (typeof dimensions === 'string') {
       this.paper = dimensions
       dimensions = DIMENSIONS[dimensions]
+    } else {
+      this.paper = null
     }
 
     this.dimensions = dimensions
@@ -145,19 +92,19 @@ export class State<T extends Record<string, any> = Record<string, any>> {
     this.random = new Random(seed)
 
     // Setup the sketch's variables and interface controls.
-    this.vars = cloneDeep(settings.variables) ?? ({} as T)
-    this.controls = getControls(this.vars, settings.controls)
+    this.traits = cloneDeep(settings.traits) ?? ({} as T)
+    this.schema = getSchema(this.traits, settings.schema)
   }
 }
 
-/** Get the implicit controls from a set of `vars`. */
-function getControls<T extends Record<string, any>>(
-  vars: T,
+/** Get the implicit schema from a set of `traits`. */
+function getSchema<T extends Record<string, any>>(
+  traits: T,
   controls?: Record<keyof T, Partial<Control>>
 ): Record<keyof T, Control> {
   let ret: Record<string, Control> = {}
 
-  for (let [key, value] of Object.entries(vars)) {
+  for (let [key, value] of Object.entries(traits)) {
     let { min, max, step, options } = (controls?.[key] ?? {}) as any
 
     if (typeof value === 'boolean') {
@@ -247,7 +194,7 @@ function normalizeMargin(
 function applyOrientation(
   width: number,
   height: number,
-  ori: Orientation
+  ori: Orientation | undefined
 ): [number, number, Orientation] {
   if (ori == null) {
     ori =

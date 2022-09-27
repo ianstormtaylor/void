@@ -1,6 +1,6 @@
 import { app, dialog, Menu } from 'electron'
 import { Draft } from 'immer'
-import Store from 'electron-store'
+import ElectronStore from 'electron-store'
 import { Config, initialConfig } from '../../shared/config'
 import { IS_MAC } from '../../shared/env'
 import { initializeIpc as loadIpc } from '../ipc'
@@ -8,7 +8,8 @@ import { appMenu, dockMenu } from '../menus'
 import { Tab } from './tab'
 import { Window } from './window'
 import { Sketch } from './sketch'
-import { createSharedStore } from '../../shared/shared-state'
+import { createMainStore } from '../../shared/store/main'
+import { Store as SharedStore } from '../../shared/store/base'
 
 /** The `Main` object stores state about the entire app on the main thread. */
 export class Main {
@@ -25,18 +26,18 @@ export class Main {
   isQuitting: boolean
 
   /** The persistent store that gets saved to a JSON file. */
-  #store: Store<Config>
+  #store: ElectronStore<Config>
 
   /** The shared store that gets synced to renderer processes. */
-  #shared: ReturnType<typeof createSharedStore<Config>>
+  #shared: SharedStore<Config>
 
   /** Create a new `Main` singleton. */
   constructor() {
-    let store = new Store({
+    let store = new ElectronStore({
       defaults: initialConfig,
     })
 
-    let shared = createSharedStore<Config>({
+    let shared = createMainStore({
       sketches: store.get('sketches'),
       tabs: store.get('tabs'),
       windows: store.get('windows'),
@@ -109,12 +110,12 @@ export class Main {
 
   /** Get the main store's current state. */
   get store() {
-    return this.#shared.getState()
+    return this.#shared.get()
   }
 
   /** Set the main store's state using an Immer `recipe` function. */
   change(recipe: (draft: Draft<Config>) => void): void {
-    return this.#shared.setState(recipe)
+    return this.#shared.change(recipe)
   }
 
   /**

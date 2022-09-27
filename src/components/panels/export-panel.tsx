@@ -1,9 +1,13 @@
 import React from 'react'
-import { State } from '../engine/sketch'
+import { State } from '../../../electron/shared/engine/sketch'
 import { MdOutlineFeed, MdOutlineImage, MdPhotoFilter } from 'react-icons/md'
-import { useCanvasRef } from './canvas'
-import { exportPdf, exportPng, exportSvg } from '../engine/export'
-import { useModule } from '../contexts/module'
+import { useCanvasRef } from '../canvas'
+import {
+  exportPdf,
+  exportPng,
+  exportSvg,
+} from '../../../electron/shared/engine/export'
+import { useModule } from '../../contexts/module'
 
 export let ExportPanel = (props: { state: State }) => {
   let { state } = props

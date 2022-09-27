@@ -5,13 +5,14 @@ import React, {
   useContext,
   useMemo,
 } from 'react'
-import { Sketch, State } from '../engine/sketch'
+import { State } from '../../electron/shared/engine/sketch'
 import { mergeRefs } from 'react-merge-refs'
 import {
   getOuterDimensions,
   getOutputDimensions,
   getScreenDimensions,
-} from '../engine/export'
+} from '../../electron/shared/engine/export'
+import { Sketch } from 'electron/shared/engine/module'
 
 export let CanvasRefContext =
   createContext<React.RefObject<HTMLCanvasElement | null> | null>(null)
@@ -28,7 +29,7 @@ export let Canvas = React.forwardRef<
     maxHeight: number
     maxWidth: number
     sketch: Sketch
-    zoom?: number
+    zoom: number | null
     state: State
   }
 >((props, ref) => {

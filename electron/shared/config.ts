@@ -1,3 +1,5 @@
+import { Settings } from './engine/settings'
+
 /** The saved state of a `Window`. */
 export type WindowConfig = {
   id: string
@@ -14,6 +16,8 @@ export type TabConfig = {
   id: string
   sketchId: string
   inspecting: boolean
+  zoom: number | null
+  settings: Settings
 }
 
 /** The saved state of a `Sketch`. */
@@ -21,7 +25,6 @@ export type SketchConfig = {
   id: string
   path: string
   entrypoint: string | null
-  traits: Record<string, any>
 }
 
 /** The saved state of the entire app. */

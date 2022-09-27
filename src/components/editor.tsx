@@ -1,11 +1,20 @@
-import React, { useMemo, useRef } from 'react'
-import { Module, Settings, State } from '../engine/sketch'
+import { useMemo, useRef } from 'react'
+import { State } from '../../electron/shared/engine/sketch'
 import { Sidebar } from './sidebar'
 import { useMeasure } from 'react-use'
 import { Canvas, CanvasRefContext } from './canvas'
 import { SketchStore } from '../contexts/sketch-store'
-import { MdBuild, MdClose, MdHandyman, MdOutlineBuild } from 'react-icons/md'
+import {
+  MdAutoAwesome,
+  MdBuild,
+  MdFavoriteBorder,
+  MdGridView,
+  MdZoomIn,
+} from 'react-icons/md'
 import { SketchConfig, TabConfig } from 'electron/shared/config'
+import { useConfig } from '@/contexts/config'
+import { Module } from 'electron/shared/engine/module'
+import { Settings } from 'electron/shared/engine/settings'
 
 export let Editor = (props: {
   tab: TabConfig
@@ -13,7 +22,7 @@ export let Editor = (props: {
   store: SketchStore
   sketch: SketchConfig
 }) => {
-  let { sketch, tab, module, store } = props
+  let { sketch, tab, module } = props
   let canvasRef = useRef<HTMLCanvasElement>()
   let [parentRef, { width: parentWidth, height: parentHeight }] = useMeasure()
   let state = useMemo(() => {
@@ -22,40 +31,25 @@ export let Editor = (props: {
     let s: Settings = Object.assign(
       { dimensions: [parentWidth, parentHeight, 'px'] },
       settings,
-      store,
-      { variables: {} }
+      tab.settings,
+      { traits: {} }
     )
 
-    for (let [key, value] of Object.entries(settings.variables)) {
-      s.variables[key] = key in store.variables ? store.variables[key] : value
+    for (let [key, value] of Object.entries(settings.traits ?? {})) {
+      s.traits![key] =
+        tab.settings.traits != null && key in tab.settings.traits
+          ? tab.settings.traits[key]
+          : value
     }
 
     console.log('initializing…', s)
     return new State(s)
-  }, [module, store, parentWidth, parentHeight])
+  }, [module, tab, parentWidth, parentHeight])
 
   return (
     <CanvasRefContext.Provider value={canvasRef}>
       <div className="relative flex flex-col items-stretch w-screen h-screen bg-gray-100">
-        <div className="relative z-10 flex items-center h-12 bg-gray-800">
-          <button
-            title="Close Tab"
-            className={`
-              text-lg flex w-12 h-12 items-center justify-center rounded cursor-default
-              ${
-                tab.inspecting
-                  ? 'text-gray-100 hover:text-white'
-                  : 'text-gray-400 hover:text-white'
-              } 
-            `}
-            onClick={(e) => {
-              e.stopPropagation()
-              electron.inspectTab(tab.id)
-            }}
-          >
-            <MdBuild />
-          </button>
-        </div>
+        <EditorToolbar tab={tab} />
         <div className="relative flex-1">
           <div
             ref={parentRef}
@@ -68,15 +62,101 @@ export let Editor = (props: {
                 maxHeight={parentHeight - 40 * 2}
                 state={state}
                 sketch={module.sketch}
-                zoom={store.zoom}
+                zoom={tab.zoom}
               />
             )}
           </div>
           <div className="absolute inset-y-0 right-0 w-64 border-l border-gray-200 bg-white">
-            {state && <Sidebar store={store} state={state} />}
+            {state && <Sidebar tab={tab} state={state} />}
           </div>
         </div>
       </div>
     </CanvasRefContext.Provider>
+  )
+}
+
+export let EditorToolbar = (props: { tab: TabConfig }) => {
+  let [config, setConfig] = useConfig()
+  let { tab } = props
+  return (
+    <div className="relative z-10 flex items-center justify-between h-12 p-2 bg-gray-800">
+      <div className="flex items-center space-x-1">
+        <button
+          title="Close Tab"
+          className={`
+              flex w-8 h-8 items-center justify-center rounded cursor-default
+              hover:text-white hover:bg-gray-700
+              ${tab.inspecting ? 'text-gray-100' : 'text-gray-400'} 
+            `}
+          onClick={(e) => {
+            e.stopPropagation()
+            electron.inspectTab(tab.id)
+          }}
+        >
+          <MdBuild className="text-lg" />
+        </button>
+        <button
+          title="Zoom Level"
+          className={`
+              flex h-8 px-2 items-center justify-center space-x-1 rounded cursor-default
+              hover:text-white hover:bg-gray-700
+              ${tab.inspecting ? 'text-gray-100' : 'text-gray-400'} 
+            `}
+          onClick={(e) => {
+            e.stopPropagation()
+            electron.inspectTab(tab.id)
+          }}
+        >
+          <MdZoomIn className="text-xl" />{' '}
+          <span className="text-sm">
+            {tab.zoom ? `${Math.round(tab.zoom) * 100}%` : 'Fit'}
+          </span>
+        </button>
+      </div>
+      <div className="flex items-center space-x-1">
+        <button
+          title="Close Tab"
+          className={`
+              flex w-8 h-8 items-center justify-center rounded cursor-default
+              hover:text-white hover:bg-gray-700
+              ${tab.inspecting ? 'text-gray-100' : 'text-gray-400'} 
+            `}
+          onClick={(e) => {
+            e.stopPropagation()
+            electron.inspectTab(tab.id)
+          }}
+        >
+          <MdAutoAwesome className="text-lg" />
+        </button>
+        <button
+          title="Close Tab"
+          className={`
+            flex w-8 h-8 items-center justify-center rounded cursor-default
+            hover:text-white hover:bg-gray-700
+            ${tab.inspecting ? 'text-gray-100' : 'text-gray-400'} 
+          `}
+          onClick={(e) => {
+            e.stopPropagation()
+            electron.inspectTab(tab.id)
+          }}
+        >
+          <MdFavoriteBorder className="text-lg" />
+        </button>
+        <button
+          title="Close Tab"
+          className={`
+              flex w-8 h-8 items-center justify-center rounded cursor-default
+              hover:text-white hover:bg-gray-700
+              ${tab.inspecting ? 'text-gray-100' : 'text-gray-400'} 
+            `}
+          onClick={(e) => {
+            e.stopPropagation()
+            electron.inspectTab(tab.id)
+          }}
+        >
+          <MdGridView className="text-lg" />
+        </button>
+      </div>
+    </div>
   )
 }

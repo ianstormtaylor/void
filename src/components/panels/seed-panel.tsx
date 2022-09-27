@@ -1,5 +1,5 @@
-import { NumberField } from './number-field'
-import { State } from '../engine/sketch'
+import { NumberField } from '../number-field'
+import { State } from '../../../electron/shared/engine/sketch'
 import {
   MdEast,
   MdFavorite,
@@ -8,24 +8,25 @@ import {
   MdGridView,
   MdWest,
 } from 'react-icons/md'
-import { SketchStore, useUpdateSketchStore } from '../contexts/sketch-store'
 import { Popover } from '@headlessui/react'
+import { useConfig } from '@/contexts/config'
+import { TabConfig } from 'electron/shared/config'
 
-export let SeedPanel = (props: { state: State; store: SketchStore }) => {
-  let { state, store } = props
-  let updateStore = useUpdateSketchStore()
+export let SeedPanel = (props: { state: State; tab: TabConfig }) => {
+  let { state, tab } = props
+  let [, updateConfig] = useConfig()
   return (
     <div className="p-5 space-y-1">
       <div className="flex justify-between items-center">
         <h2 className="font-semibold">Seed</h2>
-        <div className="flex items-center -mr-1.5">
+        {/* <div className="flex items-center -mr-1.5">
           <button
             className={`
                 flex w-7 h-7 items-center justify-center text-base rounded hover:bg-gray-100
                 ${store.seeds.includes(state.seed) ? '' : 'text-gray-400'} 
               `}
             onClick={() => {
-              updateStore((s) => {
+              updateConfig((s) => {
                 let i = s.seeds.indexOf(state.seed)
                 if (i < 0) s.seeds.push(state.seed)
                 else s.seeds.splice(i, 1)
@@ -62,19 +63,20 @@ export let SeedPanel = (props: { state: State; store: SketchStore }) => {
                       <button
                         key={seed}
                         onClick={() => {
-                          updateStore((s) => {
-                            s.seed = seed
+                          updateConfig((s) => {
+                            let t = s.tabs[tab.id]
+                            t.settings.seed = seed
                           })
                           close()
                         }}
                         className={`
-                      py-1 px-2.5 rounded
-                      ${
-                        seed === store.seed
-                          ? 'text-white bg-black'
-                          : 'bg-gray-100'
-                      }
-                    `}
+                          py-1 px-2.5 rounded
+                          ${
+                            seed === tab.settings.seed
+                              ? 'text-white bg-black'
+                              : 'bg-gray-100'
+                          }
+                        `}
                       >
                         {seed}
                       </button>
@@ -84,7 +86,7 @@ export let SeedPanel = (props: { state: State; store: SketchStore }) => {
               )}
             </Popover.Panel>
           </Popover>
-        </div>{' '}
+        </div>{' '} */}
       </div>
       <div className="flex space-x-2 -mr-1.5">
         <NumberField
@@ -95,20 +97,22 @@ export let SeedPanel = (props: { state: State; store: SketchStore }) => {
           min={0}
           max={9999}
           onChange={(seed) => {
-            updateStore((s) => {
-              s.seed = seed
+            updateConfig((c) => {
+              let t = c.tabs[tab.id]
+              t.settings.seed = seed
             })
           }}
         />
         <div className="flex items-center">
           <button
             className={`
-                flex w-7 h-7 items-center justify-center text-base rounded
-                text-gray-400 hover:bg-gray-100
-              `}
+              flex w-7 h-7 items-center justify-center text-base rounded
+              text-gray-400 hover:bg-gray-100
+            `}
             onClick={() => {
-              updateStore((s) => {
-                s.seed = Math.max(0, state.seed - 1)
+              updateConfig((c) => {
+                let t = c.tabs[tab.id]
+                t.settings.seed = Math.max(0, state.seed - 1)
               })
             }}
           >
@@ -116,12 +120,13 @@ export let SeedPanel = (props: { state: State; store: SketchStore }) => {
           </button>
           <button
             className={`
-                flex w-7 h-7 items-center justify-center text-base rounded
-                text-gray-400 hover:bg-gray-100
-              `}
+              flex w-7 h-7 items-center justify-center text-base rounded
+              text-gray-400 hover:bg-gray-100
+            `}
             onClick={() => {
-              updateStore((s) => {
-                s.seed = Math.max(0, state.seed + 1)
+              updateConfig((c) => {
+                let t = c.tabs[tab.id]
+                t.settings.seed = Math.max(0, state.seed + 1)
               })
             }}
           >

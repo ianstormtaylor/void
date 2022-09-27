@@ -1,33 +1,20 @@
 import React from 'react'
 import { NumberField } from './number-field'
-import { State } from '../engine/sketch'
+import { State } from '../../electron/shared/engine/sketch'
 import { capitalCase } from 'change-case'
-import { ColorField } from './color-field'
 import { DimensionsField } from './dimensions-field'
 import { MarginsField } from './margins-field'
-import {
-  MdCrop169,
-  MdCropSquare,
-  MdEast,
-  MdFavorite,
-  MdFavoriteBorder,
-  MdFingerprint,
-  MdGridView,
-  MdReplay,
-  MdResetTv,
-  MdUndo,
-  MdWest,
-} from 'react-icons/md'
-import { SketchStore, useUpdateSketchStore } from '../contexts/sketch-store'
-import { SeedPanel } from './seed-panel'
-import { ExportPanel } from './export-panel'
-import { ZoomField } from './zoom-field'
+import { MdCrop169, MdCropSquare, MdReplay } from 'react-icons/md'
+import { SeedPanel } from './panels/seed-panel'
+import { ExportPanel } from './panels/export-panel'
 import { BooleanField } from './boolean-field'
 import { IconButton } from './icon-button'
+import { TabConfig } from 'electron/shared/config'
+import { useConfig } from '@/contexts/config'
 
-export let Sidebar = (props: { state: State; store: SketchStore }) => {
-  let updateStore = useUpdateSketchStore()
-  let { state, store } = props
+export let Sidebar = (props: { state: State; tab: TabConfig }) => {
+  let { state, tab } = props
+  let [, setConfig] = useConfig()
   let { orientation } = state
   return (
     <div className="text-xs">
@@ -37,8 +24,9 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
           <div className="flex items-center -my-1.5 -mr-1.5">
             <button
               onClick={() => {
-                updateStore((s) => {
-                  s.orientation = 'portrait'
+                setConfig((c) => {
+                  let t = c.tabs[tab.id]
+                  t.settings.orientation = 'portrait'
                 })
               }}
               className={`
@@ -53,8 +41,9 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
             </button>
             <button
               onClick={() => {
-                updateStore((s) => {
-                  s.orientation = 'landscape'
+                setConfig((c) => {
+                  let t = c.tabs[tab.id]
+                  t.settings.orientation = 'landscape'
                 })
               }}
               className={`
@@ -71,8 +60,9 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
             </button>
             <button
               onClick={() => {
-                updateStore((s) => {
-                  s.orientation = 'square'
+                setConfig((c) => {
+                  let t = c.tabs[tab.id]
+                  t.settings.orientation = 'square'
                 })
               }}
               className={`
@@ -87,15 +77,13 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
         </div>
         <DimensionsField state={state} />
         <MarginsField state={state} />
-        <ZoomField />
-        {/* <ColorField label="Background" value="#FFFFFF" onChange={() => {}} /> */}
       </Section>
       <Separator />
-      <SeedPanel state={state} store={store} />
+      <SeedPanel state={state} tab={tab} />
       <Separator />
       <Section>
-        <Header>Variables</Header>
-        {Object.entries(state.controls).map(([key, control]) => {
+        <Header>Traits</Header>
+        {Object.entries(state.schema).map(([key, control]) => {
           let field: React.ReactNode | undefined
 
           if (control.type === 'number') {
@@ -105,11 +93,17 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
                 step={control.step}
                 min={control.min}
                 max={control.max}
-                value={state.vars[key]}
-                valueClassName={key in store.variables ? 'font-bold' : ''}
+                value={state.traits[key]}
+                valueClassName={
+                  tab.settings.traits != null && key in tab.settings.traits
+                    ? 'font-bold'
+                    : ''
+                }
                 onChange={(value) => {
-                  updateStore((s) => {
-                    s.variables[key] = value
+                  setConfig((s) => {
+                    let t = s.tabs[tab.id]
+                    let traits = (t.settings.traits = t.settings.traits ?? {})
+                    traits[key] = value
                   })
                 }}
               />
@@ -117,12 +111,18 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
           } else if (control.type === 'boolean') {
             field = (
               <BooleanField
-                value={state.vars[key]}
-                valueClassName={key in store.variables ? 'font-bold' : ''}
+                value={state.traits[key]}
+                valueClassName={
+                  tab.settings.traits != null && key in tab.settings.traits
+                    ? 'font-bold'
+                    : ''
+                }
                 label={capitalCase(key)}
                 onChange={(value) => {
-                  updateStore((s) => {
-                    s.variables[key] = value
+                  setConfig((s) => {
+                    let t = s.tabs[tab.id]
+                    let traits = (t.settings.traits = t.settings.traits ?? {})
+                    traits[key] = value
                   })
                 }}
               />
@@ -134,13 +134,16 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
           return (
             <div key={key} className="flex items-center">
               <div className="flex-1">{field}</div>
-              {key in store.variables ? (
+              {tab.settings.traits != null && key in tab.settings.traits ? (
                 <div className="ml-2.5 -mr-1.5">
                   <IconButton
                     title="Reset"
                     onClick={() => {
-                      updateStore((s) => {
-                        delete s.variables[key]
+                      setConfig((s) => {
+                        let t = s.tabs[tab.id]
+                        let traits = (t.settings.traits =
+                          t.settings.traits ?? {})
+                        delete traits[key]
                       })
                     }}
                   >
@@ -153,30 +156,6 @@ export let Sidebar = (props: { state: State; store: SketchStore }) => {
         })}
       </Section>
       <Separator />
-      {/* <Section>
-        <Header>Layers</Header>
-        {layers
-          .slice()
-          .reverse()
-          .map((layer) => {
-            return (
-              <LayerField
-                key={layer.name}
-                name={layer.name}
-                fill={layer.fill}
-                stroke={layer.stroke}
-                hidden={store.hiddens.includes(layer.name)}
-                toggle={() => {
-                  updateStore((s) => {
-                    let i = s.hiddens.indexOf(layer.name)
-                    if (i < 0) s.hiddens.push(layer.name)
-                    else s.hiddens.splice(i, 1)
-                  })
-                }}
-              />
-            )
-          })}
-      </Section> */}
       <ExportPanel state={state} />
     </div>
   )

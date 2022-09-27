@@ -1,6 +1,3 @@
-import React from 'react'
-import { MdCheckCircle, MdOutlineCircle } from 'react-icons/md'
-
 export let BooleanField = (props: {
   value: boolean
   label: string
@@ -11,9 +8,6 @@ export let BooleanField = (props: {
   return (
     <label className="flex -mx-2 py-1.5 px-2 rounded cursor-pointer hover:outline hover:outline-1 hover:outline-gray-200">
       <div className="flex flex-0 flex-shrink-0 w-28 items-center space-x-1">
-        <span className="text-base text-gray-400 -ml-0.5">
-          {value ? <MdCheckCircle /> : <MdOutlineCircle />}
-        </span>
         <span className="font-light text-gray-500">{label}</span>
       </div>
       <div className={valueClassName}>{value ? 'true' : 'false'}</div>

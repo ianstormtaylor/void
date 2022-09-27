@@ -36,6 +36,8 @@ export class Tab {
         id,
         sketchId: sketch.id,
         inspecting: false,
+        zoom: null,
+        settings: {},
       }
     })
 
