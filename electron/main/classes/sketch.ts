@@ -1,6 +1,6 @@
 import Path from 'path'
 import crypto from 'node:crypto'
-import { serve, ServeResult } from 'esbuild'
+import Esbuild from 'esbuild'
 import { main } from './main'
 import { Draft } from 'immer'
 import { SketchConfig } from '../../shared/config'
@@ -9,12 +9,14 @@ import { Tab } from './tab'
 /** A `Sketch` class holds a reference to a specific sketch file. */
 export class Sketch {
   id: string
-  #server: ServeResult | null
+  #build: Esbuild.BuildResult | null
+  #serve: Esbuild.ServeResult | null
 
   /** Constructor a new `Sketch` instance by `id`. */
   constructor(id: string) {
     this.id = id
-    this.#server = null
+    this.#build = null
+    this.#serve = null
     this.serve()
   }
 
@@ -86,11 +88,34 @@ export class Sketch {
 
   /** Serve the sketch's entrypoint with esbuild from memory. */
   async serve() {
-    if (this.#server) return
-    let { path } = this
+    if (this.#build || this.#serve) {
+      console.log('Already serving the sketch, returning early.')
+      return
+    }
+
+    let { id, path } = this
     let dir = Path.dirname(path)
     let file = `${Path.basename(path, Path.extname(path))}.js`
-    let server = await serve(
+
+    // Start a build process to watch for reloading.
+    let build = await Esbuild.build({
+      entryPoints: [path],
+      outdir: dir,
+      write: false,
+      watch: {
+        onRebuild: (error) => {
+          if (error) {
+            console.error('Esbuild watch error:', error)
+          }
+          for (let tab of this.tabs) {
+            tab.reload()
+          }
+        },
+      },
+    })
+
+    // Start a serve process to serve the sketch files.
+    let serve = await Esbuild.serve(
       { servedir: dir },
       {
         entryPoints: [path],
@@ -105,26 +130,28 @@ export class Sketch {
               settings: typeof settings === 'undefined' ? null : settings,
               sketch: typeof sketch === 'undefined' ? null : sketch,
               draw: typeof draw === 'undefined' ? null : draw,
-              setup: typeof setup === 'undefined' ? null : setup,
-            }
+              setup: typeof setup === 'undefined' ? null : setup
+            };
           `,
         },
       }
     )
 
-    this.#server = server
+    this.#build = build
+    this.#serve = serve
+
     setImmediate(() => {
       this.change((t) => {
-        t.entrypoint = `http://localhost:${server.port}/${file}`
+        t.entrypoint = `http://localhost:${serve.port}/${file}`
       })
     })
   }
 
   /** Shutdown the sketch's server. */
   close() {
-    if (this.#server) {
-      this.#server.stop()
-      this.#server = null
-    }
+    if (this.#build && this.#build.stop != null) this.#build.stop()
+    if (this.#serve) this.#serve.stop()
+    this.#build = null
+    this.#serve = null
   }
 }

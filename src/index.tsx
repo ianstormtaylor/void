@@ -61,6 +61,12 @@ let Sketch = (props: {
       .catch((e) => console.error(e))
   }, [entrypoint])
 
+  useEffect(() => {
+    electron.onRebuildSketch(sketch.id, () => {
+      window.location.reload()
+    })
+  }, [sketch])
+
   return (
     module && (
       <ModuleContext.Provider value={module}>

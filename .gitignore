@@ -1,8 +1,8 @@
+.vscode/
 dist/
 node_modules/
-*.log
-.vscode/
 tmp/
+*.log
 
 # temporarily
 public/icons

@@ -12,6 +12,7 @@ export let electron = {
   closeTab,
   inspectTab,
   open,
+  onRebuildSketch,
   store,
 }
 
@@ -37,4 +38,11 @@ function inspectTab(id: string): Promise<void> {
 /** Open new tabs. */
 function open(): Promise<void> {
   return ipcRenderer.invoke('open')
+}
+
+/** On rebuildin a sketch. */
+function onRebuildSketch(id: string, callback: () => void): void {
+  ipcRenderer.on('rebuildSketch', (e, sketchId) => {
+    if (id === sketchId) callback()
+  })
 }
