@@ -1,5 +1,4 @@
 import { MdAdd, MdClose, MdRemove, MdSearch } from 'react-icons/md'
-import { useSketchStore, useUpdateSketchStore } from '../contexts/sketch-store'
 
 export let ZoomField = () => {
   let { zoom } = useSketchStore()

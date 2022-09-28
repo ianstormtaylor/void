@@ -1,4 +1,4 @@
-import { Settings } from './engine/settings'
+import { Settings } from '../../void'
 
 /** The saved state of a `Window`. */
 export type WindowConfig = {

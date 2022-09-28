@@ -1,5 +1,5 @@
+import { Module } from '../../void'
 import { createContext, useContext } from 'react'
-import { Module } from '../../electron/shared/engine/sketch'
 
 /** A context for the sketch's JavaScript module. */
 export let ModuleContext = createContext<Module | null>(null)

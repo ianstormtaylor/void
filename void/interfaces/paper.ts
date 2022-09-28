@@ -1,20 +1,4 @@
-/** The unit of measurement for the canvas. */
-export type Units = 'm' | 'cm' | 'mm' | 'in' | 'ft' | 'pt' | 'pc' | 'px'
-
-export type System = 'metric' | 'imperial'
-
-/** The dimensions of the canvas, with specific units. */
-export type Dimensions = [number, number, Units]
-
-/** The margins of the canvas, with specific units. */
-export type Margins =
-  | [number, Units]
-  | [number, number, Units]
-  | [number, number, number, Units]
-  | [number, number, number, number, Units]
-
-/** The orientation of the canvas. */
-export type Orientation = 'portrait' | 'landscape' | 'square'
+import { Dimensions } from './dimensions'
 
 /** Known paper sizes. */
 export type Paper =
@@ -87,8 +71,41 @@ export type Paper =
   | 'Arch E2'
   | 'Arch E3'
 
-/** Common canvas dimensions. */
-export const DIMENSIONS: Record<Paper, Dimensions> = {
+export let Paper = {
+  /** Get the dimensions for a paper size. */
+  dimensions(paper: Paper): Dimensions<2> {
+    let d = PAPER_DIMENSIONS[paper]
+
+    if (d == null) {
+      throw new Error(`Unrecognized paper type: "${paper}"`)
+    }
+
+    return d
+  },
+
+  /** Test is a value is a `Paper` string. */
+  is(value: unknown): value is Paper {
+    return typeof value === 'string' && value in PAPER_DIMENSIONS
+  },
+
+  /** Try to match a `width`, `height`, and `units` to a paper size. */
+  match(width: number, height: number, units: string): Paper | null {
+    for (let [paper, dimensions] of Object.entries(PAPER_DIMENSIONS)) {
+      let [w, h, u] = dimensions
+      if (
+        u === units &&
+        ((w === width && h === height) || (w === height && h === width))
+      ) {
+        return paper as Paper
+      }
+    }
+
+    return null
+  },
+}
+
+/** Common paper sizes. */
+export const PAPER_DIMENSIONS: Record<Paper, Dimensions<2>> = {
   // Source: https://papersizes.io
   // ISO A
   '4A0': [1682, 2378, 'mm'],

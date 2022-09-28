@@ -1,5 +1,5 @@
 import { Menu, app } from 'electron'
-import { IS_DEV } from '../shared/env'
+import { IS_DEV } from './env'
 import { main } from './classes/main'
 import { Tab } from './classes/tab'
 import { Window } from './classes/window'

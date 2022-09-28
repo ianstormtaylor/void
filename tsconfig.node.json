@@ -1,5 +1,5 @@
 {
-  "include": ["vite.config.ts", "package.json", "electron"],
+  "include": ["vite.config.ts", "package.json", "electron", "void"],
   "compilerOptions": {
     "composite": true,
     "module": "esnext",

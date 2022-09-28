@@ -34,11 +34,3 @@ export let useConfig = (): readonly [
 
   return ret as any
 }
-
-/** Use a tab by `id`. */
-export let useTab = (id: number | string) => {
-  let [config] = useConfig()
-  let tab = config.tabs[id]
-  if (!tab) throw new Error(`Could not find tab by ID: "${id}"`)
-  return tab
-}

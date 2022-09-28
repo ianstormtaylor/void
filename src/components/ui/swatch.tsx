@@ -1,5 +1,3 @@
-import React from 'react'
-
 export let Swatch = (props: { fill?: string; stroke?: string }) => {
   let { fill = 'transparent', stroke } = props
   return (

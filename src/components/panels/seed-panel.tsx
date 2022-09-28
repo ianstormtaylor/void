@@ -1,20 +1,13 @@
-import { NumberField } from '../number-field'
-import { State } from '../../../electron/shared/engine/sketch'
-import {
-  MdEast,
-  MdFavorite,
-  MdFavoriteBorder,
-  MdFingerprint,
-  MdGridView,
-  MdWest,
-} from 'react-icons/md'
-import { Popover } from '@headlessui/react'
-import { useConfig } from '@/contexts/config'
-import { TabConfig } from 'electron/shared/config'
+import { NumberField } from '../fields/number-field'
+import { MdEast, MdFingerprint, MdWest } from 'react-icons/md'
+import { useConfig } from '../../contexts/config'
+import { useScene } from '../../contexts/scene'
+import { useTab } from '../../contexts/tab'
 
-export let SeedPanel = (props: { state: State; tab: TabConfig }) => {
-  let { state, tab } = props
+export let SeedPanel = () => {
   let [, updateConfig] = useConfig()
+  let scene = useScene()
+  let tab = useTab()
   return (
     <div className="p-5 space-y-1">
       <div className="flex justify-between items-center">
@@ -23,18 +16,18 @@ export let SeedPanel = (props: { state: State; tab: TabConfig }) => {
           <button
             className={`
                 flex w-7 h-7 items-center justify-center text-base rounded hover:bg-gray-100
-                ${store.seeds.includes(state.seed) ? '' : 'text-gray-400'} 
+                ${store.seeds.includes(scene.seed) ? '' : 'text-gray-400'} 
               `}
             onClick={() => {
               updateConfig((s) => {
-                let i = s.seeds.indexOf(state.seed)
-                if (i < 0) s.seeds.push(state.seed)
+                let i = s.seeds.indexOf(scene.seed)
+                if (i < 0) s.seeds.push(scene.seed)
                 else s.seeds.splice(i, 1)
                 s.seeds.sort((a, b) => a - b)
               })
             }}
           >
-            {store.seeds.includes(state.seed) ? (
+            {store.seeds.includes(scene.seed) ? (
               <MdFavorite />
             ) : (
               <MdFavoriteBorder />
@@ -92,7 +85,7 @@ export let SeedPanel = (props: { state: State; tab: TabConfig }) => {
         <NumberField
           icon={<MdFingerprint />}
           label="Seed"
-          value={state.seed}
+          value={scene.seed}
           step={1}
           min={0}
           max={9999}
@@ -112,7 +105,7 @@ export let SeedPanel = (props: { state: State; tab: TabConfig }) => {
             onClick={() => {
               updateConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.settings.seed = Math.max(0, state.seed - 1)
+                t.settings.seed = Math.max(0, scene.seed - 1)
               })
             }}
           >
@@ -126,7 +119,7 @@ export let SeedPanel = (props: { state: State; tab: TabConfig }) => {
             onClick={() => {
               updateConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.settings.seed = Math.max(0, state.seed + 1)
+                t.settings.seed = Math.max(0, scene.seed + 1)
               })
             }}
           >

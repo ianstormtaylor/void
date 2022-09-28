@@ -1,7 +1,7 @@
 import Path from 'path'
 import crypto from 'node:crypto'
 import { app, BrowserWindow } from 'electron'
-import { IS_DEV, VITE_DEV_SERVER_URL } from '../../shared/env'
+import { IS_DEV, VITE_DEV_SERVER_URL } from '../env'
 import { Tab } from './tab'
 import { main } from './main'
 import { Draft } from 'immer'

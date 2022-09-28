@@ -1,5 +1,9 @@
-import { useConfig } from '@/contexts/config'
-import { SketchConfig, TabConfig, WindowConfig } from 'electron/shared/config'
+import { useConfig } from '../contexts/config'
+import {
+  SketchConfig,
+  TabConfig,
+  WindowConfig,
+} from '../../electron/shared/config'
 import { MdAdd, MdClose } from 'react-icons/md'
 
 export let Banner = (props: { window: WindowConfig }) => {

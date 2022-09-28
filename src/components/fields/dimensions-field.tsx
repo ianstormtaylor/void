@@ -1,11 +1,12 @@
-import React from 'react'
 import { MdCrop } from 'react-icons/md'
-import { State } from '../../electron/shared/engine/sketch'
+import { Paper } from '../../../void'
+import { useSettings } from '../../contexts/settings'
 
-export let DimensionsField = (props: { state: State }) => {
-  let { state } = props
-  let { paper, dimensions, orientation } = state
+export let DimensionsField = () => {
+  let settings = useSettings()
+  let { dimensions, orientation } = settings
   let [width, height, units] = dimensions
+  let paper = Paper.match(width, height, units)
   let max = Math.max(width, height)
   let min = Math.min(width, height)
 
@@ -17,11 +18,6 @@ export let DimensionsField = (props: { state: State }) => {
     ;[width, height] = [min, min]
   }
 
-  let dims = (
-    <span>
-      {width} &times; {height} {units}
-    </span>
-  )
   return (
     <div className="flex items-center -mx-2 p-2 space-x-2">
       <div
@@ -31,7 +27,9 @@ export let DimensionsField = (props: { state: State }) => {
         <MdCrop />
       </div>
       <div className="flex items-center space-x-1.5">
-        {dims}
+        <span>
+          {width} &times; {height} {units}
+        </span>
         {paper && <span className="text-gray-500 font-light">({paper})</span>}
       </div>
     </div>

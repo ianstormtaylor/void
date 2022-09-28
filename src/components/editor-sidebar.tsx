@@ -1,21 +1,24 @@
 import React from 'react'
-import { NumberField } from './number-field'
-import { State } from '../../electron/shared/engine/sketch'
+import { NumberField } from './fields/number-field'
 import { capitalCase } from 'change-case'
-import { DimensionsField } from './dimensions-field'
-import { MarginsField } from './margins-field'
+import { DimensionsField } from './fields/dimensions-field'
+import { MarginsField } from './fields/margins-field'
 import { MdCrop169, MdCropSquare, MdReplay } from 'react-icons/md'
 import { SeedPanel } from './panels/seed-panel'
 import { ExportPanel } from './panels/export-panel'
-import { BooleanField } from './boolean-field'
-import { IconButton } from './icon-button'
-import { TabConfig } from 'electron/shared/config'
-import { useConfig } from '@/contexts/config'
+import { BooleanField } from './fields/boolean-field'
+import { IconButton } from './ui/icon-button'
+import { useConfig } from '../contexts/config'
+import { useTab } from '../contexts/tab'
+import { useScene } from '../contexts/scene'
+import { useSettings } from '../contexts/settings'
 
-export let Sidebar = (props: { state: State; tab: TabConfig }) => {
-  let { state, tab } = props
+export let EditorSidebar = () => {
   let [, setConfig] = useConfig()
-  let { orientation } = state
+  let tab = useTab()
+  let scene = useScene()
+  let settings = useSettings()
+  let { orientation } = scene
   return (
     <div className="text-xs">
       <Section>
@@ -75,15 +78,15 @@ export let Sidebar = (props: { state: State; tab: TabConfig }) => {
             </button>
           </div>
         </div>
-        <DimensionsField state={state} />
-        <MarginsField state={state} />
+        <DimensionsField />
+        <MarginsField />
       </Section>
       <Separator />
-      <SeedPanel state={state} tab={tab} />
+      <SeedPanel />
       <Separator />
       <Section>
         <Header>Traits</Header>
-        {Object.entries(state.schema).map(([key, control]) => {
+        {Object.entries(settings.schema).map(([key, control]) => {
           let field: React.ReactNode | undefined
 
           if (control.type === 'number') {
@@ -93,7 +96,7 @@ export let Sidebar = (props: { state: State; tab: TabConfig }) => {
                 step={control.step}
                 min={control.min}
                 max={control.max}
-                value={state.traits[key]}
+                value={scene.traits[key]}
                 valueClassName={
                   tab.settings.traits != null && key in tab.settings.traits
                     ? 'font-bold'
@@ -111,7 +114,7 @@ export let Sidebar = (props: { state: State; tab: TabConfig }) => {
           } else if (control.type === 'boolean') {
             field = (
               <BooleanField
-                value={state.traits[key]}
+                value={scene.traits[key]}
                 valueClassName={
                   tab.settings.traits != null && key in tab.settings.traits
                     ? 'font-bold'
@@ -156,7 +159,7 @@ export let Sidebar = (props: { state: State; tab: TabConfig }) => {
         })}
       </Section>
       <Separator />
-      <ExportPanel state={state} />
+      <ExportPanel />
     </div>
   )
 }

@@ -1,14 +1,10 @@
 {
-  "include": ["electron", "src", "@types"],
+  "include": ["@types", "electron", "public", "src", "void"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "compilerOptions": {
-    "baseUrl": ".",
     "target": "ESNext",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,

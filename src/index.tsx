@@ -1,17 +1,15 @@
 import { createRoot } from 'react-dom/client'
-import { useEffect, useState } from 'react'
-import { Module } from '../electron/shared/engine/sketch'
+import { useEffect, useMemo, useState } from 'react'
 import { Editor } from './components/editor'
-import {
-  SetSketchStoreContext,
-  SketchStoreContext,
-  useLoadSketchStore,
-} from './contexts/sketch-store'
 import { ModuleContext } from './contexts/module'
 import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useConfig } from './contexts/config'
 import { Banner } from './components/banner'
-import { SketchConfig, TabConfig } from 'electron/shared/config'
+import { Module, Settings } from '../void'
+import { TabContext } from './contexts/tab'
+import { SketchContext } from './contexts/sketch'
+import { mergeWith } from 'lodash'
+import { SettingsContext } from './contexts/settings'
 
 let App = () => {
   return (
@@ -34,47 +32,40 @@ let WindowPage = () => {
 let TabPage = () => {
   let { id } = useParams()
   let [config] = useConfig()
+  let [module, setModule] = useState<Module | null>(null)
   let tab = config.tabs[id!]
   let sketch = config.sketches[tab?.sketchId]
-  return tab && sketch && sketch.entrypoint ? (
-    <Sketch
-      key={tab.id}
-      entrypoint={sketch.entrypoint}
-      tab={tab}
-      sketch={sketch}
-    />
-  ) : null
-}
-
-let Sketch = (props: {
-  entrypoint: string
-  tab: TabConfig
-  sketch: SketchConfig
-}) => {
-  let { entrypoint, tab, sketch } = props
-  let [module, setModule] = useState<Module | null>(null)
-  let [store, setStore] = useLoadSketchStore(entrypoint)
 
   useEffect(() => {
-    import(/* @vite-ignore */ entrypoint)
-      .then((pkg) => setModule(pkg))
-      .catch((e) => console.error(e))
-  }, [entrypoint])
-
-  useEffect(() => {
-    electron.onRebuildSketch(sketch.id, () => {
-      window.location.reload()
-    })
+    if (sketch.entrypoint) {
+      import(/* @vite-ignore */ sketch.entrypoint)
+        .then((pkg) => setModule(pkg))
+        .catch((e) => console.error(e))
+    }
   }, [sketch])
 
+  let settings = useMemo(() => {
+    if (module == null) return null
+    let ms = module.settings ?? {}
+    let ts = tab.settings
+    let s = mergeWith({}, ms, ts, (a, b) => {
+      if (Array.isArray(a)) return b
+    })
+    let r = Settings.resolve(s)
+    return r
+  }, [tab, module])
+
   return (
-    module && (
+    module &&
+    settings && (
       <ModuleContext.Provider value={module}>
-        <SetSketchStoreContext.Provider value={setStore}>
-          <SketchStoreContext.Provider value={store}>
-            <Editor sketch={sketch} tab={tab} module={module} store={store} />
-          </SketchStoreContext.Provider>
-        </SetSketchStoreContext.Provider>
+        <TabContext.Provider value={tab}>
+          <SketchContext.Provider value={sketch}>
+            <SettingsContext.Provider value={settings}>
+              <Editor />
+            </SettingsContext.Provider>
+          </SketchContext.Provider>
+        </TabContext.Provider>
       </ModuleContext.Provider>
     )
   )

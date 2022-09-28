@@ -5,14 +5,15 @@ import React, {
   useContext,
   useMemo,
 } from 'react'
-import { State } from '../../electron/shared/engine/sketch'
 import { mergeRefs } from 'react-merge-refs'
 import {
   getOuterDimensions,
   getOutputDimensions,
   getScreenDimensions,
-} from '../../electron/shared/engine/export'
-import { Sketch } from 'electron/shared/engine/module'
+} from '../export'
+import { __VOID__ } from '../../void/internal'
+import { useScene } from '../contexts/scene'
+import { useModule } from '../contexts/module'
 
 export let CanvasRefContext =
   createContext<React.RefObject<HTMLCanvasElement | null> | null>(null)
@@ -23,41 +24,37 @@ export let useCanvasRef = (): React.RefObject<HTMLCanvasElement | null> => {
   return canvasRef
 }
 
-export let Canvas = React.forwardRef<
+export let EditorCanvas = React.forwardRef<
   HTMLCanvasElement,
   {
     maxHeight: number
     maxWidth: number
-    sketch: Sketch
-    zoom: number | null
-    state: State
   }
 >((props, ref) => {
-  let { maxHeight, maxWidth, sketch, state, zoom } = props
+  let module = useModule()
+  let scene = useScene()
+  let { maxHeight, maxWidth } = props
   let canvasRef = useRef<HTMLCanvasElement>()
   let [outerWidth, outerHeight] = useMemo(
-    () => getOuterDimensions(state),
-    [state]
+    () => getOuterDimensions(scene),
+    [scene]
   )
 
   let [outputWidth, outputHeight] = useMemo(
-    () => getOutputDimensions(state),
-    [state]
+    () => getOutputDimensions(scene),
+    [scene]
   )
 
   let [screenWidth, screenHeight] = useMemo(
-    () => getScreenDimensions(state),
-    [state]
+    () => getScreenDimensions(scene),
+    [scene]
   )
 
   let scale = useMemo(() => {
-    return (
-      zoom ??
-      (outputWidth > maxWidth || outputHeight > maxHeight
-        ? Math.min(maxWidth / outputWidth, maxHeight / outputHeight)
-        : 1)
-    )
-  }, [zoom, outputHeight, outputWidth, maxWidth, maxHeight])
+    return outputWidth > maxWidth || outputHeight > maxHeight
+      ? Math.min(maxWidth / outputWidth, maxHeight / outputHeight)
+      : 1
+  }, [outputHeight, outputWidth, maxWidth, maxHeight])
 
   useEffect(() => {
     setTimeout(() => {
@@ -65,24 +62,22 @@ export let Canvas = React.forwardRef<
       if (!canvas) return
 
       console.log('drawing…')
-      let { margins } = state
+      let { margin } = scene
       let context = canvas.getContext('2d')
       if (!context) return
 
-      // Clear the canvas, zero-ing out any transforms first.
       context.save()
       context.setTransform(1, 0, 0, 1, 0, 0)
       context.clearRect(0, 0, screenWidth, screenHeight)
-      context.restore()
-
-      // Run the sketch, transforming `width` and `height`.
-      context.save()
       context.scale(screenWidth / outerWidth, screenHeight / outerHeight)
-      context.translate(margins[1], margins[0])
-      sketch({ ...state, context })
+      context.translate(margin[1], margin[0])
+      let prevScene = __VOID__.scene
+      __VOID__.scene = scene
+      module.sketch({ ...scene, context })
+      __VOID__.scene = prevScene
       context.restore()
     }, 1)
-  }, [sketch, state, screenWidth, screenHeight])
+  }, [module, scene, screenWidth, screenHeight])
 
   return (
     <div

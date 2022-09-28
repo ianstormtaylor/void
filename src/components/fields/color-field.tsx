@@ -1,5 +1,4 @@
-import React from 'react'
-import { Swatch } from './swatch'
+import { Swatch } from '../ui/swatch'
 
 export let ColorField = (props: {
   value: string

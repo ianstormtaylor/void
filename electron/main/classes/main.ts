@@ -1,8 +1,10 @@
-import { app, dialog, Menu } from 'electron'
+import Path from 'path'
+import Os from 'os'
+import { app, dialog, Menu, session } from 'electron'
 import { Draft } from 'immer'
 import ElectronStore from 'electron-store'
 import { Config, initialConfig } from '../../shared/config'
-import { IS_MAC } from '../../shared/env'
+import { IS_MAC, REACT_DEVTOOLS_EXTENSION } from '../env'
 import { initializeIpc as loadIpc } from '../ipc'
 import { appMenu, dockMenu } from '../menus'
 import { Tab } from './tab'
@@ -80,7 +82,7 @@ export class Main {
       this.isQuitting = false
     })
 
-    app.on('ready', () => {
+    app.on('ready', async () => {
       // If there is already an app instance, quit so only one is ever open.
       if (!app.requestSingleInstanceLock()) {
         console.log('Quitting for single instance lock…')
@@ -92,6 +94,10 @@ export class Main {
       loadIpc()
       Menu.setApplicationMenu(appMenu)
       if (IS_MAC) app.dock.setMenu(dockMenu)
+
+      // Load the React Devtools extension.
+      let reactDevtoolsPath = Path.join(Os.homedir(), REACT_DEVTOOLS_EXTENSION)
+      await session.defaultSession.loadExtension(reactDevtoolsPath)
 
       // Try to restore any saved windows.
       this.restore()
@@ -153,7 +159,6 @@ export class Main {
 
   /** Restore any saved windows. */
   restore() {
-    console.log('Restoring store:', this.store)
     for (let id in this.store.windows) {
       let window = Window.restore(id)
       window.show()

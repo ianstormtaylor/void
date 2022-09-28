@@ -1,18 +1,13 @@
-import React from 'react'
-import { State } from '../../../electron/shared/engine/sketch'
 import { MdOutlineFeed, MdOutlineImage, MdPhotoFilter } from 'react-icons/md'
-import { useCanvasRef } from '../canvas'
-import {
-  exportPdf,
-  exportPng,
-  exportSvg,
-} from '../../../electron/shared/engine/export'
+import { useCanvasRef } from '../editor-canvas'
+import { exportPdf, exportPng, exportSvg } from '../../export'
 import { useModule } from '../../contexts/module'
+import { useScene } from '../../contexts/scene'
 
-export let ExportPanel = (props: { state: State }) => {
-  let { state } = props
-  let canvasRef = useCanvasRef()
+export let ExportPanel = () => {
+  let scene = useScene()
   let module = useModule()
+  let canvasRef = useCanvasRef()
   return (
     <div className="p-5 space-y-1">
       <div className="flex justify-between items-center">
@@ -37,7 +32,7 @@ export let ExportPanel = (props: { state: State }) => {
             text-gray-400 border border-gray-200 hover:bg-black hover:text-white hover:border-transparent
           `}
           onClick={() => {
-            exportSvg(state, module)
+            exportSvg(scene, module)
           }}
         >
           <MdPhotoFilter className="text-base" /> <span>SVG</span>
@@ -48,7 +43,7 @@ export let ExportPanel = (props: { state: State }) => {
             text-gray-400 border border-gray-200 hover:bg-black hover:text-white hover:border-transparent
           `}
           onClick={() => {
-            exportPdf(state, module)
+            exportPdf(scene, module)
           }}
         >
           <MdOutlineFeed className="text-base" /> <span>PDF</span>
