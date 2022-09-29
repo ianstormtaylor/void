@@ -1,11 +1,12 @@
+import { initRenderer } from 'electron-store'
 import { mergeWith } from 'lodash'
 import {
   Dimensions,
-  Schema,
+  ResolvedSchema,
   Paper,
   Orientation,
   Units,
-  TraitSchema,
+  Schema,
   Traits,
 } from '..'
 
@@ -16,7 +17,7 @@ export type ResolvedSettings<T extends Traits = Traits> = {
   margin: Dimensions<4>
   orientation: Orientation
   precision: Dimensions<1>
-  schema: Schema<T>
+  schema: ResolvedSchema<T>
   seed: number
   traits: T
   units: Units
@@ -29,7 +30,7 @@ export interface Settings<T extends Traits = Traits> {
   margin?: Dimensions<1> | Dimensions<2> | Dimensions<3> | Dimensions<4>
   orientation?: Orientation
   precision?: Dimensions<1>
-  schema?: Partial<Record<keyof T, Partial<TraitSchema>>>
+  schema?: Schema<T>
   seed?: number
   traits?: T
   units?: Units
@@ -111,5 +112,31 @@ export let Settings = {
       traits,
       units,
     }
+  },
+
+  /** Generate a new value for a trait with `key`. */
+  generate<T extends Traits, K extends keyof T>(
+    settings: ResolvedSettings<T>,
+    key: K
+  ): T[K] {
+    let trait = settings.schema[key]
+
+    if (trait.type === 'boolean') {
+      let r = Math.random()
+      let value = r > 0.5
+      return value as T[K]
+    }
+
+    if (trait.type === 'number') {
+      let { min, max, step, default: def } = trait
+      if (min == -Infinity)
+        min = def === 0 ? 0 : def > 0 ? step : def - step * 10
+      if (max == Infinity) max = def + step * 10
+      let r = min + Math.random() * (max - min)
+      r = Math.round(r / step) * step
+      return r as T[K]
+    }
+
+    throw new Error(`Unhandled trait type: ${trait.type}`)
   },
 }

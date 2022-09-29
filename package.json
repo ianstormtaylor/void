@@ -42,6 +42,7 @@
     "get-port-please": "^2.6.1",
     "live-server": "^1.2.2",
     "postcss": "^8.4.13",
+    "precision": "^1.0.1",
     "prettier": "^2.6.2",
     "sass": "^1.52.2",
     "swr": "^1.3.0",

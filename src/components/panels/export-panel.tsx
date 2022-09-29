@@ -9,15 +9,15 @@ export let ExportPanel = () => {
   let module = useModule()
   let canvasRef = useCanvasRef()
   return (
-    <div className="p-5 space-y-1">
+    <div className="p-4 pb-3 space-y-0.5">
       <div className="flex justify-between items-center">
         <h2 className="font-semibold mb-3">Export</h2>
       </div>
-      <div className="flex space-x-2 -mr-1.5">
+      <div className="flex space-x-2">
         <button
           className={`
             flex-1 flex w-7 h-7 items-center justify-center space-x-1 rounded
-            text-gray-400 border border-gray-200 hover:bg-black hover:text-white hover:border-transparent
+            text-gray-400 border border-gray-200 hover:border-black hover:text-black
           `}
           onClick={() => {
             let canvas = canvasRef.current
@@ -29,7 +29,7 @@ export let ExportPanel = () => {
         <button
           className={`
             flex-1 flex w-7 h-7 items-center justify-center space-x-1 rounded
-            text-gray-400 border border-gray-200 hover:bg-black hover:text-white hover:border-transparent
+            text-gray-400 border border-gray-200 hover:border-black hover:text-black
           `}
           onClick={() => {
             exportSvg(scene, module)
@@ -40,7 +40,7 @@ export let ExportPanel = () => {
         <button
           className={`
             flex-1 flex w-7 h-7 items-center justify-center space-x-1 rounded
-            text-gray-400 border border-gray-200 hover:bg-black hover:text-white hover:border-transparent
+            text-gray-400 border border-gray-200 hover:border-black hover:text-black
           `}
           onClick={() => {
             exportPdf(scene, module)

@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react'
+import { MdClear } from 'react-icons/md'
 import { useLatest } from 'react-use'
 
 // A tiny empty image for replacing the default drag image.
@@ -16,6 +17,7 @@ export let NumberField = (props: {
   max?: number
   valueClassName?: string
   onChange: (value: number) => void
+  onReset?: () => void
 }) => {
   let {
     value,
@@ -27,6 +29,7 @@ export let NumberField = (props: {
     max = Infinity,
     valueClassName = '',
     onChange,
+    onReset,
   } = props
   let [prevValue, setPrevValue] = useState(value)
   let [text, setText] = useState(`${value}`)
@@ -39,7 +42,8 @@ export let NumberField = (props: {
 
   // If the value changes, sync our internal text state.
   if (value !== prevValue) {
-    setText(`${value}`)
+    let text = toText(value, step)
+    setText(text)
     setPrevValue(value)
   }
 
@@ -51,8 +55,7 @@ export let NumberField = (props: {
       val = Math.min(max, Math.max(min, val))
       if (val === latestValue.current) return
       onChange(val)
-      let rounded = Math.round(val / step) * step
-      let text = Math.abs(val - rounded) < 0.00001 ? `${rounded}` : `${val}`
+      let text = toText(val, step)
       setText(text)
     },
     [onChange, setText]
@@ -61,7 +64,7 @@ export let NumberField = (props: {
   return (
     <label
       className={`
-        flex-1 flex -mx-2 py-1.5 px-2 rounded
+        group flex items-center -mx-2 p-1.5 pl-2 rounded
         ${
           focused
             ? 'outline outline-black outline-2'
@@ -76,8 +79,8 @@ export let NumberField = (props: {
         `}
         draggable
         title={icon ? label : undefined}
-        onClick={(e) => {
-          inputRef.current.select()
+        onClick={() => {
+          if (inputRef.current) inputRef.current.select()
         }}
         onDragStart={(e) => {
           dragHandlerRef.current = (e: DragEvent) => {
@@ -90,8 +93,8 @@ export let NumberField = (props: {
           dragPositionRef.current = e.clientX
           e.dataTransfer.setDragImage(DRAG_IMAGE, 0, 0)
         }}
-        onDragEnd={(e) => {
-          document.body.removeEventListener('dragover', dragHandlerRef.current)
+        onDragEnd={() => {
+          document.body.removeEventListener('dragover', dragHandlerRef.current!)
         }}
       >
         {icon ? (
@@ -104,8 +107,8 @@ export let NumberField = (props: {
         <input
           ref={inputRef}
           className={`
-            ${valueClassName}
             block w-full focus:outline-none
+            ${valueClassName}
           `}
           value={text}
           onFocus={() => setFocused(true)}
@@ -142,6 +145,38 @@ export let NumberField = (props: {
           }}
         />
       </div>
+      {onReset && (
+        <button
+          title="Reset"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            if (onReset) onReset()
+          }}
+          className={`
+            hidden group-hover:flex text-base
+            text-gray-300 hover:text-gray-600
+          `}
+        >
+          <MdClear />
+        </button>
+      )}
     </label>
   )
+}
+
+/** Print a `number` as a string with precision equal to its `step`. */
+function toText(number: number, step: number): string {
+  if (number === 0) return `0`
+  let rounded = Math.round(number / step) * step
+  let isRound = number === rounded
+  let precision = isRound ? getPrecision(step) : getPrecision(number)
+  let string = number.toFixed(precision)
+  return string
+}
+
+/** Get the precision of a `number`. */
+function getPrecision(number: number): number {
+  let [, decimals] = String(number).split('.')
+  return decimals?.length ?? 0
 }

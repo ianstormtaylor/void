@@ -18,6 +18,7 @@ export type TabConfig = {
   inspecting: boolean
   zoom: number | null
   settings: Settings
+  locks: string[]
 }
 
 /** The saved state of a `Sketch`. */

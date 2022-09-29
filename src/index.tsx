@@ -48,10 +48,11 @@ let TabPage = () => {
     if (module == null) return null
     let ms = module.settings ?? {}
     let ts = tab.settings
-    let s = mergeWith({}, ms, ts, (a, b) => {
-      if (Array.isArray(a)) return b
-    })
+    let s = Settings.merge(ms, ts)
     let r = Settings.resolve(s)
+    // Resolve the schema from the module alone.
+    let rms = Settings.resolve(ms)
+    r.schema = rms.schema
     return r
   }, [tab, module])
 

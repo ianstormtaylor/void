@@ -38,6 +38,7 @@ export class Tab {
         inspecting: false,
         zoom: null,
         settings: {},
+        locks: [],
       }
     })
 
