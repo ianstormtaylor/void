@@ -1,51 +1,39 @@
-import { initRenderer } from 'electron-store'
 import { mergeWith } from 'lodash'
-import {
-  Dimensions,
-  ResolvedSchema,
-  Paper,
-  Orientation,
-  Units,
-  Schema,
-  Traits,
-} from '..'
+import { Dimensions, Paper, Orientation, Units } from '..'
 
 /** A set of settings that have been fully resolved, without missing ones. */
-export type ResolvedSettings<T extends Traits = Traits> = {
+export type ResolvedSettings = {
   dimensions: Dimensions<2>
   dpi: number
   margin: Dimensions<4>
   orientation: Orientation
   precision: Dimensions<1>
-  schema: ResolvedSchema<T>
   seed: number
-  traits: T
   units: Units
 }
 
 /** The optional settings for configuring a sketch. */
-export interface Settings<T extends Traits = Traits> {
+export interface Settings {
   dimensions?: Dimensions<2> | Paper
   dpi?: number
   margin?: Dimensions<1> | Dimensions<2> | Dimensions<3> | Dimensions<4>
   orientation?: Orientation
   precision?: Dimensions<1>
-  schema?: Schema<T>
   seed?: number
-  traits?: T
+  traits?: Record<string, any>
   units?: Units
 }
 
 export let Settings = {
   /** Merge multiple sets of `...settings` into one. */
-  merge<T extends Traits>(...settings: Settings<T>[]): Settings<T> {
-    return mergeWith({}, ...settings, (a: Settings<T>, b: Settings<T>) => {
+  merge(...settings: Settings[]): Settings {
+    return mergeWith({}, ...settings, (a: Settings, b: Settings) => {
       if (Array.isArray(a)) return b
     })
   },
 
   /** Resolve a set of settings to have no missing options. */
-  resolve<T extends Traits>(settings: Settings<T>): ResolvedSettings<T> {
+  resolve(settings: Settings): ResolvedSettings {
     let {
       dimensions = [300, 150, 'px'],
       dpi = 72,
@@ -53,7 +41,6 @@ export let Settings = {
       seed = 1,
       precision,
       margin,
-      traits = {} as T,
       units,
     } = settings
 
@@ -98,45 +85,14 @@ export let Settings = {
       margin = [t, h, b, h, mu]
     }
 
-    // Setup the sketch's variables and interface controls.
-    let schema = Schema.resolve(settings)
-
     return {
       dimensions,
       dpi,
       margin,
       orientation,
       precision,
-      schema,
       seed,
-      traits,
       units,
     }
-  },
-
-  /** Generate a new value for a trait with `key`. */
-  generate<T extends Traits, K extends keyof T>(
-    settings: ResolvedSettings<T>,
-    key: K
-  ): T[K] {
-    let trait = settings.schema[key]
-
-    if (trait.type === 'boolean') {
-      let r = Math.random()
-      let value = r > 0.5
-      return value as T[K]
-    }
-
-    if (trait.type === 'number') {
-      let { min, max, step, default: def } = trait
-      if (min == -Infinity)
-        min = def === 0 ? 0 : def > 0 ? step : def - step * 10
-      if (max == Infinity) max = def + step * 10
-      let r = min + Math.random() * (max - min)
-      r = Math.round(r / step) * step
-      return r as T[K]
-    }
-
-    throw new Error(`Unhandled trait type: ${trait.type}`)
   },
 }

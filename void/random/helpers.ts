@@ -1,6 +1,5 @@
 import SeedRandom from 'seed-random'
 import { Scene } from '..'
-import { __VOID__ } from '../internal'
 
 /** A weak map for storing a reference to the scene's seeded random. */
 let RANDOM = new WeakMap<Scene, () => number>()
@@ -90,7 +89,11 @@ export function poisson(mean = 1) {
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
-  let { scene } = __VOID__
+  let { scene } = Void
+  if (scene == null) {
+    throw new Error('Cannot call random helpers before setup()!')
+  }
+
   let r = RANDOM.get(scene)
   if (r == null) {
     r = SeedRandom(`${scene.seed}`)
@@ -140,11 +143,6 @@ export function shuffle<T>(list: T[]): T[] {
   return l
 }
 
-/** Get a uniformally distributed number between `0` and `1` (exclusive). */
-export function uniform(): number {
-  return random()
-}
-
 /** Get a unique set of `size` random outputs from a `generator` function. */
 export function unique<T>(
   size: number,
@@ -163,5 +161,5 @@ export function unique<T>(
 
 /** Get a random vector of `length`. */
 export function vector(length: number): number[] {
-  return Array.from({ length }, (_) => random())
+  return Array.from({ length }, () => random())
 }

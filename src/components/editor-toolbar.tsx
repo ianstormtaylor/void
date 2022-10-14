@@ -1,22 +1,17 @@
 import {
   MdBuild,
-  MdCancel,
   MdClear,
   MdFavoriteBorder,
   MdGridView,
   MdOutlineAutoAwesome,
-  MdOutlineCancel,
-  MdOutlineHighlight,
-  MdOutlineHighlightOff,
 } from 'react-icons/md'
 import { useTab } from '../contexts/tab'
 import { useSketch } from '../contexts/sketch'
-import { useSettings } from '../contexts/settings'
-import { Settings } from '../../void'
+import { Schema } from '../../void'
 
-export let EditorToolbar = () => {
+export let EditorToolbar = (props: { schema: Schema | null }) => {
+  let { schema } = props
   let [tab, changeTab] = useTab()
-  let settings = useSettings()
   let sketch = useSketch()
   let path = `.../${sketch.path.split('/').slice(-3).join('/')}`
   return (
@@ -29,7 +24,7 @@ export let EditorToolbar = () => {
             hover:text-white hover:bg-gray-700
             ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
-          onClick={(e) => {
+          onClick={() => {
             electron.inspectTab(tab.id)
           }}
         >
@@ -42,7 +37,7 @@ export let EditorToolbar = () => {
             hover:text-white hover:bg-gray-700
             ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
-          onClick={(e) => {
+          onClick={() => {
             electron.inspectTab(tab.id)
           }}
         >
@@ -81,10 +76,12 @@ export let EditorToolbar = () => {
           `}
           onClick={() => {
             changeTab((t) => {
-              for (let key in settings.schema) {
-                if (t.locks.includes(key)) continue
-                let traits = (t.settings.traits = t.settings.traits ?? {})
-                traits[key] = Settings.generate(settings, key)
+              if (schema) {
+                for (let [name, trait] of Object.entries(schema)) {
+                  if (t.locks.includes(name)) continue
+                  let traits = (t.settings.traits = t.settings.traits ?? {})
+                  traits[name] = Schema.generate(trait)
+                }
               }
             })
           }}
@@ -98,7 +95,6 @@ export let EditorToolbar = () => {
             hover:text-white hover:bg-gray-700
             ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
-          onClick={(e) => {}}
         >
           <MdFavoriteBorder className="text-lg" />
         </button>
@@ -109,7 +105,6 @@ export let EditorToolbar = () => {
             hover:text-white hover:bg-gray-700
             ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
-          onClick={(e) => {}}
         >
           <MdGridView className="text-lg" />
         </button>

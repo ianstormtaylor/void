@@ -1,11 +1,11 @@
 import { MdOutlineFeed, MdOutlineImage, MdPhotoFilter } from 'react-icons/md'
-import { useCanvasRef } from '../editor-canvas'
 import { exportPdf, exportPng, exportSvg } from '../../export'
 import { useModule } from '../../contexts/module'
-import { useScene } from '../../contexts/scene'
+import { useCanvasRef } from '../../contexts/canvas'
+import { Scene, Traits } from '../../../void'
 
-export let ExportPanel = () => {
-  let scene = useScene()
+export let ExportPanel = (props: { scene: Scene; traits: Traits }) => {
+  let { scene, traits } = props
   let module = useModule()
   let canvasRef = useCanvasRef()
   return (
@@ -32,7 +32,7 @@ export let ExportPanel = () => {
             text-gray-400 border border-gray-200 hover:border-black hover:text-black
           `}
           onClick={() => {
-            exportSvg(scene, module)
+            exportSvg(module, scene, traits)
           }}
         >
           <MdPhotoFilter className="text-base" /> <span>SVG</span>
@@ -43,7 +43,7 @@ export let ExportPanel = () => {
             text-gray-400 border border-gray-200 hover:border-black hover:text-black
           `}
           onClick={() => {
-            exportPdf(scene, module)
+            exportPdf(module, scene, traits)
           }}
         >
           <MdOutlineFeed className="text-base" /> <span>PDF</span>

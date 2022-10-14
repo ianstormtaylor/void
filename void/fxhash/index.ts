@@ -1,5 +1,4 @@
 import { Scene } from '..'
-import { __VOID__ } from '../internal'
 // @ts-ignore
 import { snippet } from './snippet'
 
@@ -18,7 +17,9 @@ export function fx(): Fx {
   if (process.env.NODE_ENV === 'production') {
     return window as any
   } else {
-    let { scene } = __VOID__
+    let { scene } = Void
+    if (!scene)
+      throw new Error(`Cannot call fx() before calling setup() in a sketch!`)
     if (!FX.has(scene)) FX.set(scene, (snippet as () => Fx)())
     let fx = FX.get(scene)!
     return fx

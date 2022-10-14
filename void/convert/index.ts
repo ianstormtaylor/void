@@ -1,5 +1,4 @@
 import { UnitsSystem, Units } from '..'
-import { __VOID__ } from '../internal'
 
 /** A constant to convert from inches to meters to change unit systems. */
 const IN_TO_M = 0.0254
@@ -25,8 +24,8 @@ export function convert(
     precision?: number
   } = {}
 ): number {
-  let { scene } = __VOID__
-  let { to = scene.units, dpi = scene.dpi, precision } = options
+  let { scene } = Void
+  let { to = scene?.units ?? 'px', dpi = scene?.dpi ?? 72, precision } = options
   if (from === to) return value
 
   // Swap pixels for inches using the dynamic `dpi`.

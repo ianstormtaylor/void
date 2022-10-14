@@ -24,6 +24,7 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@types/live-server": "^1.2.1",
     "@types/seed-random": "^2.2.1",
     "@types/tmp": "^0.2.3",
@@ -38,6 +39,7 @@
     "electron-tabs": "^1.0.1",
     "electron-util": "^0.17.2",
     "esbuild": "^0.14.48",
+    "framer-motion": "^7.4.0",
     "get-port": "^6.1.2",
     "get-port-please": "^2.6.1",
     "live-server": "^1.2.2",

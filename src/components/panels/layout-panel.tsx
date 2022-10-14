@@ -3,13 +3,13 @@ import { MarginsField } from '../fields/margins-field'
 import { MdCrop169, MdCropSquare } from 'react-icons/md'
 import { useConfig } from '../../contexts/config'
 import { useTab } from '../../contexts/tab'
-import { useScene } from '../../contexts/scene'
+import { ResolvedSettings } from '../../../void'
 
-export let LayoutPanel = () => {
+export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
   let [, setConfig] = useConfig()
   let [tab] = useTab()
-  let scene = useScene()
-  let { orientation } = scene
+  let { settings } = props
+  let { orientation } = settings
   return (
     <div className="p-4 pb-3 space-y-0.5">
       <div className="flex justify-between pb-1">
@@ -23,12 +23,10 @@ export let LayoutPanel = () => {
               })
             }}
             className={`
-                flex w-7 h-7 items-center justify-center text-base rounded
-                hover:bg-gray-100
-                ${
-                  orientation === 'portrait' ? 'text-gray-600' : 'text-gray-300'
-                }
-              `}
+              flex w-7 h-7 items-center justify-center text-base rounded
+              hover:bg-gray-100
+              ${orientation === 'portrait' ? 'text-gray-600' : 'text-gray-300'}
+            `}
           >
             <MdCrop169 className="transform rotate-90" />
           </button>
@@ -40,14 +38,10 @@ export let LayoutPanel = () => {
               })
             }}
             className={`
-                flex w-7 h-7 items-center justify-center text-base rounded
-                hover:bg-gray-100
-                ${
-                  orientation === 'landscape'
-                    ? 'text-gray-600'
-                    : 'text-gray-300'
-                }
-              `}
+              flex w-7 h-7 items-center justify-center text-base rounded
+              hover:bg-gray-100
+              ${orientation === 'landscape' ? 'text-gray-600' : 'text-gray-300'}
+            `}
           >
             <MdCrop169 />
           </button>
@@ -59,17 +53,17 @@ export let LayoutPanel = () => {
               })
             }}
             className={`
-                flex w-7 h-7 items-center justify-center text-base rounded
-                hover:bg-gray-100
-                ${orientation === 'square' ? 'text-gray-600' : 'text-gray-300'}
-              `}
+              flex w-7 h-7 items-center justify-center text-base rounded
+              hover:bg-gray-100
+              ${orientation === 'square' ? 'text-gray-600' : 'text-gray-300'}
+            `}
           >
             <MdCropSquare />
           </button>
         </div>
       </div>
-      <DimensionsField />
-      <MarginsField />
+      <DimensionsField settings={settings} />
+      <MarginsField settings={settings} />
     </div>
   )
 }

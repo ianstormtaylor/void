@@ -1,11 +1,11 @@
 import { NumberField } from '../fields/number-field'
 import { MdEast, MdFingerprint, MdWest } from 'react-icons/md'
-import { useScene } from '../../contexts/scene'
 import { useTab } from '../../contexts/tab'
+import { Scene } from '../../../void'
 
-export let SeedPanel = () => {
-  let scene = useScene()
+export let SeedPanel = (props: { scene: Scene }) => {
   let [, changeTab] = useTab()
+  let { scene } = props
   return (
     <div className="p-4 pb-3 space-y-0.5">
       <div className="flex justify-between pb-1">

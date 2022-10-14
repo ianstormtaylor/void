@@ -1,9 +1,8 @@
 import { MdCrop } from 'react-icons/md'
-import { Paper } from '../../../void'
-import { useSettings } from '../../contexts/settings'
+import { Paper, ResolvedSettings } from '../../../void'
 
-export let DimensionsField = () => {
-  let settings = useSettings()
+export let DimensionsField = (props: { settings: ResolvedSettings }) => {
+  let { settings } = props
   let { dimensions, orientation } = settings
   let [width, height, units] = dimensions
   let paper = Paper.match(width, height, units)

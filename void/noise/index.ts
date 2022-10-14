@@ -1,13 +1,16 @@
 import SimplexNoise from 'simplex-noise'
 import { Scene } from '..'
-import { __VOID__ } from '../internal'
 
 /** A weak map for storing a reference to the scene's seeded random. */
 let NOISE = new WeakMap<Scene, SimplexNoise>()
 
 /** Generate seeded simplex noise from `x`, `y`, `z`, and `w` coordinates. */
 export function noise(x: number, y?: number, z?: number, w?: number): number {
-  let { scene } = __VOID__
+  let { scene } = Void
+  if (!scene) {
+    throw new Error(`Cannot call noise() before calling setup()!`)
+  }
+
   let n = NOISE.get(scene)
   if (n == null) {
     n = new SimplexNoise(scene.seed)

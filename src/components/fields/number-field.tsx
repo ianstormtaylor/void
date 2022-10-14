@@ -169,9 +169,10 @@ export let NumberField = (props: {
 function toText(number: number, step: number): string {
   if (number === 0) return `0`
   let rounded = Math.round(number / step) * step
-  let isRound = number === rounded
+  let isRound = isRoughlyEqual(number, rounded)
   let precision = isRound ? getPrecision(step) : getPrecision(number)
   let string = number.toFixed(precision)
+  console.log({ number, step, rounded, isRound, precision, string })
   return string
 }
 
@@ -179,4 +180,9 @@ function toText(number: number, step: number): string {
 function getPrecision(number: number): number {
   let [, decimals] = String(number).split('.')
   return decimals?.length ?? 0
+}
+
+/** Check if a numbers `a` and `b` are equal within a small precision. */
+function isRoughlyEqual(a: number, b: number) {
+  return Math.abs(a - b) <= 0.000001
 }
