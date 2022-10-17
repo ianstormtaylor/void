@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react'
-import { MdClear } from 'react-icons/md'
 import { useLatest } from 'react-use'
 
 // A tiny empty image for replacing the default drag image.
@@ -17,7 +16,6 @@ export let NumberField = (props: {
   max?: number
   valueClassName?: string
   onChange: (value: number) => void
-  onReset?: () => void
 }) => {
   let {
     value,
@@ -29,7 +27,6 @@ export let NumberField = (props: {
     max = Infinity,
     valueClassName = '',
     onChange,
-    onReset,
   } = props
   let [prevValue, setPrevValue] = useState(value)
   let [text, setText] = useState(`${value}`)
@@ -145,22 +142,6 @@ export let NumberField = (props: {
           }}
         />
       </div>
-      {onReset && (
-        <button
-          title="Reset"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            if (onReset) onReset()
-          }}
-          className={`
-            hidden group-hover:flex text-base
-            text-gray-300 hover:text-gray-600
-          `}
-        >
-          <MdClear />
-        </button>
-      )}
     </label>
   )
 }

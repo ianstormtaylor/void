@@ -52,16 +52,23 @@ export function run(
     scene?: Scene
   } = {}
 ) {
-  let { el, overrides, canvas, context, scene, schema, settings, traits } =
-    options
-  Void.canvas = canvas
-  Void.context = context
-  Void.el = el
-  Void.overrides = overrides
-  Void.scene = scene
-  Void.schema = schema
-  Void.settings = settings
-  Void.traits = traits
+  Void.canvas = options.canvas
+  Void.context = options.context
+  Void.el = options.el
+  Void.overrides = options.overrides
+  Void.scene = options.scene
+  Void.schema = options.schema
+  Void.settings = options.settings
+  Void.traits = options.traits
   module.default()
-  return Void
+  let ret = { ...Void }
+  delete Void.canvas
+  delete Void.context
+  delete Void.el
+  delete Void.overrides
+  delete Void.scene
+  delete Void.schema
+  delete Void.settings
+  delete Void.traits
+  return ret
 }

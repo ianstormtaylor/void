@@ -89,16 +89,19 @@ export function poisson(mean = 1) {
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
-  let { scene } = Void
-  if (scene == null) {
-    throw new Error('Cannot call random helpers before setup()!')
+  let r
+
+  if (Void.scene == null) {
+    r = Math.random
+  } else {
+    let { scene } = Void
+    r = RANDOM.get(scene)
+    if (r == null) {
+      r = SeedRandom(`${scene.seed}`)
+      RANDOM.set(scene, r)
+    }
   }
 
-  let r = RANDOM.get(scene)
-  if (r == null) {
-    r = SeedRandom(`${scene.seed}`)
-    RANDOM.set(scene, r)
-  }
   return r()
 }
 

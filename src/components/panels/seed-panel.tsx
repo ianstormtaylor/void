@@ -14,7 +14,7 @@ export let SeedPanel = (props: { scene: Scene }) => {
           <button
             className={`
               flex w-7 h-7 items-center justify-center text-base rounded
-              text-gray-400 hover:bg-gray-100
+              text-gray-300 hover:text-black hover:bg-gray-100
             `}
             onClick={() => {
               changeTab((t) => {
@@ -27,7 +27,7 @@ export let SeedPanel = (props: { scene: Scene }) => {
           <button
             className={`
               flex w-7 h-7 items-center justify-center text-base rounded
-              text-gray-400 hover:bg-gray-100
+              text-gray-300 hover:text-black hover:bg-gray-100
             `}
             onClick={() => {
               changeTab((t) => {

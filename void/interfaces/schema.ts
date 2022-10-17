@@ -1,3 +1,6 @@
+import { math } from '../math'
+import { random } from '../random'
+
 /** A JSON-serializable value. */
 export type Json =
   | null
@@ -8,42 +11,35 @@ export type Json =
   | { [key: string]: Json }
 
 /** A schema representing all the traits of a sketch. */
-export type Schema = Record<string, TraitSchema<any>>
+export type Schema = Record<string, TraitSchema>
 
 export const Schema = {
   /** Generate a new value for a trait's `schema`. */
-  generate(schema: TraitSchema<any>): any {
+  generate(schema: TraitSchema): any {
     switch (schema.type) {
-      case 'null': {
-        return null
-      }
-
       case 'boolean': {
-        return Math.random() > 0.5
-      }
-
-      case 'string': {
-        return schema.default
+        return random.bool()
       }
 
       case 'number': {
-        let { min, max, step, default: def } = schema
-        if (min == -Infinity)
-          min = def === 0 ? 0 : def > 0 ? step : def - step * 10
-        if (max == Infinity) max = def + step * 10
-        let r = min + Math.random() * (max - min)
-        r = Math.round(r / step) * step
-        return r
+        let { min, max, step } = schema
+        if (step == null) return random.float(min, max)
+        let range = max - min
+        let value = random.float(0, range + step)
+        value = math.floor(value, step)
+        return min + value
       }
 
       case 'enum': {
         let { options } = schema
-        let total = options.reduce((m, o) => m + o.weight, 0)
-        let r = Math.random() * total
-        let c = 0
-        let i = options.findIndex((o) => r < (c += o.weight))
-        let option = options[i]
-        return option.value
+        let values = []
+        let weights = []
+        for (let option of options) {
+          values.push(option.value)
+          weights.push(option.weight)
+        }
+        let value = random.item(values, weights)
+        return value
       }
 
       default: {
@@ -55,54 +51,31 @@ export const Schema = {
 }
 
 /** A schema that defines the values for a trait. */
-export type TraitSchema<V extends Json> = V extends null
-  ? NullSchema | EnumSchema<V>
-  : V extends number
-  ? NumberSchema | EnumSchema<V>
-  : V extends boolean
-  ? BooleanSchema | EnumSchema<V>
-  : V extends string
-  ? StringSchema | EnumSchema<V>
-  : EnumSchema<V>
-
-/** A schema for `null` values. */
-export type NullSchema = {
-  type: 'null'
-  default: null
-}
+export type TraitSchema = BooleanSchema | NumberSchema | EnumSchema
 
 /** A schema for booleans. */
 export type BooleanSchema = {
   type: 'boolean'
-  default: boolean
 }
 
 /** A schema for numbers. */
 export type NumberSchema = {
   type: 'number'
-  default: number
-  step: number
+  step: number | null
   min: number
   max: number
 }
 
-/** A schema for strings. */
-export type StringSchema = {
-  type: 'string'
-  default: string
-}
-
 /** A schema for enumerations. */
-export type EnumSchema<V extends Json> = {
+export type EnumSchema = {
   type: 'enum'
-  default: V
-  options: OptionSchema<V>[]
+  options: OptionSchema[]
 }
 
 /** A schema for the choices of enums. */
-export type OptionSchema<V extends Json> = {
+export type OptionSchema = {
   type: 'option'
   name: string
-  value: V
+  value: Json
   weight: number
 }

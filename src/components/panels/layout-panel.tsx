@@ -24,8 +24,8 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
             }}
             className={`
               flex w-7 h-7 items-center justify-center text-base rounded
-              hover:bg-gray-100
-              ${orientation === 'portrait' ? 'text-gray-600' : 'text-gray-300'}
+              hover:text-black hover:bg-gray-100
+              ${orientation === 'portrait' ? 'text-black' : 'text-gray-300'}
             `}
           >
             <MdCrop169 className="transform rotate-90" />
@@ -39,8 +39,8 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
             }}
             className={`
               flex w-7 h-7 items-center justify-center text-base rounded
-              hover:bg-gray-100
-              ${orientation === 'landscape' ? 'text-gray-600' : 'text-gray-300'}
+              hover:text-black hover:bg-gray-100
+              ${orientation === 'landscape' ? 'text-black' : 'text-gray-300'}
             `}
           >
             <MdCrop169 />
@@ -54,8 +54,8 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
             }}
             className={`
               flex w-7 h-7 items-center justify-center text-base rounded
-              hover:bg-gray-100
-              ${orientation === 'square' ? 'text-gray-600' : 'text-gray-300'}
+              hover:text-black hover:bg-gray-100
+              ${orientation === 'square' ? 'text-black' : 'text-gray-300'}
             `}
           >
             <MdCropSquare />

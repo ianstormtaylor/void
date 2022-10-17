@@ -1,16 +1,14 @@
 import { useRef } from 'react'
-import { MdClear } from 'react-icons/md'
-import { ResolvedOptionSchema } from '../../../void'
+import { OptionSchema } from '../../../void'
 
 export let EnumField = (props: {
   value: any
   label: string
   valueClassName?: string
-  options: ResolvedOptionSchema<any>[]
+  options: OptionSchema<any>[]
   onChange: (value: any) => void
-  onReset?: () => void
 }) => {
-  let { value, options, label, onChange, onReset, valueClassName = '' } = props
+  let { value, options, label, onChange, valueClassName = '' } = props
   let selectRef = useRef<HTMLSelectElement>(null)
   return (
     <label
@@ -51,22 +49,6 @@ export let EnumField = (props: {
           ))}
         </select>
       </div>
-      {onReset && (
-        <button
-          title="Reset"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            if (onReset) onReset()
-          }}
-          className={`
-            hidden group-hover:flex text-base
-            text-gray-300 hover:text-gray-600
-          `}
-        >
-          <MdClear />
-        </button>
-      )}
       <input
         className="sr-only"
         type="checkbox"

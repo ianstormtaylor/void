@@ -49,46 +49,6 @@ export let EditorToolbar = (props: { schema: Schema | null }) => {
       <div className="text-sm text-gray-400">{path}</div>
       <div className="flex items-center space-x-1">
         <button
-          title="Reset Traits"
-          className={`
-            flex w-8 h-8 items-center justify-center rounded cursor-default
-            text-gray-300 hover:text-white hover:bg-gray-700
-            ${
-              tab.settings.traits != null &&
-              Object.keys(tab.settings.traits).length > 0
-                ? 'opacity-100'
-                : 'opacity-0'
-            }
-          `}
-          onClick={() => {
-            changeTab((t) => {
-              t.settings.traits = {}
-            })
-          }}
-        >
-          <MdClear className="text-lg" />
-        </button>
-        <button
-          title="Auto-generate Traits"
-          className={`
-            flex w-8 h-8 items-center justify-center rounded cursor-default
-            text-gray-300 hover:text-white hover:bg-gray-700
-          `}
-          onClick={() => {
-            changeTab((t) => {
-              if (schema) {
-                for (let [name, trait] of Object.entries(schema)) {
-                  if (t.locks.includes(name)) continue
-                  let traits = (t.settings.traits = t.settings.traits ?? {})
-                  traits[name] = Schema.generate(trait)
-                }
-              }
-            })
-          }}
-        >
-          <MdOutlineAutoAwesome className="text-lg" />
-        </button>
-        <button
           title="Favorite Variant"
           className={`
             flex w-8 h-8 items-center justify-center rounded cursor-default

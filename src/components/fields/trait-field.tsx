@@ -14,17 +14,15 @@ import { EnumField } from './enum-field'
 
 export let TraitField = (props: {
   prop: string
-  schema: TraitSchema<any>
+  schema: TraitSchema
   value: any
 }) => {
   let { prop: key, schema, value } = props
   let [tab, changeTab] = useTab()
   let label = capitalCase(key)
-  let locked = tab.locks.includes(key)
   let has = tab.settings.traits != null && key in tab.settings.traits
   let valueClassName = `
     ${has ? 'font-bold' : ''}
-    ${locked ? 'text-gray-400' : ''}
   `
 
   let field: React.ReactNode
@@ -39,24 +37,16 @@ export let TraitField = (props: {
     [tab, key, changeTab]
   )
 
-  let onReset = useCallback(() => {
-    changeTab((t) => {
-      let traits = (t.settings.traits = t.settings.traits ?? {})
-      delete traits[key]
-    })
-  }, [tab, key, changeTab])
-
   if (schema.type === 'number') {
     field = (
       <NumberField
         label={label}
-        step={schema.step}
+        step={schema.step ?? 0.01}
         min={schema.min}
         max={schema.max}
         value={value}
         valueClassName={valueClassName}
         onChange={onChange}
-        onReset={has ? onReset : undefined}
       />
     )
   } else if (schema.type === 'boolean') {
@@ -66,7 +56,6 @@ export let TraitField = (props: {
         value={value}
         valueClassName={valueClassName}
         onChange={onChange}
-        onReset={has ? onReset : undefined}
       />
     )
   } else if (schema.type === 'enum') {
@@ -77,11 +66,11 @@ export let TraitField = (props: {
         options={schema.options}
         valueClassName={valueClassName}
         onChange={onChange}
-        onReset={has ? onReset : undefined}
       />
     )
   } else {
-    throw new Error(`Unhandled trait type: ${schema.type}`)
+    let n: never = schema
+    throw new Error(`Unhandled schema: "${JSON.stringify(n)}"`)
   }
 
   return (
@@ -92,10 +81,14 @@ export let TraitField = (props: {
           title="Auto-generate"
           className="opacity-0 group-hover:opacity-100"
           onClick={() => {
-            let attempts = 5
-            let v = schema.type === 'boolean' ? !value : value
+            let attempts = 10
+            let current =
+              tab.settings.traits != null && key in tab.settings.traits
+                ? tab.settings.traits[key]
+                : value
 
-            while (v === value && attempts--) {
+            let v = schema.type === 'boolean' ? !current : current
+            while (v === current && attempts--) {
               v = Schema.generate(schema)
             }
 
@@ -113,20 +106,20 @@ export let TraitField = (props: {
             flex w-7 h-7 items-center justify-center text-base rounded
             hover:bg-gray-100 hover:text-black
             group-hover:opacity-100
-            ${locked ? 'text-black opacity-100' : 'text-gray-400 opacity-50'}
+            ${has ? 'text-black opacity-100' : 'text-gray-400 opacity-50'}
           `}
           onClick={() => {
             changeTab((t) => {
-              if (locked) {
-                let i = t.locks.indexOf(key)
-                if (i != -1) t.locks.splice(i, 1)
+              let traits = (t.settings.traits = t.settings.traits ?? {})
+              if (has) {
+                delete traits[key]
               } else {
-                t.locks.push(key)
+                traits[key] = value
               }
             })
           }}
         >
-          {locked ? <MdOutlineLock /> : <MdOutlineLockOpen />}
+          {has ? <MdOutlineLock /> : <MdOutlineLockOpen />}
         </button>
       </div>
     </div>

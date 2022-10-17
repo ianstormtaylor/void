@@ -1,13 +1,10 @@
-import { MdClear } from 'react-icons/md'
-
 export let BooleanField = (props: {
   value: boolean
   label: string
   valueClassName?: string
   onChange: (value: boolean) => void
-  onReset?: () => void
 }) => {
-  let { value, label, onChange, onReset, valueClassName = '' } = props
+  let { value, label, onChange, valueClassName = '' } = props
   return (
     <label
       className={`
@@ -26,22 +23,6 @@ export let BooleanField = (props: {
       >
         {value ? 'true' : 'false'}
       </div>
-      {onReset && (
-        <button
-          title="Reset"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            if (onReset) onReset()
-          }}
-          className={`
-            hidden group-hover:flex text-base
-            text-gray-300 hover:text-gray-600
-          `}
-        >
-          <MdClear />
-        </button>
-      )}
       <input
         className="sr-only"
         type="checkbox"
