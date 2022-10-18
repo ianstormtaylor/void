@@ -29,7 +29,7 @@ export let NumberField = (props: {
     onChange,
   } = props
   let [prevValue, setPrevValue] = useState(value)
-  let [text, setText] = useState(`${value}`)
+  let [text, setText] = useState(toText(value, step))
   let [focused, setFocused] = useState(false)
   let latestValue = useLatest(value)
   let clickRef = useRef(false)
@@ -72,7 +72,7 @@ export let NumberField = (props: {
       <div
         className={`
           flex flex-0 flex-shrink-0 items-center space-x-1 cursor-ew-resize
-          ${icon ? 'w-5' : 'w-28'}
+          ${icon ? 'w-5' : 'w-24'}
         `}
         draggable
         title={icon ? label : undefined}
@@ -153,7 +153,6 @@ function toText(number: number, step: number): string {
   let isRound = isRoughlyEqual(number, rounded)
   let precision = isRound ? getPrecision(step) : getPrecision(number)
   let string = number.toFixed(precision)
-  console.log({ number, step, rounded, isRound, precision, string })
   return string
 }
 

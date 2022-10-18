@@ -5,7 +5,7 @@ export let EnumField = (props: {
   value: any
   label: string
   valueClassName?: string
-  options: OptionSchema<any>[]
+  options: OptionSchema[]
   onChange: (value: any) => void
 }) => {
   let { value, options, label, onChange, valueClassName = '' } = props
@@ -20,7 +20,7 @@ export let EnumField = (props: {
         if (selectRef.current) selectRef.current.click()
       }}
     >
-      <div className="flex flex-0 flex-shrink-0 w-28 items-center space-x-1">
+      <div className="flex flex-0 flex-shrink-0 w-24 items-center space-x-1">
         <span className="font-light text-gray-500">{label}</span>
       </div>
       <div
@@ -49,14 +49,6 @@ export let EnumField = (props: {
           ))}
         </select>
       </div>
-      <input
-        className="sr-only"
-        type="checkbox"
-        checked={value}
-        onChange={(e) => {
-          onChange(e.target.checked)
-        }}
-      />
     </label>
   )
 }

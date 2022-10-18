@@ -12,7 +12,7 @@ export let BooleanField = (props: {
         hover:outline hover:outline-1 hover:outline-gray-200
       `}
     >
-      <div className="flex flex-0 flex-shrink-0 w-28 items-center space-x-1">
+      <div className="flex flex-0 flex-shrink-0 w-24 items-center space-x-1">
         <span className="font-light text-gray-500">{label}</span>
       </div>
       <div

@@ -1,5 +1,12 @@
 import SeedRandom from 'seed-random'
+import SimplexNoise from 'simplex-noise'
 import { Scene } from '..'
+
+/** An un-seeded noise generator when no scene is active. */
+let UNSEEDED_NOISE: SimplexNoise | undefined
+
+/** A weak map for storing a reference to the scene's seeded random. */
+let NOISE = new WeakMap<Scene, SimplexNoise>()
 
 /** A weak map for storing a reference to the scene's seeded random. */
 let RANDOM = new WeakMap<Scene, () => number>()
@@ -66,6 +73,32 @@ export function item<T>(list: T[], weights?: number[]): T {
   let c = 0
   let i = weights.findIndex((w) => r < (c += w))
   return list[i]
+}
+
+/** Generate simplex noise from `x`, `y`, `z`, and `w` coordinates. */
+export function noise(x: number, y?: number, z?: number, w?: number): number {
+  let n
+
+  if (Void.scene == null) {
+    n = UNSEEDED_NOISE = UNSEEDED_NOISE ?? new SimplexNoise()
+  } else {
+    let { scene } = Void
+    n = NOISE.get(scene)
+    if (n == null) {
+      n = new SimplexNoise(scene.seed)
+      NOISE.set(scene, n)
+    }
+  }
+
+  if (y == null) {
+    return n.noise2D(x, 0)
+  } else if (z == null) {
+    return n.noise2D(x, y)
+  } else if (w == null) {
+    return n.noise3D(x, y, z)
+  } else {
+    return n.noise4D(x, y, z, w)
+  }
 }
 
 /** Generate a Pareto-distributed number with `alpha`. */

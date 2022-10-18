@@ -30,21 +30,26 @@ export let EditorToolbar = (props: { schema: Schema | null }) => {
         >
           <MdBuild className="text-lg" />
         </button>
-        <button
+        {/* <select
           title="Zoom Level"
+          value={tab.zoom ?? 1}
           className={`
             flex h-8 px-2 items-center justify-center space-x-1 rounded cursor-default
+            text-sm tracking-light
+            text-gray-300 bg-transparent
             hover:text-white hover:bg-gray-700
-            ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
-          onClick={() => {
-            electron.inspectTab(tab.id)
+          onChange={(e) => {
+            let value = e.target.value
+            changeTab((t) => {
+              t.zoom = Number(value)
+            })
           }}
         >
-          <span className="text-sm tracking-tight">
-            {tab.zoom ? `${Math.round(tab.zoom) * 100}%` : '100%'}
-          </span>
-        </button>
+          <option value={1}>100%</option>
+          <option value={0.5}>50%</option>
+          <option value={0.25}>25%</option>
+        </select> */}
       </div>
       <div className="text-sm text-gray-400">{path}</div>
       <div className="flex items-center space-x-1">

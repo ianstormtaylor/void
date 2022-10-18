@@ -1,4 +1,5 @@
 export * from './convert'
+export * from './math'
 export * from './noise'
 export * from './random'
 export * from './setup'
