@@ -1,0 +1,42 @@
+{
+  "appId": "com.electron.void",
+  "productName": "Void",
+  "files": ["./dist"],
+  "asar": true,
+  "afterSign": "scripts/notarize.js",
+  "directories": {
+    "output": "./release/${version}",
+    "buildResources": "./resources"
+  },
+  "mac": {
+    "target": ["dmg"],
+    "artifactName": "${productName}-macOS-${version}.${ext}",
+    "category": "public.app-category.developer-tools",
+    "hardenedRuntime": true,
+    "entitlements": "./resources/entitlements.mac.plist",
+    "entitlementsInherit": "./resources/entitlements.mac.plist",
+    "extendInfo": {
+      "CFBundleDocumentTypes": [
+        {
+          "CFBundleTypeRole": "Viewer",
+          "CFBundleTypeExtensions": ["js", "jsx", "ts", "tsx"],
+          "LSHandlerRank": "Alternate"
+        }
+      ]
+    }
+  },
+  "win": {
+    "target": [{ "target": "nsis", "arch": ["x64"] }],
+    "artifactName": "${productName}-Windows-${version}-${arch}.${ext}"
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "artifactName": "${productName}-Linux-${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
+  }
+}

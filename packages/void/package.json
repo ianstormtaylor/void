@@ -1,0 +1,31 @@
+{
+  "name": "void",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "git://github.com/ianstormtaylor/void.git",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "import": "./dist/void.es.js",
+    "require": "./dist/void.cjs.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.182",
+    "@types/seed-random": "^2.2.1",
+    "lodash": "^4.17.21",
+    "seed-random": "^2.2.0",
+    "simplex-noise": "^3.0.1"
+  },
+  "devDependencies": {
+    "vite": "*"
+  }
+}

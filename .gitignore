@@ -1,9 +1,11 @@
-.vscode/
+# Secrets & configuration
+.env
+
+# Build outputs
 dist/
+release/
 node_modules/
+
+# Temporary files
 tmp/
 *.log
-
-# temporarily
-public/icons
-public/Void.*

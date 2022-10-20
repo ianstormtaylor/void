@@ -1,0 +1,25 @@
+{
+  "include": ["@types", "main", "preload", "renderer", "resources", "shared"],
+  "exclude": ["node_modules"],
+  "references": [{ "path": "../../packages/void" }],
+  "compilerOptions": {
+    "paths": {
+      "void": ["../../packages/void"]
+    },
+    "composite": true,
+    "target": "esnext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "esnext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx"
+  }
+}
