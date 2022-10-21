@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import { Editor } from './components/editor'
 import { ModuleContext } from './contexts/module'
-import { BrowserRouter, Route, Routes, useParams } from 'react-router-dom'
+import { HashRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useConfig } from './contexts/config'
 import { Banner } from './components/banner'
 import { Module } from 'void'
@@ -40,12 +40,12 @@ let App = () => {
 
   return (
     <div className="w-screen h-screen">
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/windows/:id" element={<WindowPage />} />
           <Route path="/tabs/:id" element={<TabPage />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
       {dragging && (
         <div className="absolute inset-0 bg-black bg-opacity-10"></div>
       )}
@@ -69,7 +69,7 @@ let TabPage = () => {
 
   useEffect(() => {
     if (sketch.entrypoint) {
-      import(/* @vite-ignore */ sketch.entrypoint)
+      import(sketch.entrypoint)
         .then((pkg) => setModule(pkg))
         .catch((e) => console.error(e))
     }

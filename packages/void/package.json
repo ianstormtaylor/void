@@ -8,8 +8,8 @@
     "dist"
   ],
   "exports": {
-    "import": "./dist/void.es.js",
-    "require": "./dist/void.cjs.js"
+    "import": "./dist/void.mjs",
+    "require": "./dist/void.js"
   },
   "engines": {
     "node": ">=16"

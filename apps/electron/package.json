@@ -8,9 +8,9 @@
   "repository": "git://github.com/ianstormtaylor/void.git",
   "main": "./dist/main/index.js",
   "scripts": {
-    "build": "vite build && electron-builder --dir",
-    "dev": "vite",
-    "pkg": "vite build && electron-builder"
+    "build": "vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir",
+    "build:prod": "NODE_ENV=production vite build && NODE_ENV=production electron-builder",
+    "dev": "vite"
   },
   "devDependencies": {
     "@headlessui/react": "^1.6.5",
@@ -70,6 +70,7 @@
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "autoprefixer": "^10.4.7",
     "electron-devtools-vendor": "^1.1.0",
+    "electron-notarize": "^1.2.1",
     "esbuild": "^0.14.48",
     "live-server": "^1.2.2",
     "postcss": "^8.4.13",

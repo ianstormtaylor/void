@@ -8,6 +8,9 @@ export default defineConfig({
     host: process.env.VITE_DEV_SERVER_HOST,
     port: Number(process.env.VITE_DEV_SERVER_PORT),
   },
+  build: {
+    minify: false,
+  },
   plugins: [
     react(),
     electron({
@@ -16,6 +19,7 @@ export default defineConfig({
         vite: {
           build: {
             outDir: './dist/main',
+            minify: false,
             emptyOutDir: true,
             sourcemap: false,
           },
@@ -23,17 +27,17 @@ export default defineConfig({
       },
       preload: {
         input: {
-          index: Path.join(__dirname, './preload/index.ts'),
+          index: Path.resolve(__dirname, './preload/index.ts'),
         },
         vite: {
           build: {
             outDir: './dist/preload',
+            minify: false,
             emptyOutDir: true,
             sourcemap: 'inline',
           },
         },
       },
-      renderer: {},
     }),
   ],
 })

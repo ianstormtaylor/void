@@ -1,7 +1,7 @@
 import Path from 'path'
 import crypto from 'node:crypto'
-import { BrowserView } from 'electron'
-import { VITE_DEV_SERVER_URL } from '../env'
+import { app, BrowserView } from 'electron'
+import { SERVER_URL } from '../env'
 import { Window } from './window'
 import { main } from './main'
 import { Draft } from 'immer'
@@ -15,12 +15,17 @@ export class Tab {
 
   /** Construct a new `Tab` instance with `id`.. */
   constructor(id: string) {
-    let preload = Path.join(__dirname, '../preload/index.js')
-    let url = `${VITE_DEV_SERVER_URL}/tabs/${id}`
+    let preload = Path.resolve(__dirname, '../preload/index.js')
+    let url = `${SERVER_URL}#/tabs/${id}`
     let view = new BrowserView({ webPreferences: { preload } })
     this.id = id
     this.view = view
-    view.webContents.loadURL(url)
+
+    if (app.isPackaged) {
+      view.webContents.loadFile(url)
+    } else {
+      view.webContents.loadURL(url)
+    }
   }
 
   /**

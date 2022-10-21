@@ -1,7 +1,7 @@
 import Path from 'path'
 import crypto from 'node:crypto'
 import { app, BrowserWindow } from 'electron'
-import { IS_DEV, VITE_DEV_SERVER_URL } from '../env'
+import { SERVER_URL } from '../env'
 import { Tab } from './tab'
 import { main } from './main'
 import { Draft } from 'immer'
@@ -17,8 +17,8 @@ export class Window {
 
   /** Create a new window. */
   constructor(id: string) {
-    let preload = Path.join(__dirname, '../preload/index.js')
-    let url = `${VITE_DEV_SERVER_URL}/windows/${id}`
+    let preload = Path.resolve(__dirname, '../preload/index.js')
+    let url = `${SERVER_URL}#/windows/${id}`
     let window = new BrowserWindow({
       x: 0,
       y: 0,
@@ -55,8 +55,6 @@ export class Window {
         w.y = y
       })
     })
-
-    window.loadURL(url)
   }
 
   /**

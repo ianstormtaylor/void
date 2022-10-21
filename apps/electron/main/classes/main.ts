@@ -38,6 +38,7 @@ export class Main {
   constructor() {
     let store = new ElectronStore({
       defaults: initialConfig,
+      name: IS_DEV ? 'config-dev' : 'config',
     })
 
     let shared = createMainStore({
@@ -81,12 +82,12 @@ export class Main {
 
       // Load the React Devtools extension.
       // https://github.com/BlackHole1/electron-devtools-vendor#usage
-      if (IS_DEV) {
-        let { REACT_DEVELOPER_TOOLS } = require('electron-devtools-vendor')
-        await session.defaultSession.loadExtension(REACT_DEVELOPER_TOOLS, {
-          allowFileAccess: true,
-        })
-      }
+      // if (IS_DEV) {
+      //   let { REACT_DEVELOPER_TOOLS } = require('electron-devtools-vendor')
+      //   await session.defaultSession.loadExtension(REACT_DEVELOPER_TOOLS, {
+      //     allowFileAccess: true,
+      //   })
+      // }
 
       // Try to restore any saved windows.
       this.restore()
