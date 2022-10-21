@@ -4,12 +4,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   main: {
     build: {
+      target: 'node16',
       watch: {},
     },
     plugins: [externalizeDepsPlugin()],
   },
   preload: {
     build: {
+      target: 'node16',
       watch: {},
     },
     plugins: [externalizeDepsPlugin()],

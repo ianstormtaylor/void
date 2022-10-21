@@ -9,13 +9,14 @@
   "main": "./out/main/index.js",
   "scripts": {
     "build": "npm run build:vite && npm run build:electron",
-    "build:electron": "electron-builder",
+    "build:electron": "dotenv -- electron-builder",
     "build:vite": "electron-vite build",
     "dev": "electron-vite dev",
     "preview": "electron-vite preview"
   },
   "dependencies": {
     "autoprefixer": "^10.4.7",
+    "dotenv-cli": "^6.0.0",
     "electron-devtools-vendor": "^1.1.0",
     "electron-notarize": "^1.2.1",
     "electron-vite": "^1.0.11",
@@ -48,6 +49,7 @@
     "update-electron-app": "^2.0.1",
     "use-immer": "^0.7.0",
     "vexes": "^0.0.25",
+    "vite": "*",
     "void": "*"
   }
 }
