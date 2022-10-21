@@ -1,7 +1,7 @@
 import Path from 'path'
 import crypto from 'node:crypto'
 import { app, BrowserWindow } from 'electron'
-import { SERVER_URL } from '../env'
+import { RENDERER_URL } from '../env'
 import { Tab } from './tab'
 import { main } from './main'
 import { Draft } from 'immer'
@@ -18,7 +18,7 @@ export class Window {
   /** Create a new window. */
   constructor(id: string) {
     let preload = Path.resolve(__dirname, '../preload/index.js')
-    let url = `${SERVER_URL}#/windows/${id}`
+    let url = `${RENDERER_URL}#/windows/${id}`
     let window = new BrowserWindow({
       x: 0,
       y: 0,
@@ -55,6 +55,12 @@ export class Window {
         w.y = y
       })
     })
+
+    if (app.isPackaged) {
+      window.loadFile(url)
+    } else {
+      window.loadURL(url)
+    }
   }
 
   /**

@@ -69,7 +69,7 @@ let TabPage = () => {
 
   useEffect(() => {
     if (sketch.entrypoint) {
-      import(sketch.entrypoint)
+      import(/* @vite-ignore */ sketch.entrypoint)
         .then((pkg) => setModule(pkg))
         .catch((e) => console.error(e))
     }

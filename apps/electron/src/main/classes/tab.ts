@@ -1,7 +1,7 @@
 import Path from 'path'
 import crypto from 'node:crypto'
 import { app, BrowserView } from 'electron'
-import { SERVER_URL } from '../env'
+import { RENDERER_URL } from '../env'
 import { Window } from './window'
 import { main } from './main'
 import { Draft } from 'immer'
@@ -16,7 +16,7 @@ export class Tab {
   /** Construct a new `Tab` instance with `id`.. */
   constructor(id: string) {
     let preload = Path.resolve(__dirname, '../preload/index.js')
-    let url = `${SERVER_URL}#/tabs/${id}`
+    let url = `${RENDERER_URL}#/tabs/${id}`
     let view = new BrowserView({ webPreferences: { preload } })
     this.id = id
     this.view = view

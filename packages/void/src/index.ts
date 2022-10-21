@@ -17,3 +17,4 @@ export * from './interfaces/units'
 
 import './internal'
 export { run } from './internal'
+export type { Void } from './internal'

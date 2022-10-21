@@ -1,11 +1,11 @@
 {
   "appId": "com.electron.void",
   "productName": "Void",
-  "files": ["./dist"],
+  "files": ["./out"],
   "asar": true,
   "afterSign": "scripts/notarize.js",
   "directories": {
-    "output": "./release/${version}",
+    "output": "./dist/${version}",
     "buildResources": "./resources"
   },
   "mac": {

@@ -1,10 +1,8 @@
-import Path from 'path'
-import Os from 'os'
 import { app, dialog, Menu, session } from 'electron'
 import { Draft } from 'immer'
 import ElectronStore from 'electron-store'
 import { Config, initialConfig } from '../../shared/config'
-import { IS_DEV, IS_MAC, IS_PROD, NODE_ENV } from '../env'
+import { IS_DEV, IS_MAC, IS_PROD } from '../env'
 import { initializeIpc as loadIpc } from '../ipc'
 import { appMenu, dockMenu } from '../menus'
 import { Tab } from './tab'
@@ -66,7 +64,6 @@ export class Main {
     })
 
     app.on('ready', async () => {
-      console.log('ready')
       // If there is already an app instance, quit so only one is ever open.
       if (!app.requestSingleInstanceLock()) {
         console.log('ARGV', process.argv)
@@ -82,12 +79,12 @@ export class Main {
 
       // Load the React Devtools extension.
       // https://github.com/BlackHole1/electron-devtools-vendor#usage
-      // if (IS_DEV) {
-      //   let { REACT_DEVELOPER_TOOLS } = require('electron-devtools-vendor')
-      //   await session.defaultSession.loadExtension(REACT_DEVELOPER_TOOLS, {
-      //     allowFileAccess: true,
-      //   })
-      // }
+      if (IS_DEV) {
+        let { REACT_DEVELOPER_TOOLS } = require('electron-devtools-vendor')
+        await session.defaultSession.loadExtension(REACT_DEVELOPER_TOOLS, {
+          allowFileAccess: true,
+        })
+      }
 
       // Try to restore any saved windows.
       this.restore()

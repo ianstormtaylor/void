@@ -1,9 +1,9 @@
 # Secrets & configuration
-.env
+.env*
 
 # Build outputs
 dist/
-release/
+out/
 node_modules/
 
 # Temporary files

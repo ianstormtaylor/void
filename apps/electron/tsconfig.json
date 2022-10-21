@@ -1,5 +1,5 @@
 {
-  "include": ["@types", "main", "preload", "renderer", "resources", "shared"],
+  "include": ["src"],
   "exclude": ["node_modules"],
   "references": [{ "path": "../../packages/void" }],
   "compilerOptions": {
