@@ -9,12 +9,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build:pkgs && npm run build:apps",
-    "build:apps": "npm run build --workspace=@apps/electron",
-    "build:pkgs": "npm run build --workspace=void",
-    "clean": "rm -rf ./node_modules && rm -rf ./{apps,packages}/*/{dist,node_modules,out}",
-    "dev": "npm run dev --workspace=@apps/electron",
-    "preview": "npm run preview --workspace=@apps/electron"
+    "clean": "rm -rf ./node_modules && rm -rf ./{apps,packages}/*/{dist,node_modules,out}"
   },
   "devDependencies": {
     "prettier": "^2.6.2",

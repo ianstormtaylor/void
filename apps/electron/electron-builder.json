@@ -2,11 +2,15 @@
   "appId": "com.electron.void",
   "productName": "Void",
   "files": ["./out"],
-  "asar": true,
+  "asar": false,
   "afterSign": "scripts/notarize.js",
   "directories": {
     "output": "./dist/${version}",
     "buildResources": "./resources"
+  },
+  "publish": {
+    "provider": "github",
+    "private": true
   },
   "mac": {
     "target": ["dmg"],

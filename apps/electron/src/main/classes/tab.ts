@@ -20,12 +20,7 @@ export class Tab {
     let view = new BrowserView({ webPreferences: { preload } })
     this.id = id
     this.view = view
-
-    if (app.isPackaged) {
-      view.webContents.loadFile(url)
-    } else {
-      view.webContents.loadURL(url)
-    }
+    view.webContents.loadURL(url)
   }
 
   /**

@@ -56,11 +56,7 @@ export class Window {
       })
     })
 
-    if (app.isPackaged) {
-      window.loadFile(url)
-    } else {
-      window.loadURL(url)
-    }
+    window.loadURL(url)
   }
 
   /**
