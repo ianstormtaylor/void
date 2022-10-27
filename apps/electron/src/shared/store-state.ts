@@ -1,7 +1,7 @@
-import { Settings } from 'void'
+import { Options } from 'void'
 
 /** The saved state of a `Window`. */
-export type WindowConfig = {
+export type WindowState = {
   id: string
   tabIds: string[]
   activeTabId: string | null
@@ -12,30 +12,30 @@ export type WindowConfig = {
 }
 
 /** The saved state of a `Tab`. */
-export type TabConfig = {
+export type TabState = {
   id: string
   sketchId: string
   inspecting: boolean
   zoom: number | null
-  settings: Settings
+  options: Options
 }
 
 /** The saved state of a `Sketch`. */
-export type SketchConfig = {
+export type SketchState = {
   id: string
   path: string
   entrypoint: string | null
 }
 
 /** The saved state of the entire app. */
-export type Config = {
-  sketches: Record<string, SketchConfig>
-  tabs: Record<string, TabConfig>
-  windows: Record<string, WindowConfig>
+export type StoreState = {
+  sketches: Record<string, SketchState>
+  tabs: Record<string, TabState>
+  windows: Record<string, WindowState>
 }
 
 /** The initial empty state of the app. */
-export let initialConfig: Config = {
+export let initialState: StoreState = {
   sketches: {},
   tabs: {},
   windows: {},

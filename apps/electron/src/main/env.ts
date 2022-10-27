@@ -7,7 +7,7 @@ export let IS_LINUX = process.platform === 'linux'
 
 // Development vs. production
 export let IS_PROD = process.env.NODE_ENV === 'production'
-export let IS_DEV = process.env.NODE_ENV === 'development'
+export let IS_DEV = !IS_PROD
 
 // The URL to the server entrypoint.
 export let RENDERER_URL = IS_DEV

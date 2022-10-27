@@ -1,11 +1,20 @@
+import { Units, UnitsSystem } from '../interfaces/units'
+import { Sketch } from '../sketch'
+
 /** The golden ratio. */
 export const PHI = (1 + Math.sqrt(5)) / 2
 
-/** Twice the value of pi, which is often more clear. */
+/** Twice the value of `PI`, which is often more clear. */
 export const TAU = Math.PI * 2
 
 /** A reasonable tolerance for catching floating point precision errors. */
 export const TOLERANCE = 0.000001
+
+/** The number of degrees in one radian. */
+export const DEG_PER_RAD = 180 / Math.PI
+
+/** The number of radians in one degree. */
+export const RAD_PER_DEG = Math.PI / 180
 
 /** Clamp a `value` between `min` and `max` by bouncing between the two. */
 export function bounce(value: number, min: number, max: number): number {
@@ -20,8 +29,21 @@ export function bounce(value: number, min: number, max: number): number {
 }
 
 /** Round a `value` _up_ to the nearest `multiple`. */
-export function ceil(value: number, multiple = 1): number {
-  return Math.ceil(value / multiple) * multiple
+export function ceil(value: number): number
+export function ceil(value: number, precision: number): number
+export function ceil(
+  value: number,
+  options: { precision: number } | { multiple: number }
+): number
+export function ceil(
+  value: number,
+  options?: number | { precision: number } | { multiple: number }
+): number {
+  if (options == null) return Math.ceil(value)
+  if (typeof options === 'number') options = { precision: options }
+  let by =
+    'multiple' in options ? 1 / options.multiple : 10 ** options.precision
+  return Math.ceil(value * by) / by
 }
 
 /** Clamp a `value` between `min` and `max`. */
@@ -29,9 +51,62 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
+/** A constant to convert from inches to meters to change unit systems. */
+const IN_TO_M = 0.0254
+
+/** Conversions for units within their respective system. */
+const CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
+  m: ['metric', 1],
+  cm: ['metric', 1 / 100],
+  mm: ['metric', 1 / 1000],
+  in: ['imperial', 1],
+  ft: ['imperial', 12],
+  yd: ['imperial', 36],
+  pc: ['imperial', 1 / 6],
+  pt: ['imperial', 1 / 72],
+}
+
+/** Convert a `value` in `units` to the sketch's default units. */
+export function convert(
+  value: number,
+  from: Units,
+  options: {
+    to?: Units
+    dpi?: number
+    precision?: number
+  } = {}
+): number {
+  let settings = Sketch.current()?.state?.settings
+  let {
+    to = settings?.units ?? 'px',
+    dpi = settings?.dpi ?? 72,
+    precision,
+  } = options
+
+  // Early exit.
+  if (from === to) return value
+
+  // Swap pixels for inches using the dynamic `dpi`.
+  let factor = 1
+  if (from === 'px') (factor /= dpi), (from = 'in')
+  if (to === 'px') (factor *= dpi), (to = 'in')
+
+  // Swap systems if `from` and `to` aren't using the same one.
+  let [inS, inF] = CONVERSIONS[from]
+  let [outS, outF] = CONVERSIONS[to]
+  factor *= inF
+  factor /= outF
+  if (inS !== outS) factor *= inS === 'metric' ? 1 / IN_TO_M : IN_TO_M
+
+  // Calculate the result and optionally round to a fixed number of digits.
+  let result = (value *= factor)
+  if (precision != null) result = Math.round(value / precision) * precision
+  return result
+}
+
 /** Convert an angle in `radians` to degrees. */
 export function degrees(radians: number): number {
-  return (radians / TAU) * 360
+  return radians * DEG_PER_RAD
 }
 
 /** Ease a normalized value `t` _in_ by a polynomial power `p`. */
@@ -102,9 +177,30 @@ export function mod(value: number, modulus: number): number {
   return ((value % modulus) + modulus) % modulus
 }
 
+/** Find the mode of a set of `numbers`. */
+// export function mode(...numbers: [number, ...number[]]): number {
+//   let counts = new Map<number, number>()
+
+//   for (let n of numbers) {
+//     counts.set(n, (counts.get(n) ?? 0) + 1)
+//   }
+
+//   let mode
+//   let max = 0
+
+//   for (let [n, count] of counts) {
+//     if (count > max) {
+//       max = count
+//       mode = n
+//     }
+//   }
+
+//   return mode
+// }
+
 /** Convert an angle in `degrees` to radians. */
 export function radians(degrees: number): number {
-  return (degrees / 360) * TAU
+  return degrees * RAD_PER_DEG
 }
 
 /** Return a range of numbers from `a` to `b`. */
@@ -140,6 +236,19 @@ export function roll<T>(list: T[], size: number): T[][] {
 /** Round a number to the nearest `multiple`. */
 export function round(value: number, multiple = 1): number {
   return Math.round(value / multiple) * multiple
+}
+
+/** Scale a `value` between `inMin` and `inMax` to a new scale between `outMin` and `outMax`. */
+export function scale(
+  value: number,
+  inMin: number,
+  inMax: number,
+  outMin: number,
+  outMax: number
+): number {
+  let t = unlerp(inMin, inMax, value)
+  let v = lerp(outMin, outMax, t)
+  return v
 }
 
 /** Get the sign of a number, with optional `tolerance`. */
@@ -202,4 +311,98 @@ export function wrap(
     : inclusive && equals(value, max)
     ? max
     : value - range * Math.floor((value - min) / range)
+}
+
+/**
+ * Export all of the existing `Math` constants and methods, so they can be used
+ * without switching between the two namespaces.
+ *
+ * Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
+ */
+
+let {
+  E,
+  LN2,
+  LN10,
+  LOG2E,
+  LOG10E,
+  PI,
+  SQRT1_2,
+  SQRT2,
+  abs,
+  acos,
+  acosh,
+  asin,
+  atan,
+  atanh,
+  atan2,
+  cbrt,
+  // ceil,
+  clz32,
+  cos,
+  cosh,
+  exp,
+  expm1,
+  // floor,
+  fround,
+  hypot,
+  imul,
+  log,
+  log1p,
+  log10,
+  log2,
+  max,
+  min,
+  pow,
+  random,
+  // round,
+  // sign,
+  sin,
+  sinh,
+  sqrt,
+  tan,
+  tanh,
+} = Math
+export {
+  E,
+  LN2,
+  LN10,
+  LOG2E,
+  LOG10E,
+  PI,
+  SQRT1_2,
+  SQRT2,
+  abs,
+  acos,
+  acosh,
+  asin,
+  atan,
+  atanh,
+  atan2,
+  cbrt,
+  // ceil,
+  clz32,
+  cos,
+  cosh,
+  exp,
+  expm1,
+  // floor,
+  fround,
+  hypot,
+  imul,
+  log,
+  log1p,
+  log10,
+  log2,
+  max,
+  min,
+  pow,
+  random,
+  // round,
+  // sign,
+  sin,
+  sinh,
+  sqrt,
+  tan,
+  tanh,
 }

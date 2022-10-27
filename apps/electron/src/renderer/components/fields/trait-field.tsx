@@ -3,7 +3,7 @@ import { NumberField } from './number-field'
 import { capitalCase } from 'change-case'
 import { BooleanField } from './boolean-field'
 import { useTab } from '../../contexts/tab'
-import { Schema, TraitSchema } from 'void'
+import { AnySchema, Generate } from 'void'
 import { IconButton } from '../ui/icon-button'
 import {
   MdOutlineAutoAwesome,
@@ -14,13 +14,13 @@ import { EnumField } from './enum-field'
 
 export let TraitField = (props: {
   prop: string
-  schema: TraitSchema
+  schema: AnySchema
   value: any
 }) => {
   let { prop: key, schema, value } = props
   let [tab, changeTab] = useTab()
   let label = capitalCase(key)
-  let has = tab.settings.traits != null && key in tab.settings.traits
+  let has = tab.options.traits != null && key in tab.options.traits
   let valueClassName = `
     ${has ? 'font-bold' : ''}
   `
@@ -30,18 +30,18 @@ export let TraitField = (props: {
   let onChange = useCallback(
     (value: any) => {
       changeTab((t) => {
-        let traits = (t.settings.traits = t.settings.traits ?? {})
+        let traits = (t.options.traits = t.options.traits ?? {})
         traits[key] = value
       })
     },
     [tab, key, changeTab]
   )
 
-  if (schema.type === 'number') {
+  if (schema.type === 'int' || schema.type === 'float') {
     field = (
       <NumberField
         label={label}
-        step={schema.step ?? 0.01}
+        step={schema.step ?? 0.001}
         min={schema.min}
         max={schema.max}
         value={value}
@@ -58,7 +58,7 @@ export let TraitField = (props: {
         onChange={onChange}
       />
     )
-  } else if (schema.type === 'enum') {
+  } else if (schema.type === 'choice') {
     field = (
       <EnumField
         label={label}
@@ -83,17 +83,17 @@ export let TraitField = (props: {
           onClick={() => {
             let attempts = 10
             let current =
-              tab.settings.traits != null && key in tab.settings.traits
-                ? tab.settings.traits[key]
+              tab.options.traits != null && key in tab.options.traits
+                ? tab.options.traits[key]
                 : value
 
             let v = schema.type === 'boolean' ? !current : current
             while (v === current && attempts--) {
-              v = Schema.generate(schema)
+              v = Generate.any(schema, { evenly: true })
             }
 
             changeTab((t) => {
-              let traits = (t.settings.traits = t.settings.traits ?? {})
+              let traits = (t.options.traits = t.options.traits ?? {})
               traits[key] = v
             })
           }}
@@ -110,7 +110,7 @@ export let TraitField = (props: {
           `}
           onClick={() => {
             changeTab((t) => {
-              let traits = (t.settings.traits = t.settings.traits ?? {})
+              let traits = (t.options.traits = t.options.traits ?? {})
               if (has) {
                 delete traits[key]
               } else {

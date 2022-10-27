@@ -1,7 +1,7 @@
 import { app, dialog, Menu, session } from 'electron'
 import { Draft } from 'immer'
 import ElectronStore from 'electron-store'
-import { Config, initialConfig } from '../../shared/config'
+import { StoreState, initialState } from '../../shared/store-state'
 import { IS_DEV, IS_MAC, IS_PROD } from '../env'
 import { initializeIpc as loadIpc } from '../ipc'
 import { appMenu, dockMenu } from '../menus'
@@ -27,15 +27,15 @@ export class Main {
   isQuitting: boolean
 
   /** The persistent store that gets saved to a JSON file. */
-  #store: ElectronStore<Config>
+  #store: ElectronStore<StoreState>
 
   /** The shared store that gets synced to renderer processes. */
-  #shared: SharedStore<Config>
+  #shared: SharedStore<StoreState>
 
   /** Create a new `Main` singleton. */
   constructor() {
     let store = new ElectronStore({
-      defaults: initialConfig,
+      defaults: initialState,
       name: IS_DEV ? 'config-dev' : 'config',
     })
 
@@ -145,7 +145,7 @@ export class Main {
   }
 
   /** Set the main store's state using an Immer `recipe` function. */
-  change(recipe: (draft: Draft<Config>) => void): void {
+  change(recipe: (draft: Draft<StoreState>) => void): void {
     return this.#shared.change(recipe)
   }
 

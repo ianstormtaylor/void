@@ -15,8 +15,10 @@
     "node": ">=16"
   },
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch"
+    "build": "vite build && tsc",
+    "coverage": "vitest run --coverage",
+    "dev": "vitest watch",
+    "test": "vitest run"
   },
   "dependencies": {
     "@types/lodash": "^4.14.182",
@@ -27,6 +29,7 @@
   },
   "devDependencies": {
     "vite": "*",
+    "vitest": "*",
     "vite-plugin-dts": "^1.6.6"
   }
 }

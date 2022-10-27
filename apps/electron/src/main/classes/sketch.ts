@@ -3,7 +3,7 @@ import crypto from 'node:crypto'
 import Esbuild from 'esbuild'
 import { main } from './main'
 import { Draft } from 'immer'
-import { SketchConfig } from '../../shared/config'
+import { SketchState } from '../../shared/store-state'
 import { Tab } from './tab'
 
 /** A `Sketch` class holds a reference to a specific sketch file. */
@@ -79,7 +79,7 @@ export class Sketch {
   }
 
   /** Update the sketch's immutable state with an Immer `recipe` function. */
-  change(recipe: (draft: Draft<SketchConfig>) => void): void {
+  change(recipe: (draft: Draft<SketchState>) => void): void {
     return main.change((s) => {
       recipe(s.sketches[this.id])
     })

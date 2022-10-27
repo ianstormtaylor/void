@@ -1,11 +1,11 @@
 import { NumberField } from '../fields/number-field'
 import { MdEast, MdFingerprint, MdWest } from 'react-icons/md'
 import { useTab } from '../../contexts/tab'
-import { Scene } from 'void'
+import { Settings } from 'void'
 
-export let SeedPanel = (props: { scene: Scene }) => {
+export let SeedPanel = (props: { settings: Settings }) => {
   let [, changeTab] = useTab()
-  let { scene } = props
+  let { settings } = props
   return (
     <div className="p-4 pb-3 space-y-0.5">
       <div className="flex justify-between pb-1">
@@ -18,7 +18,7 @@ export let SeedPanel = (props: { scene: Scene }) => {
             `}
             onClick={() => {
               changeTab((t) => {
-                t.settings.seed = Math.max(0, scene.seed - 1)
+                t.options.seed = Math.max(0, settings.seed - 1)
               })
             }}
           >
@@ -31,7 +31,7 @@ export let SeedPanel = (props: { scene: Scene }) => {
             `}
             onClick={() => {
               changeTab((t) => {
-                t.settings.seed = Math.max(0, scene.seed + 1)
+                t.options.seed = Math.max(0, settings.seed + 1)
               })
             }}
           >
@@ -43,13 +43,13 @@ export let SeedPanel = (props: { scene: Scene }) => {
         <NumberField
           icon={<MdFingerprint />}
           label="Seed"
-          value={scene.seed}
+          value={settings.seed}
           step={1}
           min={0}
           max={9999}
           onChange={(seed) => {
             changeTab((t) => {
-              t.settings.seed = seed
+              t.options.seed = seed
             })
           }}
         />

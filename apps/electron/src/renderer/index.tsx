@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Editor } from './components/editor'
 import { ModuleContext } from './contexts/module'
 import { HashRouter, Route, Routes, useParams } from 'react-router-dom'
-import { useConfig } from './contexts/config'
+import { useStore } from './contexts/store'
 import { Banner } from './components/banner'
 import { Module } from 'void'
 import { TabContext } from './contexts/tab'
@@ -21,8 +21,10 @@ let App = () => {
       window.electron.openFiles(paths)
     }
     const onDragOver = (e: DragEvent) => {
-      e.preventDefault()
-      setDragging(true)
+      if (e.dataTransfer?.files.length) {
+        e.preventDefault()
+        setDragging(true)
+      }
     }
     const onDragLeave = (e: DragEvent) => {
       e.preventDefault()
@@ -55,14 +57,14 @@ let App = () => {
 
 let WindowPage = () => {
   let { id } = useParams()
-  let [config] = useConfig()
+  let [config] = useStore()
   let window = config.windows[id!]
   return window && <Banner key={window.id} window={window} />
 }
 
 let TabPage = () => {
   let { id } = useParams()
-  let [config] = useConfig()
+  let [config] = useStore()
   let [module, setModule] = useState<Module | null>(null)
   let tab = config.tabs[id!]
   let sketch = config.sketches[tab?.sketchId]

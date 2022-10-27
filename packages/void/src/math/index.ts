@@ -1,2 +1,1 @@
-/** A collection of math-related helper functions. */
-export * as math from './helpers'
+export * as Math from './methods'

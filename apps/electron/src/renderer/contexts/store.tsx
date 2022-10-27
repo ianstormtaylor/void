@@ -1,13 +1,13 @@
 import produce, { Patch, enablePatches } from 'immer'
 import { useEffect, useMemo, useState } from 'react'
-import { Config } from '../../shared/config'
+import { StoreState } from '../../shared/store-state'
 
 enablePatches()
 
-/** Use the synchronized config store. */
-export let useConfig = (): readonly [
-  Config,
-  (recipe: (draft: Config) => Config | void) => void
+/** Use the synchronized store. */
+export let useStore = (): readonly [
+  StoreState,
+  (recipe: (draft: StoreState) => StoreState | void) => void
 ] => {
   let { store } = electron
   let [count, setCount] = useState(0)
@@ -16,7 +16,7 @@ export let useConfig = (): readonly [
   let ret = useMemo(() => {
     return [
       store.get(),
-      (recipe: (draft: Config) => Config | void) => {
+      (recipe: (draft: StoreState) => StoreState | void) => {
         let patches: Patch[] = []
         let state = store.get()
         produce(state, recipe, (p) => (patches = p))

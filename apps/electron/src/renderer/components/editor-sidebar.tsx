@@ -2,26 +2,22 @@ import { SeedPanel } from './panels/seed-panel'
 import { ExportPanel } from './panels/export-panel'
 import { TraitPanel } from './panels/trait-panel'
 import { LayoutPanel } from './panels/layout-panel'
-import { ResolvedSettings, Scene, Schema, Traits } from 'void'
+import { Sketch } from 'void'
 
-export let EditorSidebar = (props: {
-  scene: Scene | null
-  schema: Schema | null
-  settings: ResolvedSettings | null
-  traits: Traits | null
-}) => {
-  let { schema, scene, settings, traits } = props
+export let EditorSidebar = (props: { sketch: Sketch | null }) => {
+  let { sketch } = props
+  let state = sketch?.state
   return (
     <div className="text-xs">
-      {scene && settings && schema && traits && (
+      {sketch && state && state.schema && state.settings && state.config && (
         <>
-          <LayoutPanel settings={settings} />
+          <LayoutPanel config={state.config} />
           <div className="border-t border-gray-200" />
-          <SeedPanel scene={scene} />
+          <SeedPanel settings={state.settings} />
           <div className="border-t border-gray-200" />
-          <TraitPanel schema={schema} traits={traits} />
+          <TraitPanel schema={state.schema} traits={state.traits} />
           <div className="border-t border-gray-200" />
-          <ExportPanel scene={scene} traits={traits} />
+          <ExportPanel traits={state.traits} settings={state.settings} />
         </>
       )}
     </div>

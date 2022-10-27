@@ -5,7 +5,7 @@ import { RENDERER_URL } from '../env'
 import { Tab } from './tab'
 import { main } from './main'
 import { Draft } from 'immer'
-import { WindowConfig } from '../../shared/config'
+import { WindowState } from '../../shared/store-state'
 
 /** A `Window` class to hold state for a series of tabs. */
 export class Window {
@@ -167,7 +167,7 @@ export class Window {
   }
 
   /** Set the window's state using an Immer `recipe` function. */
-  change(recipe: (draft: Draft<WindowConfig>) => void): void {
+  change(recipe: (draft: Draft<WindowState>) => void): void {
     main.change((m) => {
       recipe(m.windows[this.id])
     })

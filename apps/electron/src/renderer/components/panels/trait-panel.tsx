@@ -3,10 +3,10 @@ import { Schema, Traits } from 'void'
 import { useTab } from '../../contexts/tab'
 import { TraitField } from '../fields/trait-field'
 
-export let TraitPanel = (props: { traits: Traits; schema: Schema }) => {
+export let TraitPanel = (props: { schema: Schema; traits: Traits }) => {
   let { schema, traits } = props
   let [tab, changeTab] = useTab()
-  let has = Object.keys(tab.settings?.traits ?? {}).length > 0
+  let has = Object.keys(tab.options?.traits ?? {}).length > 0
   return (
     <div className="p-4 pb-3 space-y-0.5">
       <div className="flex justify-between pb-1">
@@ -21,7 +21,7 @@ export let TraitPanel = (props: { traits: Traits; schema: Schema }) => {
             `}
             onClick={() => {
               changeTab((t) => {
-                t.settings.traits = {}
+                t.options.traits = {}
               })
             }}
           >

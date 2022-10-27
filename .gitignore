@@ -1,5 +1,6 @@
 # Secrets & configuration
 .env*
+.vscode/
 
 # Build outputs
 dist/
@@ -9,3 +10,4 @@ node_modules/
 # Temporary files
 tmp/
 *.log
+*.tsbuildinfo

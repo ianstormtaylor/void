@@ -1,98 +1,95 @@
-import { mergeWith } from 'lodash'
-import { Dimensions, Paper, Orientation, Units } from '..'
+import { Orientation, Units, Config, Math } from '..'
 
-/** A set of settings that have been fully resolved, without missing ones. */
-export type ResolvedSettings = {
-  dimensions: Dimensions<2>
+/** The core settings needed to run a sketch. */
+export type Settings = {
   dpi: number
-  margin: Dimensions<4>
+  fps: number
+  height: number
+  margin: [number, number, number, number]
   orientation: Orientation
-  precision: Dimensions<1>
+  precision: number
   seed: number
   units: Units
-}
-
-/** The optional settings for configuring a sketch. */
-export interface Settings {
-  dimensions?: Dimensions<2> | Paper
-  dpi?: number
-  margin?: Dimensions<1> | Dimensions<2> | Dimensions<3> | Dimensions<4>
-  orientation?: Orientation
-  precision?: Dimensions<1>
-  seed?: number
-  traits?: Record<string, any>
-  units?: Units
+  width: number
 }
 
 export let Settings = {
-  /** Merge multiple sets of `...settings` into one. */
-  merge(...settings: Settings[]): Settings {
-    return mergeWith({}, ...settings, (a: Settings, b: Settings) => {
-      if (Array.isArray(a)) return b
-    })
-  },
+  /** Create a settings object from fully resolved `config`. */
+  create(config: Config): Settings {
+    let { dpi, fps, seed, orientation, units } = config
+    let to = units
 
-  /** Resolve a set of settings to have no missing options. */
-  resolve(settings: Settings): ResolvedSettings {
-    let {
-      dimensions = [300, 150, 'px'],
-      dpi = 72,
-      orientation,
-      seed = 1,
-      precision,
-      margin,
-      units,
-    } = settings
+    // Convert the precision to the sketch's units.
+    let [precision, pu] = config.precision
+    precision = Math.convert(precision, pu, { to, dpi })
 
-    if (Paper.is(dimensions)) {
-      dimensions = Paper.dimensions(dimensions)
+    // Create a unit conversion helper with the sketch's default units.
+    let [width, height, du] = config.dimensions
+    width = Math.convert(width, du, { to, precision, dpi })
+    height = Math.convert(height, du, { to, precision, dpi })
+
+    // Apply the orientation setting to the dimensions.
+    if (orientation === 'square' && width != height) {
+      width = height = Math.min(width, height)
+    } else if (orientation === 'landscape' && width < height) {
+      ;[width, height] = [height, width]
+    } else if (orientation === 'portrait' && height < width) {
+      ;[width, height] = [height, width]
     }
 
-    if (precision == null) {
-      let u = units != null ? units : dimensions[2]
-      if (u == 'px') {
-        precision = [1, 'px']
-      } else if (u == 'mm' || u == 'cm' || u == 'm') {
-        precision = [1, 'mm']
-      } else if (u == 'pt' || u == 'pc' || u == 'in' || u == 'ft') {
-        precision = [1, 'pt']
-      } else {
-        throw new Error(`Unrecognized units: ${u}`)
-      }
-    }
-
-    if (units == null) {
-      units = precision[1]
-    }
-
-    if (orientation == null) {
-      let [width, height] = dimensions
-      orientation =
-        width === height ? 'square' : width < height ? 'portrait' : 'landscape'
-    }
-
-    if (margin == null) {
-      let [, , du] = dimensions
-      margin = [0, 0, 0, 0, du]
-    } else if (margin.length === 2) {
-      let [a, mu] = margin
-      margin = [a, a, a, a, mu]
-    } else if (margin.length === 3) {
-      let [v, h, mu] = margin
-      margin = [v, h, v, h, mu]
-    } else if (margin.length === 4) {
-      let [t, h, b, mu] = margin
-      margin = [t, h, b, h, mu]
-    }
+    // Apply a margin, so the canvas is drawn without knowing it.
+    let [mt, mr, mb, ml, mu] = config.margin
+    mt = Math.convert(mt, mu, { to, precision, dpi })
+    mr = Math.convert(mr, mu, { to, precision, dpi })
+    mb = Math.convert(mb, mu, { to, precision, dpi })
+    ml = Math.convert(ml, mu, { to, precision, dpi })
+    width -= mr + ml
+    height -= mt + mb
+    let margin = [mt, mr, mb, ml] as [number, number, number, number]
 
     return {
-      dimensions,
       dpi,
+      fps,
+      height,
       margin,
       orientation,
       precision,
       seed,
       units,
+      width,
     }
+  },
+
+  /** Get the inner dimensions of a `settings`. */
+  innerDimensions(settings: Settings): [number, number] {
+    return [settings.width, settings.height]
+  },
+
+  /** Get the outer dimensions of a `settings`. */
+  outerDimensions(settings: Settings): [number, number] {
+    let { width, height, margin } = settings
+    return [width + margin[1] + margin[3], height + margin[0] + margin[2]]
+  },
+
+  /** Get the output dimensions of a `settings` in pixels. */
+  outputDimensions(settings: Settings): [number, number] {
+    let [outerWidth, outerHeight] = Settings.outerDimensions(settings)
+    let { units } = settings
+    let w = Math.convert(outerWidth, units, { to: 'px', precision: 1, dpi: 72 })
+    let h = Math.convert(outerHeight, units, {
+      to: 'px',
+      precision: 1,
+      dpi: 72,
+    })
+    return [w, h]
+  },
+
+  /** Get the screen dimensions of a `settings` in device-specific pixels. */
+  screenDimensions(settings: Settings): [number, number] {
+    let [outputWidth, outputHeight] = Settings.outputDimensions(settings)
+    let dpr = window.devicePixelRatio
+    let w = outputWidth * dpr
+    let h = outputHeight * dpr
+    return [w, h]
   },
 }

@@ -5,7 +5,7 @@ import { RENDERER_URL } from '../env'
 import { Window } from './window'
 import { main } from './main'
 import { Draft } from 'immer'
-import { TabConfig } from '../../shared/config'
+import { TabState } from '../../shared/store-state'
 import { Sketch } from './sketch'
 
 /** A `Tab` class holds a reference to a specific sketch file. */
@@ -37,7 +37,7 @@ export class Tab {
         sketchId: sketch.id,
         inspecting: false,
         zoom: null,
-        settings: {},
+        options: {},
       }
     })
 
@@ -116,7 +116,7 @@ export class Tab {
   }
 
   /** Update the tab's immutable state with an Immer `recipe` function. */
-  change(recipe: (draft: Draft<TabConfig>) => void): void {
+  change(recipe: (draft: Draft<TabState>) => void): void {
     return main.change((s) => {
       recipe(s.tabs[this.id])
     })

@@ -1,6 +1,3 @@
-import { math } from '../math'
-import { random } from '../random'
-
 /** A JSON-serializable value. */
 export type Json =
   | null
@@ -11,71 +8,49 @@ export type Json =
   | { [key: string]: Json }
 
 /** A schema representing all the traits of a sketch. */
-export type Schema = Record<string, TraitSchema>
+export type Schema = Record<string, AnySchema>
 
-export const Schema = {
-  /** Generate a new value for a trait's `schema`. */
-  generate(schema: TraitSchema): any {
-    switch (schema.type) {
-      case 'boolean': {
-        return random.bool()
-      }
+export type AnySchema =
+  | BoolSchema
+  | IntSchema
+  | FloatSchema
+  | ChoiceSchema
+  | SampleSchema
 
-      case 'number': {
-        let { min, max, step } = schema
-        if (step == null) return random.float(min, max)
-        let range = max - min
-        let value = random.float(0, range + step)
-        value = math.floor(value, step)
-        return min + value
-      }
-
-      case 'enum': {
-        let { options } = schema
-        let values = []
-        let weights = []
-        for (let option of options) {
-          values.push(option.value)
-          weights.push(option.weight)
-        }
-        let value = random.item(values, weights)
-        return value
-      }
-
-      default: {
-        let n: never = schema
-        throw new Error(`Unhandled schema: "${JSON.stringify(n)}"`)
-      }
-    }
-  },
-}
-
-/** A schema that defines the values for a trait. */
-export type TraitSchema = BooleanSchema | NumberSchema | EnumSchema
-
-/** A schema for booleans. */
-export type BooleanSchema = {
+export type BoolSchema = {
   type: 'boolean'
+  probability: number
 }
 
-/** A schema for numbers. */
-export type NumberSchema = {
-  type: 'number'
-  step: number | null
+export type IntSchema = {
+  type: 'int'
   min: number
   max: number
+  step: number
 }
 
-/** A schema for enumerations. */
-export type EnumSchema = {
-  type: 'enum'
-  options: OptionSchema[]
+export type FloatSchema = {
+  type: 'float'
+  min: number
+  max: number
+  step?: number
+}
+export type ChoiceSchema<V extends Json = any> = {
+  type: 'choice'
+  options: OptionSchema<V>[]
 }
 
-/** A schema for the choices of enums. */
-export type OptionSchema = {
+export type SampleSchema<V extends Json = any> = {
+  type: 'sample'
+  min: number
+  max: number
+  options: OptionSchema<V>[]
+}
+
+/** A schema for the options when making a choice. */
+export type OptionSchema<V extends Json = any> = {
   type: 'option'
   name: string
-  value: Json
+  value: V
   weight: number
 }

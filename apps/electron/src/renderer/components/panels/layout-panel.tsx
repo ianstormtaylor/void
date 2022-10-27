@@ -1,15 +1,15 @@
 import { DimensionsField } from '../fields/dimensions-field'
 import { MarginsField } from '../fields/margins-field'
 import { MdCrop169, MdCropSquare } from 'react-icons/md'
-import { useConfig } from '../../contexts/config'
+import { useStore } from '../../contexts/store'
 import { useTab } from '../../contexts/tab'
-import { ResolvedSettings } from 'void'
+import { Config } from 'void'
 
-export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
-  let [, setConfig] = useConfig()
+export let LayoutPanel = (props: { config: Config }) => {
+  let [, setConfig] = useStore()
   let [tab] = useTab()
-  let { settings } = props
-  let { orientation } = settings
+  let { config } = props
+  let { orientation } = config
   return (
     <div className="p-4 pb-3 space-y-0.5">
       <div className="flex justify-between pb-1">
@@ -19,7 +19,7 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
             onClick={() => {
               setConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.settings.orientation = 'portrait'
+                t.options.orientation = 'portrait'
               })
             }}
             className={`
@@ -34,7 +34,7 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
             onClick={() => {
               setConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.settings.orientation = 'landscape'
+                t.options.orientation = 'landscape'
               })
             }}
             className={`
@@ -49,7 +49,7 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
             onClick={() => {
               setConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.settings.orientation = 'square'
+                t.options.orientation = 'square'
               })
             }}
             className={`
@@ -62,8 +62,8 @@ export let LayoutPanel = (props: { settings: ResolvedSettings }) => {
           </button>
         </div>
       </div>
-      <DimensionsField settings={settings} />
-      <MarginsField settings={settings} />
+      <DimensionsField config={config} />
+      <MarginsField config={config} />
     </div>
   )
 }

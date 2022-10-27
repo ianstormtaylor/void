@@ -1,5 +1,9 @@
-import { Void } from '../internal'
+import { Sketch } from '..'
 
 declare global {
-  var Void: Void
+  var VOID:
+    | undefined
+    | {
+        sketch?: Sketch
+      }
 }

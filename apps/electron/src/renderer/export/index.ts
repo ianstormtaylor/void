@@ -1,7 +1,7 @@
 import 'svg2pdf.js'
 import { Context } from 'svgcanvas'
 import { jsPDF } from 'jspdf'
-import { Scene, Module, Traits, run } from 'void'
+import { Settings, Module, Traits } from 'void'
 
 /** Export a PNG file from the current `canvas` element. */
 export let exportPng = (canvas: HTMLCanvasElement) => {
@@ -9,22 +9,26 @@ export let exportPng = (canvas: HTMLCanvasElement) => {
   downloadFile(url, 'png')
 }
 
-/** Export an SVG file from a `scene` and `module`. */
-export let exportSvg = (module: Module, scene: Scene, traits: Traits) => {
-  let svg = getSvg(module, scene, traits)
+/** Export an SVG file from a `settings` and `module`. */
+export let exportSvg = (module: Module, settings: Settings, traits: Traits) => {
+  let svg = getSvg(module, settings, traits)
   let blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
   let url = URL.createObjectURL(blob)
   downloadFile(url, 'svg')
 }
 
-/** Export a vector PDF file from a `scene` and `module`. */
-export let exportPdf = async (module: Module, scene: Scene, traits: Traits) => {
-  let string = getSvg(module, scene, traits)
+/** Export a vector PDF file from a `settings` and `module`. */
+export let exportPdf = async (
+  module: Module,
+  settings: Settings,
+  traits: Traits
+) => {
+  let string = getSvg(module, settings, traits)
   let div = document.createElement('div')
   div.innerHTML = string
   let el = div.firstChild as SVGSVGElement
-  let [width, height] = Scene.outerDimensions(scene)
-  let { units } = scene
+  let [width, height] = Settings.outerDimensions(settings)
+  let { units } = settings
   let doc = new jsPDF({
     unit: units as any,
     format: [width, height],
@@ -43,12 +47,12 @@ let downloadFile = (dataUrl: string, ext: string) => {
 }
 
 /** Get a serialized SVG string from drawing a sketch. */
-let getSvg = (module: Module, scene: Scene, traits: Traits): string => {
-  let { width, height, units } = scene
+let getSvg = (module: Module, settings: Settings, traits: Traits): string => {
+  let { width, height, units } = settings
   let canvas = document.createElement('canvas')
   let context = new Context(`${width}${units}`, `${height}${units}`)
   run(module, {
-    scene: { ...scene },
+    settings: { ...settings },
     traits: { ...traits },
     canvas,
     context,

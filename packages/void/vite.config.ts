@@ -12,9 +12,9 @@ export default defineConfig({
     },
   },
   plugins: [
-    dts({
-      skipDiagnostics: false,
-      logDiagnostics: true,
-    }),
+    // dts({
+    //   skipDiagnostics: false,
+    //   logDiagnostics: true,
+    // }),
   ],
 })

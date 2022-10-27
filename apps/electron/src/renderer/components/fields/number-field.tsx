@@ -90,7 +90,7 @@ export let NumberField = (props: {
           dragPositionRef.current = e.clientX
           e.dataTransfer.setDragImage(DRAG_IMAGE, 0, 0)
         }}
-        onDragEnd={() => {
+        onDragEnd={(e) => {
           document.body.removeEventListener('dragover', dragHandlerRef.current!)
         }}
       >

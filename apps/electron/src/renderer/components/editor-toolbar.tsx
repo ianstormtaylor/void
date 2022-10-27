@@ -1,17 +1,9 @@
-import {
-  MdBuild,
-  MdClear,
-  MdFavoriteBorder,
-  MdGridView,
-  MdOutlineAutoAwesome,
-} from 'react-icons/md'
+import { MdBuild, MdFavoriteBorder, MdGridView } from 'react-icons/md'
 import { useTab } from '../contexts/tab'
 import { useSketch } from '../contexts/sketch'
-import { Schema } from 'void'
 
-export let EditorToolbar = (props: { schema: Schema | null }) => {
-  let { schema } = props
-  let [tab, changeTab] = useTab()
+export let EditorToolbar = () => {
+  let [tab] = useTab()
   let sketch = useSketch()
   let path = `.../${sketch.path.split('/').slice(-3).join('/')}`
   return (

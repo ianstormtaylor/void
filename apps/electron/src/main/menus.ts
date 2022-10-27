@@ -117,7 +117,7 @@ export let appMenu = Menu.buildFromTemplate([
         label: 'Log Storage',
         click() {
           console.log('')
-          console.log('Store:', main.store)
+          console.log('Store:', JSON.stringify(main.store, null, 2))
         },
       },
       {

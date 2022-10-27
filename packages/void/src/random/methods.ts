@@ -1,15 +1,16 @@
 import SeedRandom from 'seed-random'
 import SimplexNoise from 'simplex-noise'
-import { Scene } from '..'
+import { Sketch } from '..'
+import { Settings } from '../interfaces/settings'
 
 /** An un-seeded noise generator when no scene is active. */
 let UNSEEDED_NOISE: SimplexNoise | undefined
 
 /** A weak map for storing a reference to the scene's seeded random. */
-let NOISE = new WeakMap<Scene, SimplexNoise>()
+let NOISE = new WeakMap<Settings, SimplexNoise>()
 
 /** A weak map for storing a reference to the scene's seeded random. */
-let RANDOM = new WeakMap<Scene, () => number>()
+let RANDOM = new WeakMap<Settings, () => number>()
 
 /** Generate a binomially-distributed number with `n` tries and `p` probability. */
 export function binomial(n = 1, p = 0.5) {
@@ -23,9 +24,28 @@ export function bool(p = 0.5): boolean {
   return random() < p
 }
 
+/** Pick a random item from a `list`, with optional `weights`. */
+export function choice<T>(list: T[], weights?: number[]): T {
+  if (weights == null) return list[int(0, list.length - 1)]
+  if (list.length !== weights.length)
+    throw new Error('List and weights must have the same length')
+  let total = weights.reduce((m, w) => m + w, 0)
+  let r = float(0, total)
+  let c = 0
+  let i = weights.findIndex((w) => r < (c += w))
+  return list[i]
+}
+
 /** Generate either `0` or `1`, with optional probability `p` of success. */
 export function coin(p = 0.5): 0 | 1 {
   return random() < p ? 1 : 0
+}
+
+/** Run a function with a single randomness seed. */
+export function exec(fn: () => void, seed?: string): void {
+  if (seed == null) seed = `${random()}`
+  // TODO
+  throw new Error('TODO!')
 }
 
 /** Generate an exponentially-distributed number with `lambda`. */
@@ -63,30 +83,18 @@ export function int(min?: number, max?: number): number {
   return Math.floor(float(min, max + 1))
 }
 
-/** Pick a random item from a `list`, with optional `weights`. */
-export function item<T>(list: T[], weights?: number[]): T {
-  if (weights == null) return list[int(0, list.length - 1)]
-  if (list.length !== weights.length)
-    throw new Error('List and weights must have the same length')
-  let total = weights.reduce((m, w) => m + w, 0)
-  let r = float(0, total)
-  let c = 0
-  let i = weights.findIndex((w) => r < (c += w))
-  return list[i]
-}
-
 /** Generate simplex noise from `x`, `y`, `z`, and `w` coordinates. */
 export function noise(x: number, y?: number, z?: number, w?: number): number {
+  let settings = Sketch.current()?.state?.settings
   let n
 
-  if (Void.scene == null) {
-    n = UNSEEDED_NOISE = UNSEEDED_NOISE ?? new SimplexNoise()
+  if (settings == null) {
+    n = UNSEEDED_NOISE ??= new SimplexNoise()
   } else {
-    let { scene } = Void
-    n = NOISE.get(scene)
+    n = NOISE.get(settings)
     if (n == null) {
-      n = new SimplexNoise(scene.seed)
-      NOISE.set(scene, n)
+      n = new SimplexNoise(settings.seed)
+      NOISE.set(settings, n)
     }
   }
 
@@ -122,17 +130,14 @@ export function poisson(mean = 1) {
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
+  let settings = Sketch.current()?.state?.settings
   let r
 
-  if (Void.scene == null) {
+  if (settings == null) {
     r = Math.random
   } else {
-    let { scene } = Void
-    r = RANDOM.get(scene)
-    if (r == null) {
-      r = SeedRandom(`${scene.seed}`)
-      RANDOM.set(scene, r)
-    }
+    r = RANDOM.get(settings) ?? SeedRandom(`${settings.seed}`)
+    RANDOM.set(settings, r)
   }
 
   return r()
@@ -145,16 +150,16 @@ export function roll(sides = 20, times = 1): number {
   return sum
 }
 
-/** Generate a sample of `size` from a `list`. */
+/** Pick a random sample of `size` from a `list`, with optional `weights`. */
 export function sample<T>(size: number, list: T[], weights?: number[]): T[] {
-  if (size === list.length) return list
   if (size > list.length)
     throw new Error(`Sample size must be less than list length`)
   let l = list.slice()
+  if (size === list.length) return l
   let w = weights ? weights.slice() : undefined
   let samp: T[] = []
   for (let i = 0; i < size; i++) {
-    let [idx, el] = item(Array.from(l.entries()), w)
+    let [idx, el] = choice(Array.from(l.entries()), w)
     samp.push(el)
     l.splice(idx, 1)
     if (w) w.splice(idx, 1)

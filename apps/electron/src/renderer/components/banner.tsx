@@ -1,11 +1,11 @@
-import { useConfig } from '../contexts/config'
-import { SketchConfig, TabConfig, WindowConfig } from '../../shared/config'
+import { useStore } from '../contexts/store'
+import { SketchState, TabState, WindowState } from '../../shared/store-state'
 import { MdAdd, MdClose } from 'react-icons/md'
 
-export let Banner = (props: { window: WindowConfig }) => {
+export let Banner = (props: { window: WindowState }) => {
   let { window } = props
-  let [config] = useConfig()
-  let tabs = window.tabIds.map((tid) => config.tabs[tid])
+  let [store] = useStore()
+  let tabs = window.tabIds.map((tid) => store.tabs[tid])
   return (
     <div className="flex h-10 pl-20 bg-gray-900 border-b border-gray-800 items-stretch app-drag">
       <div className="flex items-stretch px-px -space-x-px app-no-drag">
@@ -13,7 +13,7 @@ export let Banner = (props: { window: WindowConfig }) => {
           <Tab
             key={tab.id}
             tab={tab}
-            sketch={config.sketches[tab.sketchId]}
+            sketch={store.sketches[tab.sketchId]}
             active={tab.id === window.activeTabId}
           />
         ))}
@@ -36,8 +36,8 @@ export let Banner = (props: { window: WindowConfig }) => {
 }
 
 export let Tab = (props: {
-  tab: TabConfig
-  sketch: SketchConfig
+  tab: TabState
+  sketch: SketchState
   active: boolean
 }) => {
   let { tab, active, sketch } = props

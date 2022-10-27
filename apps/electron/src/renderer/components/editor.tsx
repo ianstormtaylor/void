@@ -5,7 +5,7 @@ import { EditorToolbar } from './editor-toolbar'
 import { CanvasRefContext } from '../contexts/canvas'
 import { useModule } from '../contexts/module'
 import { useTab } from '../contexts/tab'
-import { Scene, Schema, ResolvedSettings, Traits, run } from 'void'
+import { Settings, Sketch } from 'void'
 
 export let Editor = () => {
   let module = useModule()
@@ -13,51 +13,38 @@ export let Editor = () => {
   let elRef = useRef<HTMLDivElement>(null)
   let canvasRef = useRef<HTMLCanvasElement>(null)
   let [parentRef, { width: parentWidth, height: parentHeight }] = useMeasure()
-  let [scene, setScene] = useState<Scene | null>(null)
-  let [settings, setSettings] = useState<ResolvedSettings | null>(null)
-  let [schema, setSchema] = useState<Schema | null>(null)
-  let [traits, setTraits] = useState<Traits | null>(null)
+  let [sketch, setSketch] = useState<Sketch | null>(null)
   let padding = 40 * 2
 
   useEffect(() => {
     setTimeout(() => {
-      let el = elRef.current
-      if (!el || !parentWidth || !parentHeight) return
-      let { scene, schema, settings, traits } = run(module, {
-        el,
-        overrides: tab.settings,
+      if (!elRef.current || !parentWidth || !parentHeight) return
+      let sketch = Sketch.of(module.default, elRef.current, {
+        traits: tab.options.traits ?? {},
+        options: tab.options,
       })
 
-      setScene(scene ?? null)
-      setSettings(settings ?? null)
-      setSchema(schema ?? null)
-      setTraits(traits ?? null)
+      Sketch.play(sketch)
+      setSketch(sketch)
     }, 1)
-  }, [module, tab.settings, parentWidth, parentHeight])
+  }, [module, tab.options, parentWidth, parentHeight])
 
   let scale = useMemo(() => {
-    if (!scene) return tab.zoom ?? 1
+    let settings = sketch?.state?.settings
+    if (!settings) return tab.zoom ?? 1
     if (tab.zoom) return tab.zoom
     let maxWidth = parentWidth - padding
     let maxHeight = parentHeight - padding
-    let [outputWidth, outputHeight] = Scene.outputDimensions(scene)
+    let [outputWidth, outputHeight] = Settings.outputDimensions(settings)
     return outputWidth > maxWidth || outputHeight > maxHeight
       ? Math.min(maxWidth / outputWidth, maxHeight / outputHeight)
       : 1
-  }, [
-    parentWidth,
-    parentHeight,
-    tab.zoom,
-    scene?.width,
-    scene?.height,
-    scene?.margin,
-    scene?.units,
-  ])
+  }, [parentWidth, parentHeight, tab.zoom, sketch?.state?.settings])
 
   return (
     <CanvasRefContext.Provider value={canvasRef}>
       <div className="relative flex flex-col items-stretch w-screen h-screen bg-gray-100">
-        <EditorToolbar schema={schema} />
+        <EditorToolbar />
         <div className="relative flex-1">
           <div
             // @ts-ignore
@@ -71,12 +58,7 @@ export let Editor = () => {
             />
           </div>
           <div className="absolute inset-y-0 right-0 w-64 border-l border-gray-200 bg-white">
-            <EditorSidebar
-              scene={scene}
-              settings={settings}
-              schema={schema}
-              traits={traits}
-            />
+            <EditorSidebar sketch={sketch} />
           </div>
         </div>
       </div>

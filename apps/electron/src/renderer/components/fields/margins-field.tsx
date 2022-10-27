@@ -1,9 +1,9 @@
 import { MdSelectAll } from 'react-icons/md'
-import { ResolvedSettings } from 'void'
+import { Config } from 'void'
 
-export let MarginsField = (props: { settings: ResolvedSettings }) => {
-  let { settings } = props
-  let { margin } = settings
+export let MarginsField = (props: { config: Config }) => {
+  let { config } = props
+  let { margin } = config
   let values: number[] = []
   let [t, r, b, l, units] = margin
 
