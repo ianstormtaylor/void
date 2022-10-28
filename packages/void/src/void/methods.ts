@@ -1,4 +1,5 @@
 import * as Generate from './generators'
+import { Context } from 'svgcanvas'
 import {
   Frame,
   Options,
@@ -14,6 +15,7 @@ import {
   BoolSchema,
   Config,
 } from '..'
+import { svgStringToDataUri } from '../utils'
 
 /** Define a trait that is a boolean, with optional `probability` of being true. */
 export function bool(name: string, probability = 0.5): boolean {
@@ -72,14 +74,24 @@ export function layer(name: string): CanvasRenderingContext2D {
     throw new Error(`You must call Void.layer() inside a sketch!`)
   }
 
-  let settings = state?.settings
+  let { settings, exporting } = state
   if (!settings) {
     throw new Error(`You must call Void.layer() after Void.settings()!`)
   }
 
   let canvas = document.createElement('canvas')
-  let context = canvas.getContext('2d')!
-  if (!context) {
+  let ctx: any
+  let format = exporting?.type
+  let isSvg = format === 'svg' || format === 'pdf'
+
+  if (isSvg) {
+    let { width, height, units } = settings
+    ctx = new Context(`${width}${units}`, `${height}${units}`)
+  } else {
+    ctx = canvas.getContext('2d')
+  }
+
+  if (!ctx) {
     throw new Error(`Unable to get 2D rendering context from Canvas!`)
   }
 
@@ -90,16 +102,24 @@ export function layer(name: string): CanvasRenderingContext2D {
   canvas.height = screenHeight
   canvas.style.width = `${outputWidth}px`
   canvas.style.height = `${outputHeight}px`
-  context.setTransform(1, 0, 0, 1, 0, 0)
-  context.clearRect(0, 0, screenWidth, screenHeight)
-  context.scale(screenWidth / outerWidth, screenHeight / outerHeight)
-  context.translate(settings.margin[1], settings.margin[0])
+  ctx.scale(screenWidth / outerWidth, screenHeight / outerHeight)
+  ctx.translate(settings.margin[1], settings.margin[0])
 
-  if (!sketch.overrides.layers?.[name]) {
+  if (sketch.overrides.layers?.[name] !== false) {
     sketch.el.appendChild(canvas)
+    state.layers[name] = () => {
+      if (isSvg) {
+        let string = ctx.getSerializedSvg()
+        let url = svgStringToDataUri(string)
+        return url
+      } else {
+        let url = canvas.toDataURL('image/png')
+        return url
+      }
+    }
   }
 
-  return context
+  return ctx
 }
 
 /** Define a trait that samples from a set of many `choices`, either a certain `amount` of times, or between `min` and `max` amount of times. */

@@ -5,6 +5,7 @@ export { Void, Generate } from './void'
 
 export * from './interfaces/config'
 export * from './interfaces/dimensions'
+export * from './interfaces/export'
 export * from './interfaces/frame'
 export * from './interfaces/module'
 export * from './interfaces/orientation'

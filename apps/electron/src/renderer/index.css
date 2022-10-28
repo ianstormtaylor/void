@@ -15,3 +15,16 @@
 .app-no-drag {
   -webkit-app-region: no-drag;
 }
+
+.canvas {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.canvas > * {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  align-self: center;
+}

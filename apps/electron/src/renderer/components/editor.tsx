@@ -19,13 +19,19 @@ export let Editor = () => {
   useEffect(() => {
     setTimeout(() => {
       if (!elRef.current || !parentWidth || !parentHeight) return
-      let sketch = Sketch.of(module.default, elRef.current, {
+      let el = elRef.current
+      while (el.firstChild) {
+        el.removeChild(el.firstChild)
+      }
+
+      let sketch = Sketch.of(module.default, el, {
         traits: tab.options.traits ?? {},
         options: tab.options,
       })
 
       Sketch.play(sketch)
       setSketch(sketch)
+      return () => Sketch.stop(sketch)
     }, 1)
   }, [module, tab.options, parentWidth, parentHeight])
 
@@ -53,7 +59,7 @@ export let Editor = () => {
           >
             <div
               ref={elRef}
-              className="bg-white border border-gray-200 transition-transform"
+              className="canvas bg-white border border-gray-200 transition-transform"
               style={{ transform: `scale(${scale})` }}
             />
           </div>

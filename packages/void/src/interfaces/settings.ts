@@ -4,6 +4,7 @@ import { Orientation, Units, Config, Math } from '..'
 export type Settings = {
   dpi: number
   fps: number
+  frames: number
   height: number
   margin: [number, number, number, number]
   orientation: Orientation
@@ -16,7 +17,7 @@ export type Settings = {
 export let Settings = {
   /** Create a settings object from fully resolved `config`. */
   create(config: Config): Settings {
-    let { dpi, fps, seed, orientation, units } = config
+    let { dpi, fps, frames, seed, orientation, units } = config
     let to = units
 
     // Convert the precision to the sketch's units.
@@ -50,6 +51,7 @@ export let Settings = {
     return {
       dpi,
       fps,
+      frames,
       height,
       margin,
       orientation,

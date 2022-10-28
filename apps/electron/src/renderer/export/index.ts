@@ -1,7 +1,7 @@
 import 'svg2pdf.js'
 import { Context } from 'svgcanvas'
 import { jsPDF } from 'jspdf'
-import { Settings, Module, Traits } from 'void'
+import { Settings, Module, Traits, Sketch } from 'void'
 
 /** Export a PNG file from the current `canvas` element. */
 export let exportPng = (canvas: HTMLCanvasElement) => {
@@ -47,10 +47,18 @@ let downloadFile = (dataUrl: string, ext: string) => {
 }
 
 /** Get a serialized SVG string from drawing a sketch. */
-let getSvg = (module: Module, settings: Settings, traits: Traits): string => {
+let getSvg = (sketch: Sketch): string => {
+  let state = sketch.state
+  let settings = state?.settings
+  let layers = state?.layers
+  if (!state || !settings || !layers) {
+    throw new Error(`Cannot export a sketch that hasn't finished setting up!`)
+  }
+
   let { width, height, units } = settings
-  let canvas = document.createElement('canvas')
+
   let context = new Context(`${width}${units}`, `${height}${units}`)
+
   run(module, {
     settings: { ...settings },
     traits: { ...traits },

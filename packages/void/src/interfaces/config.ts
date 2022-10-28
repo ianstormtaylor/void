@@ -6,6 +6,7 @@ export interface Options {
   dimensions?: Dimensions<2> | Paper
   dpi?: number
   fps?: number
+  frames?: number
   layers?: Record<string, boolean>
   margin?: Dimensions<1> | Dimensions<2> | Dimensions<3> | Dimensions<4>
   orientation?: Orientation
@@ -20,6 +21,7 @@ export type Config = {
   dimensions: Dimensions<2>
   dpi: number
   fps: number
+  frames: number
   margin: Dimensions<4>
   orientation: Orientation
   precision: Dimensions<1>
@@ -38,6 +40,7 @@ export let Config = {
       dimensions = [300, 150, 'px'],
       dpi = 72,
       fps = 60,
+      frames = Infinity,
       orientation,
       seed = 1,
       precision,
@@ -90,6 +93,7 @@ export let Config = {
       dimensions,
       dpi,
       fps,
+      frames,
       margin,
       orientation,
       precision,

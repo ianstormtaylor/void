@@ -17,7 +17,7 @@ export let EditorSidebar = (props: { sketch: Sketch | null }) => {
           <div className="border-t border-gray-200" />
           <TraitPanel schema={state.schema} traits={state.traits} />
           <div className="border-t border-gray-200" />
-          <ExportPanel traits={state.traits} settings={state.settings} />
+          <ExportPanel sketch={sketch} />
         </>
       )}
     </div>
