@@ -6,16 +6,15 @@ import { Sketch } from 'void'
 
 export let EditorSidebar = (props: { sketch: Sketch | null }) => {
   let { sketch } = props
-  let state = sketch?.state
   return (
     <div className="text-xs">
-      {sketch && state && state.schema && state.settings && state.config && (
+      {sketch && sketch.schema && sketch.settings && sketch.config && (
         <>
-          <LayoutPanel config={state.config} />
+          <LayoutPanel config={sketch.config} />
           <div className="border-t border-gray-200" />
-          <SeedPanel settings={state.settings} />
+          <SeedPanel settings={sketch.settings} />
           <div className="border-t border-gray-200" />
-          <TraitPanel schema={state.schema} traits={state.traits} />
+          <TraitPanel schema={sketch.schema} traits={sketch.traits} />
           <div className="border-t border-gray-200" />
           <ExportPanel sketch={sketch} />
         </>

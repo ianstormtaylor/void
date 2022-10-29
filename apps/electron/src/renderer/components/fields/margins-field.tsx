@@ -3,7 +3,7 @@ import { Config } from 'void'
 
 export let MarginsField = (props: { config: Config }) => {
   let { config } = props
-  let { margin } = config
+  let margin = Config.margin(config)
   let values: number[] = []
   let [t, r, b, l, units] = margin
 

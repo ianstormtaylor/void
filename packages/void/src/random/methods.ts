@@ -1,7 +1,6 @@
 import SeedRandom from 'seed-random'
 import SimplexNoise from 'simplex-noise'
-import { Sketch } from '..'
-import { Settings } from '../interfaces/settings'
+import { Settings, Sketch } from '..'
 
 /** An un-seeded noise generator when no scene is active. */
 let UNSEEDED_NOISE: SimplexNoise | undefined
@@ -85,7 +84,7 @@ export function int(min?: number, max?: number): number {
 
 /** Generate simplex noise from `x`, `y`, `z`, and `w` coordinates. */
 export function noise(x: number, y?: number, z?: number, w?: number): number {
-  let settings = Sketch.current()?.state?.settings
+  let settings = Sketch.current()?.settings
   let n
 
   if (settings == null) {
@@ -130,7 +129,7 @@ export function poisson(mean = 1) {
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
-  let settings = Sketch.current()?.state?.settings
+  let settings = Sketch.current()?.settings
   let r
 
   if (settings == null) {

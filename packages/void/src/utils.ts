@@ -1,3 +1,5 @@
+import { Orientation } from './interfaces/orientation'
+
 /** The SVG namespace string. */
 export let SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
@@ -32,4 +34,9 @@ export function svgElementToString(el: SVGSVGElement): string {
   div.appendChild(el)
   let string = div.innerHTML
   return string
+}
+
+/** Resolve the orientation of a `width` and `height`. */
+export function resolveOrientation(width: number, height: number): Orientation {
+  return width === height ? 'square' : width < height ? 'portrait' : 'landscape'
 }

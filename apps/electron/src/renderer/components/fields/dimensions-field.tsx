@@ -3,7 +3,8 @@ import { Config, Paper } from 'void'
 
 export let DimensionsField = (props: { config: Config }) => {
   let { config } = props
-  let { dimensions, orientation } = config
+  let orientation = Config.orientation(config)
+  let dimensions = Config.dimensions(config)
   let [width, height, units] = dimensions
   let paper = Paper.match(width, height, units)
   let max = Math.max(width, height)

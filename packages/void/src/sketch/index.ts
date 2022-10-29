@@ -1,18 +1,20 @@
-import { Config, Options } from '../interfaces/config'
-import { Output, Exporter } from '../interfaces/export'
+import { Config } from '../config'
+import { Output } from '../interfaces/export'
 import { Frame } from '../interfaces/frame'
 import { Schema } from '../interfaces/schema'
-import { Settings } from '../interfaces/settings'
 import { Traits } from '../interfaces/traits'
+import { Settings } from '../settings'
 
 /** The sketch-related methods. */
 export * as Sketch from './methods'
 
 /** An object representing a Void sketch's state. */
 export type Sketch = {
-  el: HTMLElement
+  config: Config
   construct: () => void
   draw?: (frame: Frame) => void
+  el: HTMLElement
+  frame?: Frame
   handlers: {
     construct: Array<() => void>
     draw: Array<() => void>
@@ -20,22 +22,16 @@ export type Sketch = {
     pause: Array<() => void>
     stop: Array<() => void>
   }
+  layers: Record<string, () => string>
+  output?: Output
   overrides: {
-    exporting?: Output
     layers?: Record<string, boolean>
-    options?: Options
-    settings?: Settings
+    config?: Config
     traits?: Traits
   }
-  state?: {
-    status?: 'playing' | 'paused' | 'stopped'
-    config?: Config
-    exporting?: Output
-    frame: Frame
-    layers: Record<string, () => string>
-    raf?: number
-    schema: Schema
-    settings?: Settings
-    traits: Traits
-  }
+  raf?: number
+  schema: Schema
+  settings: Settings
+  status: 'playing' | 'paused' | 'stopped'
+  traits: Traits
 }

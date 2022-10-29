@@ -24,19 +24,22 @@ export let Editor = () => {
         el.removeChild(el.firstChild)
       }
 
-      let sketch = Sketch.of(module.default, el, {
-        traits: tab.options.traits ?? {},
-        options: tab.options,
+      let sketch = Sketch.of(module.default, {
+        el,
+        overrides: {
+          traits: tab.traits,
+          config: tab.config,
+        },
       })
 
       Sketch.play(sketch)
       setSketch(sketch)
       return () => Sketch.stop(sketch)
     }, 1)
-  }, [module, tab.options, parentWidth, parentHeight])
+  }, [module, tab.config, tab.traits, parentWidth, parentHeight])
 
   let scale = useMemo(() => {
-    let settings = sketch?.state?.settings
+    let settings = sketch?.settings
     if (!settings) return tab.zoom ?? 1
     if (tab.zoom) return tab.zoom
     let maxWidth = parentWidth - padding
@@ -45,7 +48,7 @@ export let Editor = () => {
     return outputWidth > maxWidth || outputHeight > maxHeight
       ? Math.min(maxWidth / outputWidth, maxHeight / outputHeight)
       : 1
-  }, [parentWidth, parentHeight, tab.zoom, sketch?.state?.settings])
+  }, [parentWidth, parentHeight, tab.zoom, sketch?.settings])
 
   return (
     <CanvasRefContext.Provider value={canvasRef}>

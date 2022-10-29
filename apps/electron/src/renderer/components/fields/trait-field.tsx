@@ -20,18 +20,14 @@ export let TraitField = (props: {
   let { prop: key, schema, value } = props
   let [tab, changeTab] = useTab()
   let label = capitalCase(key)
-  let has = tab.options.traits != null && key in tab.options.traits
-  let valueClassName = `
-    ${has ? 'font-bold' : ''}
-  `
-
+  let has = tab.traits != null && key in tab.traits
+  let valueClassName = has ? 'font-bold' : ''
   let field: React.ReactNode
 
   let onChange = useCallback(
     (value: any) => {
       changeTab((t) => {
-        let traits = (t.options.traits = t.options.traits ?? {})
-        traits[key] = value
+        t.traits[key] = value
       })
     },
     [tab, key, changeTab]
@@ -83,9 +79,7 @@ export let TraitField = (props: {
           onClick={() => {
             let attempts = 10
             let current =
-              tab.options.traits != null && key in tab.options.traits
-                ? tab.options.traits[key]
-                : value
+              tab.traits != null && key in tab.traits ? tab.traits[key] : value
 
             let v = schema.type === 'boolean' ? !current : current
             while (v === current && attempts--) {
@@ -93,34 +87,27 @@ export let TraitField = (props: {
             }
 
             changeTab((t) => {
-              let traits = (t.options.traits = t.options.traits ?? {})
-              traits[key] = v
+              t.traits[key] = v
             })
           }}
         >
           <MdOutlineAutoAwesome />
         </IconButton>
-        <button
+        <IconButton
           title="Lock"
-          className={`
-            flex w-7 h-7 items-center justify-center text-base rounded
-            hover:bg-gray-100 hover:text-black
-            group-hover:opacity-100
-            ${has ? 'text-black opacity-100' : 'text-gray-400 opacity-50'}
-          `}
+          active={has}
           onClick={() => {
             changeTab((t) => {
-              let traits = (t.options.traits = t.options.traits ?? {})
-              if (has) {
-                delete traits[key]
+              if (key in t.traits) {
+                delete t.traits[key]
               } else {
-                traits[key] = value
+                t.traits[key] = value
               }
             })
           }}
         >
           {has ? <MdOutlineLock /> : <MdOutlineLockOpen />}
-        </button>
+        </IconButton>
       </div>
     </div>
   )

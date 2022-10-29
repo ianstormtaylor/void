@@ -4,66 +4,57 @@ import { MdCrop169, MdCropSquare } from 'react-icons/md'
 import { useStore } from '../../contexts/store'
 import { useTab } from '../../contexts/tab'
 import { Config } from 'void'
+import { IconButton } from '../ui/icon-button'
+import { SidebarPanel } from '../ui/sidebar-panel'
 
 export let LayoutPanel = (props: { config: Config }) => {
   let [, setConfig] = useStore()
   let [tab] = useTab()
   let { config } = props
-  let { orientation } = config
+  let orientation = Config.orientation(config)
   return (
-    <div className="p-4 pb-3 space-y-0.5">
-      <div className="flex justify-between pb-1">
-        <h2 className="font-semibold">Layout</h2>
-        <div className="flex items-center -my-1.5 -mr-2">
-          <button
+    <SidebarPanel
+      title="Layout"
+      buttons={
+        <>
+          <IconButton
             onClick={() => {
               setConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.options.orientation = 'portrait'
+                t.config.orientation = 'portrait'
               })
             }}
-            className={`
-              flex w-7 h-7 items-center justify-center text-base rounded
-              hover:text-black hover:bg-gray-100
-              ${orientation === 'portrait' ? 'text-black' : 'text-gray-300'}
-            `}
+            active={orientation === 'portrait'}
           >
             <MdCrop169 className="transform rotate-90" />
-          </button>
-          <button
+          </IconButton>
+          <IconButton
+            active={orientation === 'landscape'}
             onClick={() => {
               setConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.options.orientation = 'landscape'
+                t.config.orientation = 'landscape'
               })
             }}
-            className={`
-              flex w-7 h-7 items-center justify-center text-base rounded
-              hover:text-black hover:bg-gray-100
-              ${orientation === 'landscape' ? 'text-black' : 'text-gray-300'}
-            `}
           >
             <MdCrop169 />
-          </button>
-          <button
+          </IconButton>
+          <IconButton
+            active={orientation === 'square'}
             onClick={() => {
               setConfig((c) => {
                 let t = c.tabs[tab.id]
-                t.options.orientation = 'square'
+                t.config.orientation = 'square'
               })
             }}
-            className={`
-              flex w-7 h-7 items-center justify-center text-base rounded
-              hover:text-black hover:bg-gray-100
-              ${orientation === 'square' ? 'text-black' : 'text-gray-300'}
-            `}
           >
             <MdCropSquare />
-          </button>
-        </div>
-      </div>
+          </IconButton>
+        </>
+      }
+    >
       <DimensionsField config={config} />
       <MarginsField config={config} />
-    </div>
+    </SidebarPanel>
   )
 }

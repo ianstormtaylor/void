@@ -76,7 +76,7 @@ export function convert(
     precision?: number
   } = {}
 ): number {
-  let settings = Sketch.current()?.state?.settings
+  let settings = Sketch.current()?.settings
   let {
     to = settings?.units ?? 'px',
     dpi = settings?.dpi ?? 72,

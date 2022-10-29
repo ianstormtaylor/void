@@ -2,7 +2,6 @@ import * as Generate from './generators'
 import { Context } from 'svgcanvas'
 import {
   Frame,
-  Options,
   Settings,
   Sketch,
   AnySchema,
@@ -69,19 +68,14 @@ export function int(name: string, min: number, max: number, step = 1): number {
 /** Get a canvas layer to draw with. */
 export function layer(name: string): CanvasRenderingContext2D {
   let sketch = Sketch.current()
-  let state = sketch?.state
-  if (!sketch || !state) {
+  if (!sketch) {
     throw new Error(`You must call Void.layer() inside a sketch!`)
   }
 
-  let { settings, exporting } = state
-  if (!settings) {
-    throw new Error(`You must call Void.layer() after Void.settings()!`)
-  }
-
+  let { settings, output } = sketch
   let canvas = document.createElement('canvas')
   let ctx: any
-  let format = exporting?.type
+  let format = output?.type
   let isSvg = format === 'svg' || format === 'pdf'
 
   if (isSvg) {
@@ -107,7 +101,7 @@ export function layer(name: string): CanvasRenderingContext2D {
 
   if (sketch.overrides.layers?.[name] !== false) {
     sketch.el.appendChild(canvas)
-    state.layers[name] = () => {
+    sketch.layers[name] = () => {
       if (isSvg) {
         let string = ctx.getSerializedSvg()
         let url = svgStringToDataUri(string)
@@ -148,16 +142,15 @@ export function sample<V extends Json>(
 }
 
 /** Setup the canvas and current scene for a sketch. */
-export function settings(options: Options): Settings {
+export function settings(config: Config): Settings {
   let sketch = Sketch.current()
-  let state = sketch?.state
-  if (!sketch || !state) {
+  if (!sketch) {
     throw new Error(`You must call Void.settings() inside a sketch!`)
   }
 
-  state.config = Config.create(options, sketch.overrides.options ?? {})
-  state.settings = Settings.create(state.config)
-  return state.settings
+  sketch.config = Config.merge(config, sketch.overrides.config ?? {})
+  sketch.settings = Settings.from(sketch.config)
+  return sketch.settings
 }
 
 /** Define a Void sketch with a `construct` function. */
@@ -197,14 +190,13 @@ function register<V extends Json>(
   schema: AnySchema
 ): V {
   let sketch = Sketch.current()
-  let state = sketch?.state
-  if (!sketch || !state) {
-    throw new Error(`You must call Trait functions from inside a Void sketch!`)
+  if (!sketch) {
+    throw new Error(`You must define traits inside a Void sketch function!`)
   }
 
-  let traits = sketch.overrides?.traits ?? {}
+  let traits = sketch.overrides?.traits ?? sketch.traits
   let v = name in traits ? traits[name] : value
-  state.schema[name] = schema
-  state.traits[name] = v
+  sketch.schema[name] = schema
+  sketch.traits[name] = v
   return v
 }

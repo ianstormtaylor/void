@@ -1,4 +1,4 @@
-import { Options } from 'void'
+import { Config, Traits } from 'void'
 
 /** The saved state of a `Window`. */
 export type WindowState = {
@@ -17,7 +17,8 @@ export type TabState = {
   sketchId: string
   inspecting: boolean
   zoom: number | null
-  options: Options
+  config: Config
+  traits: Traits
 }
 
 /** The saved state of a `Sketch`. */
