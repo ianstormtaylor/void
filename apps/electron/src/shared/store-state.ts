@@ -19,6 +19,7 @@ export type TabState = {
   zoom: number | null
   config: Config
   traits: Traits
+  layers: Record<string, false>
 }
 
 /** The saved state of a `Sketch`. */

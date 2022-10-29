@@ -39,6 +39,7 @@ export class Tab {
         zoom: null,
         config: {},
         traits: {},
+        layers: {},
       }
     })
 

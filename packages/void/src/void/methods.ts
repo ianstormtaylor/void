@@ -99,18 +99,19 @@ export function layer(name: string): CanvasRenderingContext2D {
   ctx.scale(screenWidth / outerWidth, screenHeight / outerHeight)
   ctx.translate(settings.margin[1], settings.margin[0])
 
+  sketch.layers[name] = () => {
+    if (isSvg) {
+      let string = ctx.getSerializedSvg()
+      let url = svgStringToDataUri(string)
+      return url
+    } else {
+      let url = canvas.toDataURL('image/png')
+      return url
+    }
+  }
+
   if (sketch.overrides.layers?.[name] !== false) {
     sketch.el.appendChild(canvas)
-    sketch.layers[name] = () => {
-      if (isSvg) {
-        let string = ctx.getSerializedSvg()
-        let url = svgStringToDataUri(string)
-        return url
-      } else {
-        let url = canvas.toDataURL('image/png')
-        return url
-      }
-    }
   }
 
   return ctx

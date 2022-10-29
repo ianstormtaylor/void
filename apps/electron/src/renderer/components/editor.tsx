@@ -29,6 +29,7 @@ export let Editor = () => {
         overrides: {
           traits: tab.traits,
           config: tab.config,
+          layers: tab.layers,
         },
       })
 
