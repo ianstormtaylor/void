@@ -1,38 +1,22 @@
-import * as Generate from './generators'
 import { Context } from 'svgcanvas'
-import {
-  Frame,
-  Settings,
-  Sketch,
-  AnySchema,
-  ChoiceSchema,
-  SampleSchema,
-  FloatSchema,
-  IntSchema,
-  Json,
-  OptionSchema,
-  BoolSchema,
-  Config,
-} from '..'
 import { svgStringToDataUri } from '../utils'
+import { Sketch, Schema, Json, OptionSchema, Config, Random } from '..'
 
 /** Define a trait that is a boolean, with optional `probability` of being true. */
 export function bool(name: string, probability = 0.5): boolean {
-  let schema: BoolSchema = { type: 'boolean', probability }
-  let value = Generate.bool(schema)
-  return register(name, value, schema)
+  let value = Random.bool(probability)
+  return register(name, value, { type: 'boolean', probability })
 }
 
 /** Define a trait that is one of many `choices`. */
 export function choice<V extends Json>(name: string, choices: Choices<V>): V {
-  let options = normalizeChoices(choices)
-  let schema: ChoiceSchema<V> = { type: 'choice', options }
-  let value = Generate.choice(schema)
-  return register(name, value, schema)
+  let { options, values, weights } = normalizeChoices(choices)
+  let value = Random.choice(values, weights)
+  return register(name, value, { type: 'choice', options })
 }
 
 /** Define a `draw` function that renders each frame. */
-export function draw(fn: (frame: Frame) => void) {
+export function draw(fn: (frame: Sketch['frame']) => void) {
   let sketch = Sketch.current()
   if (!sketch) {
     throw new Error(`You must call Void.draw() inside a sketch!`)
@@ -53,64 +37,64 @@ export function float(
   max: number,
   step?: number
 ): number {
-  let schema: FloatSchema = { type: 'float', min, max, step }
-  let value = Generate.float(schema)
-  return register(name, value, schema)
+  let value = Random.float(min, max, step)
+  return register(name, value, { type: 'float', min, max, step })
 }
 
 /** Define a trait that is an integer, between `min` and `max`, with optional `step` to increment by. */
 export function int(name: string, min: number, max: number, step = 1): number {
-  let schema: IntSchema = { type: 'int', min, max, step }
-  let value = Generate.int(schema)
-  return register(name, value, schema)
+  let value = Random.int(min, max, step)
+  return register(name, value, { type: 'int', min, max, step })
 }
 
 /** Get a canvas layer to draw with. */
-export function layer(name: string): CanvasRenderingContext2D {
+export function layer(name?: string): CanvasRenderingContext2D {
   let sketch = Sketch.current()
   if (!sketch) {
     throw new Error(`You must call Void.layer() inside a sketch!`)
   }
 
-  let { settings, output } = sketch
-  let canvas = document.createElement('canvas')
-  let ctx: any
-  let format = output?.type
-  let isSvg = format === 'svg' || format === 'pdf'
-
-  if (isSvg) {
-    let { width, height, units } = settings
-    ctx = new Context(`${width}${units}`, `${height}${units}`)
-  } else {
-    ctx = canvas.getContext('2d')
+  if (!name) {
+    let { length } = Object.keys(sketch.layers)
+    while ((name = `Layer ${++length}`) in sketch.layers) {}
   }
+
+  let { settings, output, overrides } = sketch
+  let { width, height, margin, units } = settings
+  let hidden = overrides.layers?.[name]?.hidden ?? false
+  let canvas = document.createElement('canvas')
+  let format = output?.type
+  let vector = format === 'svg' || format === 'pdf'
+  let ctx = vector
+    ? new Context(`${width}${units}`, `${height}${units}`)
+    : canvas.getContext('2d')
 
   if (!ctx) {
-    throw new Error(`Unable to get 2D rendering context from Canvas!`)
+    throw new Error(`Unable to get 2D rendering context from canvas!`)
   }
 
-  let [outerWidth, outerHeight] = Settings.outerDimensions(settings)
-  let [screenWidth, screenHeight] = Settings.screenDimensions(settings)
-  let [outputWidth, outputHeight] = Settings.outputDimensions(settings)
-  canvas.width = screenWidth
-  canvas.height = screenHeight
-  canvas.style.width = `${outputWidth}px`
-  canvas.style.height = `${outputHeight}px`
-  ctx.scale(screenWidth / outerWidth, screenHeight / outerHeight)
-  ctx.translate(settings.margin[1], settings.margin[0])
+  let [top, , , left] = margin
+  let [totalWidth, totalHeight] = Sketch.dimensions(sketch)
+  let [pixelWidth, pixelHeight] = Sketch.dimensions(sketch, 'pixel')
+  let [deviceWidth, deviceHeight] = Sketch.dimensions(sketch, 'device')
+  canvas.width = deviceWidth
+  canvas.height = deviceHeight
+  canvas.style.position = 'absolute'
+  canvas.style.width = `${pixelWidth}px`
+  canvas.style.height = `${pixelHeight}px`
+  ctx.scale(deviceWidth / totalWidth, deviceHeight / totalHeight)
+  ctx.translate(top, left)
 
-  sketch.layers[name] = () => {
-    if (isSvg) {
-      let string = ctx.getSerializedSvg()
-      let url = svgStringToDataUri(string)
-      return url
-    } else {
-      let url = canvas.toDataURL('image/png')
-      return url
-    }
+  sketch.layers[name] = {
+    hidden,
+    export: () => {
+      return vector
+        ? svgStringToDataUri(ctx.getSerializedSvg())
+        : canvas.toDataURL('image/png')
+    },
   }
 
-  if (sketch.overrides.layers?.[name] !== false) {
+  if (!hidden) {
     sketch.el.appendChild(canvas)
   }
 
@@ -136,27 +120,37 @@ export function sample<V extends Json>(
   choices?: Choices<V>
 ): V[] {
   if (typeof max !== 'number') (choices = max), (max = min)
-  let options = normalizeChoices(choices!)
-  let schema: SampleSchema<V> = { type: 'sample', min, max, options }
-  let value = Generate.sample(schema)
-  return register(name, value, schema)
+  let { options, values, weights } = normalizeChoices(choices!)
+  let amount = Random.int(min, max)
+  let value = Random.sample(amount, values, weights)
+  return register(name, value, { type: 'sample', min, max, options })
 }
 
 /** Setup the canvas and current scene for a sketch. */
-export function settings(config: Config): Settings {
+export function settings(): Sketch['settings']
+export function settings(config: Config): Sketch['settings']
+export function settings(dimensions: Config['dimensions']): Sketch['settings']
+export function settings(
+  config?: Config | Config['dimensions']
+): Sketch['settings'] {
+  if (typeof config === 'string' || Array.isArray(config)) {
+    config = { dimensions: config }
+  }
+
+  config ??= {}
   let sketch = Sketch.current()
   if (!sketch) {
     throw new Error(`You must call Void.settings() inside a sketch!`)
   }
 
-  sketch.config = Config.merge(config, sketch.overrides.config ?? {})
-  sketch.settings = Settings.from(sketch.config)
-  return sketch.settings
-}
-
-/** Define a Void sketch with a `construct` function. */
-export function sketch(construct: Sketch['construct']): Sketch['construct'] {
-  return construct
+  let { settings } = sketch
+  let defaults: Config = { dimensions: [settings.width, settings.height, 'px'] }
+  let overrides = sketch.overrides.config ?? {}
+  let c = Config.merge(defaults, config, overrides)
+  let s = Config.settings(c)
+  sketch.config = c
+  sketch.settings = s
+  return s
 }
 
 /** The shorthand for define a set of choices. */
@@ -169,35 +163,45 @@ type Choices<V extends Json> =
 /** Normalize the shorthand for defining choices into `OptionSchema` objects. */
 function normalizeChoices<V extends Json>(
   choices: Choices<V>
-): OptionSchema<V>[] {
+): {
+  options: OptionSchema<V>[]
+  values: V[]
+  weights: number[]
+} {
+  let options: OptionSchema<V>[] = []
+  let values: V[] = []
+  let weights: number[] = []
+
   if (Array.isArray(choices)) {
-    return choices.map((sc) => {
+    for (let sc of choices) {
       let [weight, value] = Array.isArray(sc) ? sc : [1, sc]
-      let name = `${value}`
-      return { type: 'option', name, value, weight } as OptionSchema
-    })
+      let v = value as V
+      options.push({ type: 'option', name: `${value}`, value: v, weight })
+      values.push(v)
+      weights.push(weight)
+    }
   } else {
-    return Object.entries(choices).map(([name, sc]) => {
+    for (let [name, sc] of Object.entries(choices)) {
       let [weight, value] = Array.isArray(sc) ? sc : [1, sc]
-      return { type: 'option', name, value, weight } as OptionSchema
-    })
+      options.push({ type: 'option', name, value, weight })
+      values.push(value)
+      weights.push(weight)
+    }
   }
+
+  return { options, values, weights }
 }
 
 /** Register a trait value and schema on the global Void namespace. */
-function register<V extends Json>(
-  name: string,
-  value: V,
-  schema: AnySchema
-): V {
+function register<V extends Json>(name: string, value: V, schema: Schema): V {
   let sketch = Sketch.current()
   if (!sketch) {
     throw new Error(`You must define traits inside a Void sketch function!`)
   }
 
   let traits = sketch.overrides?.traits ?? sketch.traits
-  let v = name in traits ? traits[name] : value
-  sketch.schema[name] = schema
+  let v = name in traits ? (traits[name] as any) : value
+  sketch.schemas[name] = schema
   sketch.traits[name] = v
   return v
 }

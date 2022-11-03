@@ -1,4 +1,4 @@
 {
-  "files": [],
+  "include": ["./examples"],
   "references": [{ "path": "./apps/electron" }, { "path": "./packages/void" }]
 }

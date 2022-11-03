@@ -1,77 +1,51 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EditorSidebar } from './editor-sidebar'
-import { useMeasure } from 'react-use'
 import { EditorToolbar } from './editor-toolbar'
-import { CanvasRefContext } from '../contexts/canvas'
-import { useModule } from '../contexts/module'
 import { useTab } from '../contexts/tab'
-import { Settings, Sketch } from 'void'
+import { Sketch } from 'void'
 
-export let Editor = () => {
-  let module = useModule()
+export let Editor = (props: { construct: Sketch['construct'] }) => {
+  let { construct } = props
   let [tab] = useTab()
-  let elRef = useRef<HTMLDivElement>(null)
-  let canvasRef = useRef<HTMLCanvasElement>(null)
-  let [parentRef, { width: parentWidth, height: parentHeight }] = useMeasure()
   let [sketch, setSketch] = useState<Sketch | null>(null)
-  let padding = 40 * 2
+  let containerRef = useRef<HTMLDivElement>(null)
+  let { overrides } = tab
 
   useEffect(() => {
     setTimeout(() => {
-      if (!elRef.current || !parentWidth || !parentHeight) return
-      let el = elRef.current
-      while (el.firstChild) {
-        el.removeChild(el.firstChild)
-      }
-
-      let sketch = Sketch.of(module.default, {
-        el,
-        overrides: {
-          traits: tab.traits,
-          config: tab.config,
-          layers: tab.layers,
-        },
-      })
-
+      if (!containerRef.current) return
+      let cont = containerRef.current
+      while (cont.firstChild) cont.removeChild(cont.firstChild)
+      let sketch = Sketch.of({ construct, container: cont, overrides })
       Sketch.play(sketch)
       setSketch(sketch)
-      return () => Sketch.stop(sketch)
+      return () => Sketch.detach(sketch)
     }, 1)
-  }, [module, tab.config, tab.traits, parentWidth, parentHeight])
+  }, [construct, overrides])
 
-  let scale = useMemo(() => {
-    let settings = sketch?.settings
-    if (!settings) return tab.zoom ?? 1
-    if (tab.zoom) return tab.zoom
-    let maxWidth = parentWidth - padding
-    let maxHeight = parentHeight - padding
-    let [outputWidth, outputHeight] = Settings.outputDimensions(settings)
-    return outputWidth > maxWidth || outputHeight > maxHeight
-      ? Math.min(maxWidth / outputWidth, maxHeight / outputHeight)
-      : 1
-  }, [parentWidth, parentHeight, tab.zoom, sketch?.settings])
+  // let scale = useMemo(() => {
+  //   if (!sketch) return tab.zoom ?? 1
+  //   if (tab.zoom) return tab.zoom
+  //   let maxWidth = parentWidth - padding
+  //   let maxHeight = parentHeight - padding
+  //   let [width, height] = Sketch.dimensions(sketch, 'pixel')
+  //   return width > maxWidth || height > maxHeight
+  //     ? Math.min(maxWidth / width, maxHeight / height)
+  //     : 1
+  // }, [parentWidth, parentHeight, tab.zoom, sketch])
 
   return (
-    <CanvasRefContext.Provider value={canvasRef}>
-      <div className="relative flex flex-col items-stretch w-screen h-screen bg-gray-100">
-        <EditorToolbar />
-        <div className="relative flex-1">
-          <div
-            // @ts-ignore
-            ref={parentRef}
-            className="absolute inset-0 right-64 flex justify-center items-center"
-          >
-            <div
-              ref={elRef}
-              className="canvas bg-white border border-gray-200 transition-transform"
-              style={{ transform: `scale(${scale})` }}
-            />
-          </div>
-          <div className="absolute inset-y-0 right-0 w-64 border-l border-gray-200 bg-white">
-            <EditorSidebar sketch={sketch} />
-          </div>
+    <div className="flex flex-col items-stretch w-screen h-screen bg-gray-100">
+      <EditorToolbar />
+      <div className="flex-1 flex">
+        <div
+          ref={containerRef}
+          className="flex-1 flex justify-center items-center"
+        />
+        <div className="flex-0 w-64 relative z-10 border-l border-gray-200 bg-white">
+          <EditorSidebar sketch={sketch} />
         </div>
       </div>
-    </CanvasRefContext.Provider>
+    </div>
   )
 }

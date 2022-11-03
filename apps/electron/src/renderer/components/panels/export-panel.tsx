@@ -1,4 +1,4 @@
-import { FileType, Sketch } from 'void'
+import { OutputType, Sketch } from 'void'
 import { useCallback } from 'react'
 import { useSketch } from '../../contexts/sketch'
 import { SidebarButton } from '../ui/sidebar-button'
@@ -8,10 +8,11 @@ export let ExportPanel = (props: { sketch: Sketch }) => {
   let { sketch } = props
   let sketchFile = useSketch()
   let onDownload = useCallback(
-    (type: FileType) => {
+    (type: OutputType) => {
       let div = document.createElement('div')
-      let s = Sketch.of(sketch.construct, {
-        el: div,
+      let s = Sketch.of({
+        construct: sketch.construct,
+        container: div,
         overrides: sketch.overrides,
         output: { type, quality: 1 },
       })

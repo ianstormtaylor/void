@@ -1,6 +1,5 @@
+import { Math, Units, OUTPUT_MIME_TYPES, Output } from '..'
 import { Sketch } from '.'
-import { MIME_TYPES, Output } from '../interfaces/export'
-import { Settings } from '../settings'
 import {
   svgDataUriToString,
   svgElementToString,
@@ -9,9 +8,52 @@ import {
   SVG_NAMESPACE,
 } from '../utils'
 
+/** Attach the sketch to the DOM. */
+export function attach(sketch: Sketch): void {
+  let { container, el } = sketch
+  let [width, height] = dimensions(sketch, 'pixel')
+  el.style.width = `${width}px`
+  el.style.height = `${height}px`
+  el.style.position = 'relative'
+  el.style.background = 'white'
+  el.style.outline = '1px solid #e4e4e4'
+  container.appendChild(el)
+}
+
 /** Get the current sketch from the global `VOID` context. */
 export function current(): Sketch | undefined {
   return globalThis.VOID?.sketch
+}
+
+/** Detach the sketch from the DOM. */
+export function detach(sketch: Sketch): void {
+  let { container, el } = sketch
+  stop(sketch)
+  container.removeChild(el)
+}
+
+/** Get the full-sized dimensions of a `sketch`, including margins, in the sketch's own units. */
+export function dimensions(
+  sketch: Sketch,
+  mode: 'sketch' | 'pixel' | 'device' | 'export' = 'sketch'
+): [number, number] {
+  let { settings } = sketch
+  let { width, height, margin, units } = settings
+  let [top, right, bottom, left] = margin
+  let precision = 1
+  let to: Units = mode === 'sketch' ? settings.units : 'px'
+  let dpi =
+    mode === 'pixel'
+      ? 72
+      : mode === 'device'
+      ? 72 * window.devicePixelRatio
+      : settings.dpi
+
+  let w = width + left + right
+  let h = height + top + bottom
+  let x = Math.convert(w, units, to, { dpi, precision })
+  let y = Math.convert(h, units, to, { dpi, precision })
+  return [x, y]
 }
 
 /** Emit an `event` to all the sketch's handlers. */
@@ -31,32 +73,31 @@ export function exec(sketch: Sketch, fn: () => void) {
 }
 
 /** Create a sketch from a `construct` function, with optional `el` and `overrides`. */
-export function of(
-  construct: () => void,
-  options: {
-    el?: HTMLElement
-    overrides?: Sketch['overrides']
-    output?: Output
-  } = {}
-): Sketch {
-  let { el = document.body, overrides = {}, output } = options
-  let { offsetHeight: h, offsetWidth: w } = el
+export function of(attrs: {
+  construct: () => void
+  container?: HTMLElement
+  overrides?: Sketch['overrides']
+  output?: Output
+}): Sketch {
+  let { construct, container = document.body, overrides = {}, output } = attrs
+  let { offsetHeight: h, offsetWidth: w } = container
+  let el = document.createElement('div')
   return {
     config: {},
     construct,
+    container,
     el,
     handlers: { construct: [], draw: [], play: [], pause: [], stop: [] },
     layers: {},
     output,
     overrides,
-    schema: {},
+    schemas: {},
     settings: {
       dpi: 72,
       fps: 60,
       frames: Infinity,
       height: h,
       margin: [0, 0, 0, 0],
-      orientation: w === h ? 'square' : w > h ? 'landscape' : 'portrait',
       precision: 1,
       seed: 0,
       units: 'px',
@@ -89,10 +130,11 @@ export function play(sketch: Sketch) {
     sketch.config = {}
     sketch.frame = { count: -1, time: now, rate: 0 }
     sketch.layers = {}
-    sketch.schema = {}
+    sketch.schemas = {}
     sketch.traits = {}
     Sketch.exec(sketch, sketch.construct)
     Sketch.emit(sketch, 'construct')
+    Sketch.attach(sketch)
   }
 
   let { frame, settings } = sketch
@@ -152,14 +194,13 @@ export async function saveImage(sketch: Sketch): Promise<string> {
     throw new Error(`Cannot save a sketch that wasn't initialized for export!`)
   }
 
-  let { settings, output } = sketch
   let canvas = document.createElement('canvas')
-  let [screenWidth, screenHeight] = Settings.screenDimensions(settings)
-  let [outputWidth, outputHeight] = Settings.outputDimensions(settings)
-  canvas.width = screenWidth
-  canvas.height = screenHeight
-  canvas.style.width = `${outputWidth}px`
-  canvas.style.height = `${outputHeight}px`
+  let [deviceWidth, deviceHeight] = Sketch.dimensions(sketch, 'device')
+  let [pixelHeight, pixelWidth] = Sketch.dimensions(sketch, 'pixel')
+  canvas.width = deviceWidth
+  canvas.height = deviceHeight
+  canvas.style.width = `${pixelHeight}px`
+  canvas.style.height = `${pixelWidth}px`
 
   let context = canvas.getContext('2d')
   if (!context) {
@@ -167,10 +208,10 @@ export async function saveImage(sketch: Sketch): Promise<string> {
   }
 
   let images = await Promise.all(
-    Object.entries(sketch.layers).map(([name, getDataUrl]) => {
+    Object.values(sketch.layers).map((layer) => {
       return new Promise<HTMLImageElement>((resolve, reject) => {
         let img = new Image()
-        let url = getDataUrl()
+        let url = layer.export()
         img.onload = () => resolve(img)
         img.onerror = (e, source, lineno, colno, error) => reject(error)
         img.src = url
@@ -182,8 +223,9 @@ export async function saveImage(sketch: Sketch): Promise<string> {
     context.drawImage(image, 0, 0)
   }
 
+  let { output } = sketch
   let { type, quality } = output
-  let mime = MIME_TYPES[type]
+  let mime = OUTPUT_MIME_TYPES[type]
   let url = canvas.toDataURL(mime, quality)
   return url
 }
@@ -195,8 +237,8 @@ export async function saveSvg(sketch: Sketch): Promise<string> {
 
   let svg = document.createElementNS(SVG_NAMESPACE, 'svg') as SVGSVGElement
 
-  for (let [name, getDataUrl] of Object.entries(sketch.layers)) {
-    let url = getDataUrl()
+  for (let layer of Object.values(sketch.layers)) {
+    let url = layer.export()
     let string = svgDataUriToString(url)
     let el = svgStringToElement(string)
     let group = document.createElementNS(SVG_NAMESPACE, 'g')

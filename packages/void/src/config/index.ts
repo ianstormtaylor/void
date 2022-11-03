@@ -1,19 +1,16 @@
-import { Dimensions } from '../interfaces/dimensions'
-import { Orientation } from '../interfaces/orientation'
-import { Paper } from '../interfaces/paper'
-import { Units } from '../interfaces/units'
+import { Orientation, Size, Units, Sizes } from '..'
 
 export * as Config from './methods'
 
 /** The configuration options for a sketch, with shorthands allowed. */
 export type Config = {
-  dimensions?: Dimensions<2> | Paper
+  dimensions?: Size | Sizes<2>
   dpi?: number
   fps?: number
   frames?: number
-  margin?: Dimensions<1> | Dimensions<2> | Dimensions<3> | Dimensions<4>
+  margin?: Sizes<1> | Sizes<2> | Sizes<3> | Sizes<4>
   orientation?: Orientation
-  precision?: Dimensions<1>
+  precision?: Sizes<1>
   seed?: number
   units?: Units
 }

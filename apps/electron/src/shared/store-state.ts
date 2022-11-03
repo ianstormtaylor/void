@@ -1,4 +1,4 @@
-import { Config, Traits } from 'void'
+import { Config } from 'void'
 
 /** The saved state of a `Window`. */
 export type WindowState = {
@@ -18,8 +18,8 @@ export type TabState = {
   inspecting: boolean
   zoom: number | null
   config: Config
-  traits: Traits
-  layers: Record<string, false>
+  traits: Record<string, any>
+  layers: Record<string, { hidden: boolean }>
 }
 
 /** The saved state of a `Sketch`. */

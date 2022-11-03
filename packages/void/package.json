@@ -25,11 +25,11 @@
     "@types/seed-random": "^2.2.1",
     "lodash": "^4.17.21",
     "seed-random": "^2.2.0",
-    "simplex-noise": "^3.0.1"
+    "simplex-noise": "^4.0.1"
   },
   "devDependencies": {
     "vite": "*",
-    "vitest": "*",
-    "vite-plugin-dts": "^1.6.6"
+    "vite-plugin-dts": "^1.6.6",
+    "vitest": "*"
   }
 }

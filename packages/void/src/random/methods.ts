@@ -1,15 +1,10 @@
-import SeedRandom from 'seed-random'
-import SimplexNoise from 'simplex-noise'
-import { Settings, Sketch } from '..'
+import { Math, Sketch } from '..'
 
-/** An un-seeded noise generator when no scene is active. */
-let UNSEEDED_NOISE: SimplexNoise | undefined
+// Export noise functions.
+export * from './noise'
 
-/** A weak map for storing a reference to the scene's seeded random. */
-let NOISE = new WeakMap<Settings, SimplexNoise>()
-
-/** A weak map for storing a reference to the scene's seeded random. */
-let RANDOM = new WeakMap<Settings, () => number>()
+/** A reference to the sketch's seeded random function. */
+let RANDOM_REFS = new WeakMap<Sketch, () => number>()
 
 /** Generate a binomially-distributed number with `n` tries and `p` probability. */
 export function binomial(n = 1, p = 0.5) {
@@ -40,13 +35,6 @@ export function coin(p = 0.5): 0 | 1 {
   return random() < p ? 1 : 0
 }
 
-/** Run a function with a single randomness seed. */
-export function exec(fn: () => void, seed?: string): void {
-  if (seed == null) seed = `${random()}`
-  // TODO
-  throw new Error('TODO!')
-}
-
 /** Generate an exponentially-distributed number with `lambda`. */
 export function exponential(lambda = 1) {
   // https://github.com/transitive-bullshit/random/blob/master/src/distributions/exponential.ts
@@ -68,44 +56,22 @@ export function geometric(p = 0.5) {
   return (1 + Math.log(random()) * (1 / Math.log(1 - p))) | 0
 }
 
-/** Generate a floating point number, with optional `min` and `max`. */
-export function float(min?: number, max?: number): number {
+/** Generate a floating point number, with optional `min`, `max`, and `step`. */
+export function float(min?: number, max?: number, step?: number): number {
   if (min == null) (min = 0), (max = 1)
   if (max == null) (max = min), (min = 0)
-  return min + random() * (max - min)
+  let range = max - min
+  if (step != null) range += step
+  let r = random() * range
+  if (step != null) r = Math.floor(r, { multiple: step })
+  return min + r
 }
 
-/** Generate an integer, with optional `min` and `max`. */
-export function int(min?: number, max?: number): number {
+/** Generate an integer, with optional `min`, `max`, and `step`. */
+export function int(min?: number, max?: number, step = 1): number {
   if (min == null) (min = 0), (max = 1)
   if (max == null) (max = min), (min = 0)
-  return Math.floor(float(min, max + 1))
-}
-
-/** Generate simplex noise from `x`, `y`, `z`, and `w` coordinates. */
-export function noise(x: number, y?: number, z?: number, w?: number): number {
-  let settings = Sketch.current()?.settings
-  let n
-
-  if (settings == null) {
-    n = UNSEEDED_NOISE ??= new SimplexNoise()
-  } else {
-    n = NOISE.get(settings)
-    if (n == null) {
-      n = new SimplexNoise(settings.seed)
-      NOISE.set(settings, n)
-    }
-  }
-
-  if (y == null) {
-    return n.noise2D(x, 0)
-  } else if (z == null) {
-    return n.noise2D(x, y)
-  } else if (w == null) {
-    return n.noise3D(x, y, z)
-  } else {
-    return n.noise4D(x, y, z, w)
-  }
+  return float(min, max, step)
 }
 
 /** Generate a Pareto-distributed number with `alpha`. */
@@ -127,16 +93,27 @@ export function poisson(mean = 1) {
   return k - 1
 }
 
+/** Create a pseudo-random number generator with a `seed`. */
+export function of(seed: number): () => number {
+  // https://en.wikipedia.org/wiki/Linear_congruential_generator
+  // https://github.com/processing/p5.js/blob/main/src/math/random.js
+  let M = 2 ** 32
+  let A = 1664525
+  let C = 1013904223
+  seed = seed >>> 0
+  return () => (seed = (A * seed + C) % M) / M
+}
+
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
-  let settings = Sketch.current()?.settings
+  let sketch = Sketch.current()
   let r
 
-  if (settings == null) {
+  if (sketch == null) {
     r = Math.random
   } else {
-    r = RANDOM.get(settings) ?? SeedRandom(`${settings.seed}`)
-    RANDOM.set(settings, r)
+    r = RANDOM_REFS.get(sketch) ?? of(sketch.settings.seed)
+    RANDOM_REFS.set(sketch, r)
   }
 
   return r()
@@ -199,7 +176,10 @@ export function unique<T>(
   )
 }
 
-/** Get a random vector of `length`. */
+/** Get a random unit vector of `length`. */
 export function vector(length: number): number[] {
-  return Array.from({ length }, () => random())
+  let vec = Array.from({ length }, () => random())
+  let mag = Math.sqrt(vec.reduce((m, v) => m + v ** 2, 0))
+  let unit = vec.map((v) => v / mag)
+  return unit
 }

@@ -1,20 +1,20 @@
 import { mergeWith } from 'lodash'
 import { Config } from '.'
-import { Dimensions, Paper, Orientation, Units, Settings } from '..'
+import { Sizes, Size, Orientation, Units, Math, Sketch } from '..'
 import { resolveOrientation } from '../utils'
 
 /** Resolve the dimensions of a `config`. */
-export function dimensions(config: Config): Dimensions<2> {
+export function dimensions(config: Config): Sizes<2> {
   let d = config.dimensions
   return d == null
     ? [Infinity, Infinity, 'px']
-    : Paper.is(d)
-    ? Paper.dimensions(d)
+    : Size.is(d)
+    ? Size.dimensions(d)
     : d
 }
 
 /** Resolve the margin from a `config`. */
-export function margin(config: Config): Dimensions<4> {
+export function margin(config: Config): Sizes<4> {
   let { margin } = config
 
   if (margin == null) {
@@ -54,7 +54,7 @@ export function orientation(config: Config): Orientation {
 }
 
 /** Resolve the precision of a `config`. */
-export function precision(config: Config): Dimensions<1> {
+export function precision(config: Config): Sizes<1> {
   let { precision } = config
 
   if (precision == null) {
@@ -71,6 +71,53 @@ export function precision(config: Config): Dimensions<1> {
   }
 
   return precision
+}
+
+/** Get the fully resolved `Settings` object a `config`. */
+export function settings(config: Config): Sketch['settings'] {
+  let { dpi = 72, fps = 60, frames = Infinity, seed = 1 } = config
+  let orientation = Config.orientation(config)
+  let units = Config.units(config)
+
+  // Convert the precision to the sketch's units.
+  let [precision, pu] = Config.precision(config)
+  precision = Math.convert(precision, pu, units, { dpi })
+
+  // Create a unit conversion helper with the sketch's default units.
+  let [width, height, du] = Config.dimensions(config)
+  width = Math.convert(width, du, units, { precision, dpi })
+  height = Math.convert(height, du, units, { precision, dpi })
+
+  // Apply the orientation setting to the dimensions.
+  if (orientation === 'square' && width != height) {
+    width = height = Math.min(width, height)
+  } else if (orientation === 'landscape' && width < height) {
+    ;[width, height] = [height, width]
+  } else if (orientation === 'portrait' && height < width) {
+    ;[width, height] = [height, width]
+  }
+
+  // Apply a margin, so the canvas is drawn without need to know it.
+  let [mt, mr, mb, ml, mu] = Config.margin(config)
+  mt = Math.convert(mt, mu, units, { precision, dpi })
+  mr = Math.convert(mr, mu, units, { precision, dpi })
+  mb = Math.convert(mb, mu, units, { precision, dpi })
+  ml = Math.convert(ml, mu, units, { precision, dpi })
+  width -= mr + ml
+  height -= mt + mb
+  let margin = [mt, mr, mb, ml] as [number, number, number, number]
+
+  return {
+    dpi,
+    fps,
+    frames,
+    height,
+    margin,
+    precision,
+    seed,
+    units,
+    width,
+  }
 }
 
 /** Resolve the units of a `config`. */

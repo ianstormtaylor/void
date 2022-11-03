@@ -33,48 +33,58 @@ export let LayersPanel = (props: { sketch: Sketch }) => {
         </>
       }
     >
-      {Object.keys(sketch.layers).map((key) => {
-        let hidden = tab.layers[key] === false
-        let label = capitalCase(key)
-        return (
-          <div key={key} className="group flex items-center -mr-2 space-x-2">
+      {Object.keys(sketch.layers)
+        .slice()
+        .reverse()
+        .map((key) => {
+          let hidden = tab.layers?.[key]?.hidden
+          let label = capitalCase(key)
+          return (
             <div
-              title="Dimensions"
-              className={`
+              key={key}
+              className="group flex items-center -mr-2 space-x-1.5"
+            >
+              <div
+                title="Dimensions"
+                className={`
                 -ml-0.5 text-base select-none
                 ${hidden ? 'text-gray-300' : 'text-gray-400 '}
         `}
-            >
-              <MdOutlineLayers />
-            </div>
-            <div
-              className={`
+              >
+                <MdOutlineLayers />
+              </div>
+              <div
+                className={`
                 flex-1 mr-3
                 ${hidden ? 'text-gray-400 opacity-70' : 'text-black'}
               `}
-            >
-              {label}
-            </div>
-            <div className=" flex -mr-2">
-              <IconButton
-                title={hidden ? 'Show' : 'Hide'}
-                active={hidden}
-                onClick={() => {
-                  changeTab((t) => {
-                    if (key in t.layers) {
-                      delete t.layers[key]
-                    } else {
-                      t.layers[key] = false
-                    }
-                  })
-                }}
               >
-                {hidden ? <MdOutlineVisibilityOff /> : <MdOutlineVisibility />}
-              </IconButton>
+                {label}
+              </div>
+              <div className=" flex -mr-2">
+                <IconButton
+                  title={hidden ? 'Show' : 'Hide'}
+                  active={hidden}
+                  onClick={() => {
+                    changeTab((t) => {
+                      if (key in t.layers) {
+                        delete t.layers[key]
+                      } else {
+                        t.layers[key] = { hidden: true }
+                      }
+                    })
+                  }}
+                >
+                  {hidden ? (
+                    <MdOutlineVisibilityOff />
+                  ) : (
+                    <MdOutlineVisibility />
+                  )}
+                </IconButton>
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
     </SidebarPanel>
   )
 }

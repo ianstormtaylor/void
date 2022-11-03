@@ -3,7 +3,7 @@ import { NumberField } from './number-field'
 import { capitalCase } from 'change-case'
 import { BooleanField } from './boolean-field'
 import { useTab } from '../../contexts/tab'
-import { AnySchema, Generate } from 'void'
+import { Schema, Math, Random } from 'void'
 import { IconButton } from '../ui/icon-button'
 import {
   MdOutlineAutoAwesome,
@@ -14,7 +14,7 @@ import { EnumField } from './enum-field'
 
 export let TraitField = (props: {
   prop: string
-  schema: AnySchema
+  schema: Schema
   value: any
 }) => {
   let { prop: key, schema, value } = props
@@ -83,7 +83,7 @@ export let TraitField = (props: {
 
             let v = schema.type === 'boolean' ? !current : current
             while (v === current && attempts--) {
-              v = Generate.any(schema, { evenly: true })
+              v = generate(schema)
             }
 
             changeTab((t) => {
@@ -111,4 +111,41 @@ export let TraitField = (props: {
       </div>
     </div>
   )
+}
+
+/** Generate a trait value from a `schema`. */
+export function generate(schema: Schema): any {
+  switch (schema.type) {
+    case 'boolean': {
+      let { probability } = schema
+      return Random.bool(probability)
+    }
+    case 'int': {
+      let { min, max, step } = schema
+      let value = Random.int(0, max - min)
+      return min + Math.round(value / step) * step
+    }
+    case 'float': {
+      let { min, max, step } = schema
+      if (step == null) {
+        return Random.float(min, max)
+      } else {
+        let value = Random.float(0, max - min + step)
+        return min + Math.floor(value, step)
+      }
+    }
+    case 'choice': {
+      let { options } = schema
+      let values = options.map((o) => o.value)
+      let value = Random.choice(values)
+      return value
+    }
+    case 'sample': {
+      let { options, min, max } = schema
+      let values = options.map((c) => c.value)
+      let amount = Random.int(min, max)
+      let value = Random.sample(amount, values)
+      return value
+    }
+  }
 }

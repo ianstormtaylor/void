@@ -1,14 +1,15 @@
 import { MdClear } from 'react-icons/md'
-import { Schema, Traits } from 'void'
+import { Sketch } from 'void'
 import { useTab } from '../../contexts/tab'
 import { TraitField } from '../fields/trait-field'
 import { IconButton } from '../ui/icon-button'
 import { SidebarPanel } from '../ui/sidebar-panel'
 
-export let TraitPanel = (props: { schema: Schema; traits: Traits }) => {
-  let { schema, traits } = props
+export let TraitsPanel = (props: { sketch: Sketch }) => {
+  let { sketch } = props
   let [tab, changeTab] = useTab()
-  let has = Object.keys(tab.traits).length > 0
+  let sketchHas = Object.keys(sketch.traits).length > 0
+  let tabHas = Object.keys(tab.traits).length > 0
   return (
     <SidebarPanel
       title="Traits"
@@ -16,7 +17,7 @@ export let TraitPanel = (props: { schema: Schema; traits: Traits }) => {
         <>
           <IconButton
             title="Unlock All"
-            className={has ? 'flex' : 'hidden'}
+            className={tabHas ? 'flex' : 'hidden'}
             onClick={() => {
               changeTab((t) => {
                 t.traits = {}
@@ -28,9 +29,18 @@ export let TraitPanel = (props: { schema: Schema; traits: Traits }) => {
         </>
       }
     >
-      {Object.entries(schema).map(([key, trait]) => (
-        <TraitField key={key} prop={key} schema={trait} value={traits[key]} />
-      ))}
+      {sketchHas ? (
+        Object.entries(sketch.schemas).map(([key, schema]) => (
+          <TraitField
+            key={key}
+            prop={key}
+            schema={schema}
+            value={sketch.traits[key]}
+          />
+        ))
+      ) : (
+        <div className="text-gray-400 pb-2">No traits were defined.</div>
+      )}
     </SidebarPanel>
   )
 }

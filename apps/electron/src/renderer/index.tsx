@@ -1,11 +1,10 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import { Editor } from './components/editor'
-import { ModuleContext } from './contexts/module'
 import { HashRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useStore } from './contexts/store'
 import { Banner } from './components/banner'
-import { Module } from 'void'
+import { Sketch } from 'void'
 import { TabContext } from './contexts/tab'
 import { SketchContext } from './contexts/sketch'
 
@@ -41,7 +40,7 @@ let App = () => {
   }, [])
 
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-screen select-none">
       <HashRouter>
         <Routes>
           <Route path="/windows/:id" element={<WindowPage />} />
@@ -65,27 +64,25 @@ let WindowPage = () => {
 let TabPage = () => {
   let { id } = useParams()
   let [config] = useStore()
-  let [module, setModule] = useState<Module | null>(null)
+  let [construct, setConstruct] = useState<Sketch['construct'] | null>(null)
   let tab = config.tabs[id!]
   let sketch = config.sketches[tab?.sketchId]
 
   useEffect(() => {
     if (sketch.entrypoint) {
       import(/* @vite-ignore */ sketch.entrypoint)
-        .then((pkg) => setModule(pkg))
+        .then((pkg) => setConstruct(() => pkg.default))
         .catch((e) => console.error(e))
     }
   }, [sketch])
 
   return (
-    module && (
-      <ModuleContext.Provider value={module}>
-        <TabContext.Provider value={tab}>
-          <SketchContext.Provider value={sketch}>
-            <Editor />
-          </SketchContext.Provider>
-        </TabContext.Provider>
-      </ModuleContext.Provider>
+    construct && (
+      <TabContext.Provider value={tab}>
+        <SketchContext.Provider value={sketch}>
+          <Editor construct={construct} />
+        </SketchContext.Provider>
+      </TabContext.Provider>
     )
   )
 }
