@@ -3,10 +3,10 @@ import { createContext, useCallback, useContext } from 'react'
 import { useStore } from './store'
 import { Changer, Producer } from '../utils'
 
-/** A context for the sketch's JavaScript Tab. */
+/** A context for the sketch's tab. */
 export let TabContext = createContext<TabState | null>(null)
 
-/** Use the sketch's JavaScript Tab. */
+/** Use the sketch's tab. */
 export let useTab = (): [TabState, Changer<TabState>] => {
   let [, setStore] = useStore()
   let tab = useContext(TabContext)

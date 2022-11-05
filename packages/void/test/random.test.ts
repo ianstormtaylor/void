@@ -4,12 +4,15 @@ import { Sketch } from '../src/sketch'
 
 // Run in the context of a sketch with fixed seed.
 let s = (fn: () => void) => {
-  let construct = () => {}
-  let sketch = Sketch.of(construct, {
-    el: {} as any,
-    overrides: { config: { seed: 0 } },
-  })
-  Sketch.exec(sketch, fn)
+  Sketch.exec(
+    Sketch.of({
+      construct: () => {},
+      container: {} as any,
+      el: {} as any,
+      overrides: { config: { seed: 0 } },
+    }),
+    fn
+  )
 }
 
 // Fill an array of length `n` with the result of `fn`.

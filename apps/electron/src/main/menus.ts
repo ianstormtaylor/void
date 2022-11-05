@@ -85,7 +85,7 @@ export let appMenu = Menu.buildFromTemplate([
       { role: 'togglefullscreen' },
       { type: 'separator' },
       {
-        label: 'Toggle Developer Tools',
+        label: 'Show Developer Tools',
         accelerator: 'CmdOrCtrl+Alt+I',
         click() {
           let tab = Tab.byActive()
@@ -101,14 +101,14 @@ export let appMenu = Menu.buildFromTemplate([
       {
         label: 'Reload Window',
         click() {
-          let window = Window.getFocused()
+          let window = Window.byFocused()
           if (window) window.reload()
         },
       },
       {
-        label: 'Toggle Window Developer Tools',
+        label: 'Show Window Developer Tools',
         click() {
-          let window = Window.getFocused()
+          let window = Window.byFocused()
           if (window) window.inspect()
         },
       },

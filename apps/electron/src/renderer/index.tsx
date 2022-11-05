@@ -6,7 +6,7 @@ import { useStore } from './contexts/store'
 import { Banner } from './components/banner'
 import { Sketch } from 'void'
 import { TabContext } from './contexts/tab'
-import { SketchContext } from './contexts/sketch'
+import { EntrypointContext } from './contexts/entrypoint'
 
 let App = () => {
   let [dragging, setDragging] = useState(false)
@@ -66,22 +66,22 @@ let TabPage = () => {
   let [config] = useStore()
   let [construct, setConstruct] = useState<Sketch['construct'] | null>(null)
   let tab = config.tabs[id!]
-  let sketch = config.sketches[tab?.sketchId]
+  let entrypoint = config.entrypoints[tab?.entrypointId]
 
   useEffect(() => {
-    if (sketch.entrypoint) {
-      import(/* @vite-ignore */ sketch.entrypoint)
+    if (entrypoint.url) {
+      import(/* @vite-ignore */ entrypoint.url)
         .then((pkg) => setConstruct(() => pkg.default))
         .catch((e) => console.error(e))
     }
-  }, [sketch])
+  }, [entrypoint])
 
   return (
     construct && (
       <TabContext.Provider value={tab}>
-        <SketchContext.Provider value={sketch}>
+        <EntrypointContext.Provider value={entrypoint}>
           <Editor construct={construct} />
-        </SketchContext.Provider>
+        </EntrypointContext.Provider>
       </TabContext.Provider>
     )
   )

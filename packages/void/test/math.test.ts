@@ -188,6 +188,15 @@ t('Math.gcd', () => {
   e(Math.gcd(4, 8, 12)).toEqual(4)
 })
 
+t('Math.hash', () => {
+  e(Math.hash(0)).toEqual(0)
+  e(Math.hash(1)).toEqual(1753845952)
+  e(Math.hash(2)).toEqual(3507691905)
+  e(Math.hash(3)).toEqual(1408362973)
+  e(Math.hash(4)).toEqual(3648937681)
+  e(Math.hash(5)).toEqual(1548080446)
+})
+
 t('Math.isBetween', () => {
   e(Math.isBetween(1, 0, 2)).toEqual(true)
   e(Math.isBetween(0, 1, 2)).toEqual(false)
@@ -386,6 +395,15 @@ t('Math.trunc', () => {
   e(Math.trunc(Math.PI, { multiple: 0.5 })).toEqual(3)
   e(Math.trunc(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
   e(Math.trunc(4.349, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
+})
+
+t('Math.unhash', () => {
+  e(Math.unhash(0)).toEqual(0)
+  e(Math.unhash(1753845952)).toEqual(1)
+  e(Math.unhash(3507691905)).toEqual(2)
+  e(Math.unhash(1408362973)).toEqual(3)
+  e(Math.unhash(3648937681)).toEqual(4)
+  e(Math.unhash(1548080446)).toEqual(5)
 })
 
 t('Math.unlerp', () => {

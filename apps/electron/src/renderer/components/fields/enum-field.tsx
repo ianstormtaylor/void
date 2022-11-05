@@ -34,9 +34,7 @@ export let EnumField = (props: {
           className="appearance-none m-0 p-0 border-none outline-none w-full cursor-pointer"
           value={value}
           onChange={(e) => {
-            let name = e.target.value
-            let option = options.find((o) => o.name === name)!
-            onChange(option.value)
+            onChange(e.target.value)
           }}
           onClick={(e) => {
             e.stopPropagation()

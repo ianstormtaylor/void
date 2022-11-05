@@ -1,4 +1,21 @@
 {
-  "include": ["./examples"],
-  "references": [{ "path": "./apps/electron" }, { "path": "./packages/void" }]
+  "references": [{ "path": "./apps/electron" }, { "path": "./packages/void" }],
+  "include": ["./examples", "./tmp"],
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": false,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "esnext"
+  }
 }

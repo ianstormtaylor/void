@@ -1,12 +1,12 @@
 import Path from 'path'
 import crypto from 'node:crypto'
-import { app, BrowserView } from 'electron'
+import { BrowserView } from 'electron'
 import { RENDERER_URL } from '../env'
 import { Window } from './window'
 import { main } from './main'
 import { Draft } from 'immer'
 import { TabState } from '../../shared/store-state'
-import { Sketch } from './sketch'
+import { Entrypoint } from './entrypoint'
 
 /** A `Tab` class holds a reference to a specific sketch file. */
 export class Tab {
@@ -29,13 +29,12 @@ export class Tab {
 
   /** Create a new `Tab` with a sketch file `path`. */
   static create(path: string): Tab {
-    let sketch = Sketch.load(path)
+    let entrypoint = Entrypoint.load(path)
     let id = crypto.randomUUID()
     main.change((m) => {
       m.tabs[id] = {
         id,
-        sketchId: sketch.id,
-        inspecting: false,
+        entrypointId: entrypoint.id,
         zoom: null,
         config: {},
         traits: {},
@@ -52,7 +51,7 @@ export class Tab {
   static restore(id: string): Tab {
     let t = main.store.tabs[id]
     if (!t) throw new Error(`Cannot restore unknown tab: ${id}`)
-    Sketch.restore(t.sketchId)
+    Entrypoint.restore(t.entrypointId)
     let tab = new Tab(id)
     main.tabs[id] = tab
     return tab
@@ -89,24 +88,19 @@ export class Tab {
    * Getters & setters.
    */
 
-  /** Get the tab's inspecting state. */
-  get inspecting() {
-    return main.store.tabs[this.id].inspecting
-  }
-
   /** The electron tab's `webContents` id, for IPC messages. */
   get senderId(): number {
     return this.view.webContents.id
   }
 
   /** Get the tab's path. */
-  get sketch() {
-    return main.sketches[this.sketchId]
+  get entrypoint() {
+    return main.entrypoints[this.entrypointId]
   }
 
-  /** Get the tab's sketch ID. */
-  get sketchId() {
-    return main.store.tabs[this.id].sketchId
+  /** Get the tab's entrypoint ID. */
+  get entrypointId() {
+    return main.store.tabs[this.id].entrypointId
   }
 
   /** Get the tab's parent `Window`. */
@@ -130,11 +124,11 @@ export class Tab {
 
   /** Close the tab. */
   close(options: { save?: boolean } = {}) {
-    let { id, sketch } = this
+    let { id, entrypoint } = this
 
-    // If this is the only active tab for the sketch, shutdown the sketch too.
-    if (sketch.tabs.length == 1) {
-      sketch.close()
+    // If this is the only active tab for the entrypoint, shut it down too.
+    if (entrypoint.tabs.length == 1) {
+      entrypoint.close()
     }
 
     if (!options.save) {
@@ -148,10 +142,9 @@ export class Tab {
 
   /** Open the devtools inspector for the tab. */
   inspect() {
-    this.view.webContents.toggleDevTools()
-    this.change((t) => {
-      t.inspecting = this.view.webContents.isDevToolsOpened()
-    })
+    let w = this.view.webContents
+    if (w.isDevToolsOpened()) w.closeDevTools()
+    w.openDevTools()
   }
 
   /** Reload the tab. */

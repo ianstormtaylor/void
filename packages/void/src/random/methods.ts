@@ -93,15 +93,21 @@ export function poisson(mean = 1) {
   return k - 1
 }
 
-/** Create a pseudo-random number generator with a `seed`. */
+/** Create a pseudo-random number generator using the SFC32 algorithm, with a `seed`. */
 export function of(seed: number): () => number {
-  // https://en.wikipedia.org/wiki/Linear_congruential_generator
-  // https://github.com/processing/p5.js/blob/main/src/math/random.js
-  let M = 2 ** 32
-  let A = 1664525
-  let C = 1013904223
-  seed = seed >>> 0
-  return () => (seed = (A * seed + C) % M) / M
+  let state = seed | 0
+  let random = () => {
+    let next = (state >>> ((state >>> 28) + 4)) ^ state
+    next = Math.imul(next, 277803737)
+    next = (next >>> 22) ^ next
+    state = Math.imul(state, 747796405) + 2891336453
+    return (next >>> 0) / 4294967296
+  }
+
+  random()
+  state = (state + seed) | 0
+  random()
+  return random
 }
 
 /** Generate a random value between `0` and `1`. */

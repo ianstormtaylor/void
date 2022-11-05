@@ -6,6 +6,9 @@ export let SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 /** The prefix for Base64-encoded SVG data URIs. */
 export let SVG_DATA_URI_PREFIX = 'data:image/svg+xml;base64,'
 
+/** The fixed DPI that HTML/CSS use when displaying. */
+export let HTML_CSS_DPI = 96
+
 /** Convert an SVG string to a data URI. */
 export function svgStringToDataUri(svg: string): string {
   let base64 = btoa(svg)

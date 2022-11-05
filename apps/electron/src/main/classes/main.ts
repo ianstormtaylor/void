@@ -7,7 +7,7 @@ import { initializeIpc as loadIpc } from '../ipc'
 import { appMenu, dockMenu } from '../menus'
 import { Tab } from './tab'
 import { Window } from './window'
-import { Sketch } from './sketch'
+import { Entrypoint } from './entrypoint'
 import { createMainStore } from '../../shared/store/main'
 import { Store as SharedStore } from '../../shared/store/base'
 import updateElectronApp from 'update-electron-app'
@@ -20,8 +20,8 @@ export class Main {
   /** A reference to each `Tab` instance by id. */
   tabs: Record<string, Tab>
 
-  /** A reference to each `Sketch` instance by id. */
-  sketches: Record<string, Sketch>
+  /** A reference to each `Entrypoint` instance by id. */
+  entrypoints: Record<string, Entrypoint>
 
   /** A flag to know when windows are closing by quit or by choice. */
   isQuitting: boolean
@@ -40,7 +40,7 @@ export class Main {
     })
 
     let shared = createMainStore({
-      sketches: store.get('sketches'),
+      entrypoints: store.get('entrypoints'),
       tabs: store.get('tabs'),
       windows: store.get('windows'),
     })
@@ -50,7 +50,7 @@ export class Main {
     this.isQuitting = false
     this.windows = {}
     this.tabs = {}
-    this.sketches = {}
+    this.entrypoints = {}
 
     // Automatically try to keep the app up to date.
     if (IS_PROD) {
@@ -58,7 +58,7 @@ export class Main {
     }
 
     shared.subscribe((state) => {
-      store.set('sketches', state.sketches)
+      store.set('entrypoints', state.entrypoints)
       store.set('tabs', state.tabs)
       store.set('windows', state.windows)
     })
@@ -116,7 +116,7 @@ export class Main {
     app.on('open-file', async (e, path) => {
       e.preventDefault()
       await app.whenReady()
-      let window = Window.getFocused() ?? Window.create()
+      let window = Window.byFocused() ?? Window.create()
       window.openTab(path)
       window.show()
     })
@@ -164,7 +164,7 @@ export class Main {
       properties: ['openFile', 'multiSelections'],
     })
 
-    let window = Window.getFocused() ?? Window.create()
+    let window = Window.byFocused() ?? Window.create()
     for (let path of result.filePaths) {
       window.openTab(path)
     }
@@ -182,6 +182,12 @@ export class Main {
       let window = Window.restore(id)
       window.show()
     }
+  }
+
+  /** Restart an app after exiting. */
+  restart() {
+    app.relaunch()
+    this.quit()
   }
 }
 

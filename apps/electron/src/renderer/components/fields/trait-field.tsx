@@ -20,8 +20,9 @@ export let TraitField = (props: {
   let { prop: key, schema, value } = props
   let [tab, changeTab] = useTab()
   let label = capitalCase(key)
-  let has = tab.traits != null && key in tab.traits
-  let valueClassName = has ? 'font-bold' : ''
+  let overridden =
+    tab.traits != null && key in tab.traits && tab.traits[key] === value
+  let valueClassName = overridden ? 'font-bold' : ''
   let field: React.ReactNode
 
   let onChange = useCallback(
@@ -95,7 +96,7 @@ export let TraitField = (props: {
         </IconButton>
         <IconButton
           title="Lock"
-          active={has}
+          active={overridden}
           onClick={() => {
             changeTab((t) => {
               if (key in t.traits) {
@@ -106,7 +107,7 @@ export let TraitField = (props: {
             })
           }}
         >
-          {has ? <MdOutlineLock /> : <MdOutlineLockOpen />}
+          {overridden ? <MdOutlineLock /> : <MdOutlineLockOpen />}
         </IconButton>
       </div>
     </div>

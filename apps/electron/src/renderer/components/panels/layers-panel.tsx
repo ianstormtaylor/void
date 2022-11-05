@@ -5,14 +5,14 @@ import {
   MdOutlineVisibility,
   MdOutlineVisibilityOff,
 } from 'react-icons/md'
-import { Sketch } from 'void'
+import { useSketch } from '../../contexts/sketch'
 import { useTab } from '../../contexts/tab'
 import { IconButton } from '../ui/icon-button'
 import { SidebarPanel } from '../ui/sidebar-panel'
 
-export let LayersPanel = (props: { sketch: Sketch }) => {
-  let { sketch } = props
+export let LayersPanel = () => {
   let [tab, changeTab] = useTab()
+  let sketch = useSketch()
   let hasHiddens = Object.keys(tab.layers).length > 0
   return (
     <SidebarPanel

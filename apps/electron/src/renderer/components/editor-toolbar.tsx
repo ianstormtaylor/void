@@ -1,11 +1,11 @@
 import { MdBuild, MdFavoriteBorder, MdGridView } from 'react-icons/md'
 import { useTab } from '../contexts/tab'
-import { useSketch } from '../contexts/sketch'
+import { useEntrypoint } from '../contexts/entrypoint'
 
 export let EditorToolbar = () => {
   let [tab] = useTab()
-  let sketch = useSketch()
-  let path = `.../${sketch.path.split('/').slice(-3).join('/')}`
+  let entrypoint = useEntrypoint()
+  let path = `.../${entrypoint.path.split('/').slice(-3).join('/')}`
   return (
     <div className="relative z-10 flex items-center justify-between h-12 p-2 bg-gray-800">
       <div className="flex items-center space-x-1">
@@ -13,8 +13,8 @@ export let EditorToolbar = () => {
           title="Close Tab"
           className={`
             flex w-8 h-8 items-center justify-center rounded cursor-default
+            text-gray-300
             hover:text-white hover:bg-gray-700
-            ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
           onClick={() => {
             electron.inspectTab(tab.id)
@@ -49,8 +49,8 @@ export let EditorToolbar = () => {
           title="Favorite Variant"
           className={`
             flex w-8 h-8 items-center justify-center rounded cursor-default
+            text-gray-300
             hover:text-white hover:bg-gray-700
-            ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
         >
           <MdFavoriteBorder className="text-lg" />
@@ -59,8 +59,8 @@ export let EditorToolbar = () => {
           title="Show Variants"
           className={`
             flex w-8 h-8 items-center justify-center rounded cursor-default
+            text-gray-300
             hover:text-white hover:bg-gray-700
-            ${tab.inspecting ? 'text-gray-100' : 'text-gray-300'} 
           `}
         >
           <MdGridView className="text-lg" />

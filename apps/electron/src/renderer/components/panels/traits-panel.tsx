@@ -1,12 +1,12 @@
 import { MdClear } from 'react-icons/md'
-import { Sketch } from 'void'
+import { useSketch } from '../../contexts/sketch'
 import { useTab } from '../../contexts/tab'
 import { TraitField } from '../fields/trait-field'
 import { IconButton } from '../ui/icon-button'
 import { SidebarPanel } from '../ui/sidebar-panel'
 
-export let TraitsPanel = (props: { sketch: Sketch }) => {
-  let { sketch } = props
+export let TraitsPanel = () => {
+  let sketch = useSketch()
   let [tab, changeTab] = useTab()
   let sketchHas = Object.keys(sketch.traits).length > 0
   let tabHas = Object.keys(tab.traits).length > 0

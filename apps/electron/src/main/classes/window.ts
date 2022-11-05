@@ -1,6 +1,6 @@
 import Path from 'path'
 import crypto from 'node:crypto'
-import { app, BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron'
 import { RENDERER_URL } from '../env'
 import { Tab } from './tab'
 import { main } from './main'
@@ -104,7 +104,8 @@ export class Window {
     return Object.values(main.windows)
   }
 
-  static getFocused(): Window | null {
+  /** Get the currently focused window. */
+  static byFocused(): Window | null {
     let focused = BrowserWindow.getFocusedWindow()
     if (!focused) return null
     let window = Window.bySenderId(focused.webContents.id)
@@ -113,7 +114,7 @@ export class Window {
 
   /** Get the active (or most recently active) window. */
   static byActive(): Window | null {
-    return Window.all()[0] ?? null
+    return Window.byFocused() ?? Window.all()[0] ?? null
   }
 
   /** Get a window by `id`. */
@@ -253,7 +254,9 @@ export class Window {
 
   /** Toggle the developer tools for the window. */
   inspect() {
-    this.#window.webContents.toggleDevTools()
+    let w = this.#window.webContents
+    if (w.isDevToolsOpened()) w.closeDevTools()
+    w.openDevTools()
   }
 
   /** Open a sketch `path` in a new tab in the window. */

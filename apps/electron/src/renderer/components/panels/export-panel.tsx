@@ -1,12 +1,13 @@
 import { OutputType, Sketch } from 'void'
 import { useCallback } from 'react'
-import { useSketch } from '../../contexts/sketch'
+import { useEntrypoint } from '../../contexts/entrypoint'
 import { SidebarButton } from '../ui/sidebar-button'
 import { SidebarPanel } from '../ui/sidebar-panel'
+import { useSketch } from '../../contexts/sketch'
 
-export let ExportPanel = (props: { sketch: Sketch }) => {
-  let { sketch } = props
-  let sketchFile = useSketch()
+export let ExportPanel = () => {
+  let sketch = useSketch()
+  let entrypoint = useEntrypoint()
   let onDownload = useCallback(
     (type: OutputType) => {
       let div = document.createElement('div')
@@ -20,7 +21,7 @@ export let ExportPanel = (props: { sketch: Sketch }) => {
       Sketch.on(s, 'stop', async () => {
         let dataUri = await Sketch.save(s)
         let link = document.createElement('a')
-        let { path } = sketchFile
+        let { path } = entrypoint
         let index = path.lastIndexOf('/')
         let [name, ext] = path.slice(index + 1).split('.')
         link.href = dataUri
@@ -30,7 +31,7 @@ export let ExportPanel = (props: { sketch: Sketch }) => {
 
       Sketch.play(s)
     },
-    [sketch, sketchFile]
+    [sketch, entrypoint]
   )
 
   return (

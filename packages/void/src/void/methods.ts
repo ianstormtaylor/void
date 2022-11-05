@@ -1,6 +1,14 @@
 import { Context } from 'svgcanvas'
 import { svgStringToDataUri } from '../utils'
-import { Sketch, Schema, Json, OptionSchema, Config, Random } from '..'
+import {
+  Sketch,
+  Schema,
+  OptionSchema,
+  Config,
+  Random,
+  SchemaChoice,
+  SchemaSample,
+} from '..'
 
 /** Define a trait that is a boolean, with optional `probability` of being true. */
 export function bool(name: string, probability = 0.5): boolean {
@@ -9,10 +17,10 @@ export function bool(name: string, probability = 0.5): boolean {
 }
 
 /** Define a trait that is one of many `choices`. */
-export function choice<V extends Json>(name: string, choices: Choices<V>): V {
-  let { options, values, weights } = normalizeChoices(choices)
-  let value = Random.choice(values, weights)
-  return register(name, value, { type: 'choice', options })
+export function choice<V>(name: string, choices: Choices<V>): V {
+  let { options, weights } = normalizeChoices(choices)
+  let option = Random.choice(options, weights)
+  return registerChoice(name, option, { type: 'choice', options })
 }
 
 /** Define a `draw` function that renders each frame. */
@@ -38,13 +46,15 @@ export function float(
   step?: number
 ): number {
   let value = Random.float(min, max, step)
-  return register(name, value, { type: 'float', min, max, step })
+  register(name, value, { type: 'float', min, max, step })
+  return value
 }
 
 /** Define a trait that is an integer, between `min` and `max`, with optional `step` to increment by. */
 export function int(name: string, min: number, max: number, step = 1): number {
   let value = Random.int(min, max, step)
-  return register(name, value, { type: 'int', min, max, step })
+  register(name, value, { type: 'int', min, max, step })
+  return value
 }
 
 /** Get a canvas layer to draw with. */
@@ -63,8 +73,7 @@ export function layer(name?: string): CanvasRenderingContext2D {
   let { width, height, margin, units } = settings
   let hidden = overrides.layers?.[name]?.hidden ?? false
   let canvas = document.createElement('canvas')
-  let format = output?.type
-  let vector = format === 'svg' || format === 'pdf'
+  let vector = output.type === 'svg' || output.type === 'pdf'
   let ctx = vector
     ? new Context(`${width}${units}`, `${height}${units}`)
     : canvas.getContext('2d')
@@ -102,28 +111,28 @@ export function layer(name?: string): CanvasRenderingContext2D {
 }
 
 /** Define a trait that samples from a set of many `choices`, either a certain `amount` of times, or between `min` and `max` amount of times. */
-export function sample<V extends Json>(
+export function sample<V>(
   name: string,
   amount: number,
   choices: Choices<V>
 ): V[]
-export function sample<V extends Json>(
+export function sample<V>(
   name: string,
   min: number,
   max: number,
   choices: Choices<V>
 ): V[]
-export function sample<V extends Json>(
+export function sample<V>(
   name: string,
   min: number,
   max: number | Choices<V>,
   choices?: Choices<V>
 ): V[] {
   if (typeof max !== 'number') (choices = max), (max = min)
-  let { options, values, weights } = normalizeChoices(choices!)
+  let { options, weights } = normalizeChoices(choices!)
   let amount = Random.int(min, max)
-  let value = Random.sample(amount, values, weights)
-  return register(name, value, { type: 'sample', min, max, options })
+  let opts = Random.sample(amount, options, weights)
+  return registerSample(name, opts, { type: 'sample', min, max, options })
 }
 
 /** Setup the canvas and current scene for a sketch. */
@@ -154,16 +163,14 @@ export function settings(
 }
 
 /** The shorthand for define a set of choices. */
-type Choices<V extends Json> =
+type Choices<V> =
   | Exclude<V, any[]>[]
   | [number, V][]
   | Record<string, Exclude<V, any[]>>
   | Record<string, [number, V]>
 
 /** Normalize the shorthand for defining choices into `OptionSchema` objects. */
-function normalizeChoices<V extends Json>(
-  choices: Choices<V>
-): {
+function normalizeChoices<V>(choices: Choices<V>): {
   options: OptionSchema<V>[]
   values: V[]
   weights: number[]
@@ -193,7 +200,11 @@ function normalizeChoices<V extends Json>(
 }
 
 /** Register a trait value and schema on the global Void namespace. */
-function register<V extends Json>(name: string, value: V, schema: Schema): V {
+function register<V>(
+  name: string,
+  value: V,
+  schema: Exclude<Schema, SchemaChoice | SchemaSample>
+): V {
   let sketch = Sketch.current()
   if (!sketch) {
     throw new Error(`You must define traits inside a Void sketch function!`)
@@ -204,4 +215,57 @@ function register<V extends Json>(name: string, value: V, schema: Schema): V {
   sketch.schemas[name] = schema
   sketch.traits[name] = v
   return v
+}
+
+/** Register an enum trait key and schema on the global Void namespace. */
+function registerChoice<V>(
+  name: string,
+  option: OptionSchema<V>,
+  schema: SchemaChoice<V>
+): V {
+  let sketch = Sketch.current()
+  if (!sketch) {
+    throw new Error(`You must define traits inside a Void sketch function!`)
+  }
+
+  let traits = sketch.overrides?.traits ?? sketch.traits
+  if (name in traits) {
+    option = schema.options.find((o) => o.name === traits[name]) ?? option
+  }
+
+  sketch.schemas[name] = schema
+  sketch.traits[name] = option.name
+  return option.value
+}
+
+/** Register an enum trait key and schema on the global Void namespace. */
+function registerSample<V>(
+  name: string,
+  options: OptionSchema<V>[],
+  schema: SchemaSample<V>
+): V[] {
+  let sketch = Sketch.current()
+  if (!sketch) {
+    throw new Error(`You must define traits inside a Void sketch function!`)
+  }
+
+  let traits = sketch.overrides?.traits ?? sketch.traits
+  if (name in traits && Array.isArray(traits[name])) {
+    let keys = traits[name] as any[]
+    let opts = keys.map((k) => schema.options.find((o) => o.name === k))
+    if (opts.every((o) => o != null)) {
+      options = opts as OptionSchema<V>[]
+    }
+  }
+
+  let values: V[] = []
+  let names: string[] = []
+  for (let o of options) {
+    names.push(o.name)
+    values.push(o.value)
+  }
+
+  sketch.schemas[name] = schema
+  sketch.traits[name] = names
+  return values
 }

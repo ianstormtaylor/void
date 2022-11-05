@@ -3,16 +3,16 @@ import crypto from 'node:crypto'
 import Esbuild from 'esbuild'
 import { main } from './main'
 import { Draft } from 'immer'
-import { SketchState } from '../../shared/store-state'
+import { EntrypointState } from '../../shared/store-state'
 import { Tab } from './tab'
 
-/** A `Sketch` class holds a reference to a specific sketch file. */
-export class Sketch {
+/** A `Entrypoint` class holds a reference to a specific sketch file. */
+export class Entrypoint {
   id: string
   #build: Esbuild.BuildResult | null
   #serve: Esbuild.ServeResult | null
 
-  /** Constructor a new `Sketch` instance by `id`. */
+  /** Constructor a new `Entrypoint` instance by `id`. */
   constructor(id: string) {
     this.id = id
     this.#build = null
@@ -24,64 +24,64 @@ export class Sketch {
    * Statics.
    */
 
-  /** Load a sketch by `path`, reusing an existing one if possible. */
-  static load(path: string): Sketch {
-    let match = Object.values(main.sketches).find((s) => s.path === path)
+  /** Load an entrypoint by `path`, reusing an existing one if possible. */
+  static load(path: string): Entrypoint {
+    let match = Object.values(main.entrypoints).find((s) => s.path === path)
     if (match) {
       match.serve()
       return match
     }
 
-    let s = Object.values(main.store.sketches).find((s) => s.path === path)
-    if (s) return Sketch.restore(s.id)
+    let s = Object.values(main.store.entrypoints).find((s) => s.path === path)
+    if (s) return Entrypoint.restore(s.id)
 
     let id = crypto.randomUUID()
     main.change((m) => {
-      m.sketches[id] = {
+      m.entrypoints[id] = {
         id,
         path,
-        entrypoint: null,
+        url: null,
       }
     })
-    let sketch = new Sketch(id)
-    main.sketches[id] = sketch
-    return sketch
+    let entrypoint = new Entrypoint(id)
+    main.entrypoints[id] = entrypoint
+    return entrypoint
   }
 
-  /** Restore a saved sketch. */
-  static restore(id: string): Sketch {
-    let s = main.store.sketches[id]
-    if (!s) throw new Error(`Cannot restore unknown sketch: ${id}`)
-    let sketch = new Sketch(id)
-    main.sketches[id] = sketch
-    return sketch
+  /** Restore a saved entrypoint. */
+  static restore(id: string): Entrypoint {
+    let s = main.store.entrypoints[id]
+    if (!s) throw new Error(`Cannot restore unknown entrypoint: ${id}`)
+    let entrypoint = new Entrypoint(id)
+    main.entrypoints[id] = entrypoint
+    return entrypoint
   }
 
   /**
    * Getters & setters.
    */
 
-  /** Get the sketch's entrypoint URL. */
-  get entrypoint(): string | null {
-    return main.store.sketches[this.id].entrypoint
+  /** Get the entrypoint's URL. */
+  get url(): string | null {
+    return main.store.entrypoints[this.id].url
   }
 
-  /** Get the sketch's path. */
+  /** Get the entrypoint's path. */
   get path(): string {
-    return main.store.sketches[this.id].path
+    return main.store.entrypoints[this.id].path
   }
 
-  /** Get the sketch's open tabs. */
+  /** Get the entrypoint's open tabs. */
   get tabs(): Tab[] {
     return Object.values(main.store.tabs)
-      .filter((t) => t.sketchId == this.id)
+      .filter((t) => t.entrypointId == this.id)
       .map((t) => main.tabs[t.id])
   }
 
-  /** Update the sketch's immutable state with an Immer `recipe` function. */
-  change(recipe: (draft: Draft<SketchState>) => void): void {
+  /** Update the entrypoint's immutable state with an Immer `recipe` function. */
+  change(recipe: (draft: Draft<EntrypointState>) => void): void {
     return main.change((s) => {
-      recipe(s.sketches[this.id])
+      recipe(s.entrypoints[this.id])
     })
   }
 
@@ -89,7 +89,7 @@ export class Sketch {
    * Actions.
    */
 
-  /** Serve the sketch's entrypoint with esbuild from memory. */
+  /** Serve the entrypoint with esbuild from memory. */
   async serve() {
     if (this.#build || this.#serve) {
       console.log('Already serving the sketch, returning early.')
@@ -134,12 +134,12 @@ export class Sketch {
 
     setImmediate(() => {
       this.change((t) => {
-        t.entrypoint = `http://localhost:${serve.port}/${file}`
+        t.url = `http://localhost:${serve.port}/${file}`
       })
     })
   }
 
-  /** Shutdown the sketch's server. */
+  /** Shutdown the entrypoint's server. */
   close() {
     if (this.#build && this.#build.stop != null) this.#build.stop()
     if (this.#serve) this.#serve.stop()

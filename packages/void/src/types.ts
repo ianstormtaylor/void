@@ -1,12 +1,3 @@
-/** A JSON-serializable value. */
-export type Json =
-  | null
-  | boolean
-  | number
-  | string
-  | Json[]
-  | { [key: string]: Json }
-
 /** The orientation of a set of dimensions. */
 export type Orientation = 'square' | 'portrait' | 'landscape'
 
@@ -25,20 +16,20 @@ export type UnitsSystem = 'metric' | 'imperial'
 
 /** A schema which defines the values of a trait. */
 export type Schema =
-  | BoolSchema
-  | IntSchema
-  | FloatSchema
-  | ChoiceSchema
-  | SampleSchema
+  | SchemaBool
+  | SchemaInt
+  | SchemaFloat
+  | SchemaChoice
+  | SchemaSample
 
 /** A schema for boolean traits. */
-export type BoolSchema = {
+export type SchemaBool = {
   type: 'boolean'
   probability: number
 }
 
 /** A schema for integer traits. */
-export type IntSchema = {
+export type SchemaInt = {
   type: 'int'
   min: number
   max: number
@@ -46,7 +37,7 @@ export type IntSchema = {
 }
 
 /** A schema for floating point number traits. */
-export type FloatSchema = {
+export type SchemaFloat = {
   type: 'float'
   min: number
   max: number
@@ -54,13 +45,13 @@ export type FloatSchema = {
 }
 
 /** A schema for enum traits. */
-export type ChoiceSchema<V = any> = {
+export type SchemaChoice<V = any> = {
   type: 'choice'
   options: OptionSchema<V>[]
 }
 
 /** A schema for enum-like traits where multiple choices are sampled. */
-export type SampleSchema<V = any> = {
+export type SchemaSample<V = any> = {
   type: 'sample'
   min: number
   max: number

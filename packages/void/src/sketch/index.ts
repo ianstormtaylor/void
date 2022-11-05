@@ -29,7 +29,7 @@ export type Sketch = {
     Array<() => void>
   >
   layers: Record<string, Layer>
-  output?: Output
+  output: Output
   overrides: {
     layers?: Record<string, { hidden: boolean }>
     config?: Config

@@ -3,14 +3,15 @@ import { MarginsField } from '../fields/margins-field'
 import { MdCrop169, MdCropSquare } from 'react-icons/md'
 import { useStore } from '../../contexts/store'
 import { useTab } from '../../contexts/tab'
-import { Config, Sketch } from 'void'
+import { Config } from 'void'
 import { IconButton } from '../ui/icon-button'
 import { SidebarPanel } from '../ui/sidebar-panel'
+import { useSketch } from '../../contexts/sketch'
 
-export let LayoutPanel = (props: { sketch: Sketch }) => {
+export let LayoutPanel = () => {
   let [, setConfig] = useStore()
   let [tab] = useTab()
-  let { sketch } = props
+  let sketch = useSketch()
   let { config } = sketch
   let orientation = Config.orientation(config)
   let [width, height, units] = Config.dimensions(config)

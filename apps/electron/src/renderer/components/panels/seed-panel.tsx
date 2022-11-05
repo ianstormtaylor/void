@@ -1,13 +1,13 @@
 import { NumberField } from '../fields/number-field'
 import { MdEast, MdFingerprint, MdWest } from 'react-icons/md'
 import { useTab } from '../../contexts/tab'
-import { Sketch } from 'void'
 import { SidebarPanel } from '../ui/sidebar-panel'
 import { IconButton } from '../ui/icon-button'
+import { useSketch } from '../../contexts/sketch'
 
-export let SeedPanel = (props: { sketch: Sketch }) => {
+export let SeedPanel = () => {
   let [, changeTab] = useTab()
-  let { sketch } = props
+  let sketch = useSketch()
   let { settings } = sketch
   return (
     <SidebarPanel

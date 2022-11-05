@@ -237,6 +237,17 @@ export function gcd(...numbers: number[]): number {
   return a
 }
 
+/** Hash an integer `x` into another integer, from `0` to `2^32`. */
+export function hash(x: number): number {
+  // https://github.com/skeeto/hash-prospector
+  x = (x ^ (x >>> 16)) >>> 0
+  x = Math.imul(x, 569420461)
+  x = (x ^ (x >>> 15)) >>> 0
+  x = Math.imul(x, 1935289751)
+  x = (x ^ (x >>> 15)) >>> 0
+  return x
+}
+
 /** Check if a `value` is between `a` and `b`. */
 export function isBetween(
   value: number,
@@ -504,6 +515,17 @@ export function trunc(
   let by =
     'multiple' in options ? 1 / options.multiple : 10 ** options.precision
   return Math.trunc(value * by) / by
+}
+
+/** Un-hash an integer `x` back into another integer, from `0` to `2^32`. */
+export function unhash(x: number): number {
+  // https://github.com/skeeto/hash-prospector
+  x = (x ^ (x >>> 15) ^ (x >>> 30)) >>> 0
+  x = Math.imul(x, 2534613543)
+  x = (x ^ (x >>> 15) ^ (x >>> 30)) >>> 0
+  x = Math.imul(x, 859588901)
+  x = (x ^ (x >>> 16)) >>> 0
+  return x
 }
 
 /** Un-interpolate a `value` between `a` and `b`, to a normalized amount. */

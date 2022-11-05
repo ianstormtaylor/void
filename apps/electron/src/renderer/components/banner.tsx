@@ -1,5 +1,9 @@
 import { useStore } from '../contexts/store'
-import { SketchState, TabState, WindowState } from '../../shared/store-state'
+import {
+  EntrypointState,
+  TabState,
+  WindowState,
+} from '../../shared/store-state'
 import { MdAdd, MdClose } from 'react-icons/md'
 
 export let Banner = (props: { window: WindowState }) => {
@@ -13,7 +17,7 @@ export let Banner = (props: { window: WindowState }) => {
           <Tab
             key={tab.id}
             tab={tab}
-            sketch={store.sketches[tab.sketchId]}
+            entrypoint={store.entrypoints[tab.entrypointId]}
             active={tab.id === window.activeTabId}
           />
         ))}
@@ -37,12 +41,12 @@ export let Banner = (props: { window: WindowState }) => {
 
 export let Tab = (props: {
   tab: TabState
-  sketch: SketchState
+  entrypoint: EntrypointState
   active: boolean
 }) => {
-  let { tab, active, sketch } = props
+  let { tab, active, entrypoint } = props
   let { id } = tab
-  let { path } = sketch
+  let { path } = entrypoint
   let index = path.lastIndexOf('/')
   let file = path.slice(index + 1)
   return (

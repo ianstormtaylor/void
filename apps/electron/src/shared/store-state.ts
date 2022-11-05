@@ -14,31 +14,30 @@ export type WindowState = {
 /** The saved state of a `Tab`. */
 export type TabState = {
   id: string
-  sketchId: string
-  inspecting: boolean
+  entrypointId: string
   zoom: number | null
   config: Config
   traits: Record<string, any>
   layers: Record<string, { hidden: boolean }>
 }
 
-/** The saved state of a `Sketch`. */
-export type SketchState = {
+/** The saved state of a `Entrypoint`. */
+export type EntrypointState = {
   id: string
   path: string
-  entrypoint: string | null
+  url: string | null
 }
 
 /** The saved state of the entire app. */
 export type StoreState = {
-  sketches: Record<string, SketchState>
+  entrypoints: Record<string, EntrypointState>
   tabs: Record<string, TabState>
   windows: Record<string, WindowState>
 }
 
 /** The initial empty state of the app. */
 export let initialState: StoreState = {
-  sketches: {},
+  entrypoints: {},
   tabs: {},
   windows: {},
 }
