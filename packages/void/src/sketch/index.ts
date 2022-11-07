@@ -1,4 +1,4 @@
-import { Config, Output, Orientation, Units, Schema } from '..'
+import { Config, Output, Units, Schema } from '..'
 
 /** The sketch-related methods. */
 export * as Sketch from './methods'
@@ -8,6 +8,12 @@ export type Frame = {
   count: number
   time: number
   rate: number
+}
+
+/** Data about the mouse while a sketch is running. */
+export type Mouse = {
+  x: number | null
+  y: number | null
 }
 
 /** A layer of the sketch. */
@@ -24,11 +30,16 @@ export type Sketch = {
   container: HTMLElement
   el: HTMLElement
   frame?: Frame
-  handlers: Record<
-    'construct' | 'draw' | 'play' | 'pause' | 'stop',
-    Array<() => void>
-  >
+  handlers: {
+    construct: Array<() => void>
+    draw: Array<() => void>
+    error: Array<(error: Error) => void>
+    play: Array<() => void>
+    pause: Array<() => void>
+    stop: Array<() => void>
+  }
   layers: Record<string, Layer>
+  mouse?: Mouse
   output: Output
   overrides: {
     layers?: Record<string, { hidden: boolean }>
@@ -41,6 +52,7 @@ export type Sketch = {
     dpi: number
     fps: number
     frames: number
+    hash: string
     height: number
     margin: [number, number, number, number]
     precision: number

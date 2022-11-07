@@ -1,10 +1,10 @@
-import { Math, Sketch } from '..'
+import { Math } from '..'
 
 // Export noise functions.
 export * from './noise'
 
-/** A reference to the sketch's seeded random function. */
-let RANDOM_REFS = new WeakMap<Sketch, () => number>()
+/** The current pseudo-random number generator to use for all methods. */
+let RANDOM: () => number = Math.random
 
 /** Generate a binomially-distributed number with `n` tries and `p` probability. */
 export function binomial(n = 1, p = 0.5) {
@@ -16,18 +16,6 @@ export function binomial(n = 1, p = 0.5) {
 /** Generate a boolean, with optional probability `p` of being `true`. */
 export function bool(p = 0.5): boolean {
   return random() < p
-}
-
-/** Pick a random item from a `list`, with optional `weights`. */
-export function choice<T>(list: T[], weights?: number[]): T {
-  if (weights == null) return list[int(0, list.length - 1)]
-  if (list.length !== weights.length)
-    throw new Error('List and weights must have the same length')
-  let total = weights.reduce((m, w) => m + w, 0)
-  let r = float(0, total)
-  let c = 0
-  let i = weights.findIndex((w) => r < (c += w))
-  return list[i]
 }
 
 /** Generate either `0` or `1`, with optional probability `p` of success. */
@@ -67,6 +55,12 @@ export function float(min?: number, max?: number, step?: number): number {
   return min + r
 }
 
+/** Run a `fn` with a fork of the current PRNG, only consuming one random value. */
+export function fork(fn: () => void): void {
+  let s = int(0, 2 ** 32)
+  seed(s, fn)
+}
+
 /** Generate an integer, with optional `min`, `max`, and `step`. */
 export function int(min?: number, max?: number, step = 1): number {
   if (min == null) (min = 0), (max = 1)
@@ -78,6 +72,18 @@ export function int(min?: number, max?: number, step = 1): number {
 export function pareto(alpha = 1) {
   // https://github.com/transitive-bullshit/random/blob/master/src/distributions/pareto.ts
   return 1 / Math.pow(1 - random(), 1 / alpha)
+}
+
+/** Pick a random item from a `list`, with optional `weights`. */
+export function pick<T>(list: T[], weights?: number[]): T {
+  if (weights == null) return list[int(0, list.length - 1)]
+  if (list.length !== weights.length)
+    throw new Error('List and weights must have the same length')
+  let total = weights.reduce((m, w) => m + w, 0)
+  let r = float(0, total)
+  let c = 0
+  let i = weights.findIndex((w) => r < (c += w))
+  return list[i]
 }
 
 /** Generate a Poisson-distrubted number with `mean`. */
@@ -94,7 +100,7 @@ export function poisson(mean = 1) {
 }
 
 /** Create a pseudo-random number generator using the SFC32 algorithm, with a `seed`. */
-export function of(seed: number): () => number {
+export function prng(seed: number): () => number {
   let state = seed | 0
   let random = () => {
     let next = (state >>> ((state >>> 28) + 4)) ^ state
@@ -112,17 +118,7 @@ export function of(seed: number): () => number {
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
-  let sketch = Sketch.current()
-  let r
-
-  if (sketch == null) {
-    r = Math.random
-  } else {
-    r = RANDOM_REFS.get(sketch) ?? of(sketch.settings.seed)
-    RANDOM_REFS.set(sketch, r)
-  }
-
-  return r()
+  return RANDOM()
 }
 
 /** Generate rolls of an n-`sided` die, with optional number of `times`. */
@@ -141,12 +137,32 @@ export function sample<T>(size: number, list: T[], weights?: number[]): T[] {
   let w = weights ? weights.slice() : undefined
   let samp: T[] = []
   for (let i = 0; i < size; i++) {
-    let [idx, el] = choice(Array.from(l.entries()), w)
+    let [idx, el] = pick(Array.from(l.entries()), w)
     samp.push(el)
     l.splice(idx, 1)
     if (w) w.splice(idx, 1)
   }
   return samp
+}
+
+/** Set a seed for the prng, either until reset, or while executing a `handler`. */
+export function seed(seed: number): () => void
+export function seed(prng: () => number): () => void
+export function seed(seed: number, fn: () => void): void
+export function seed(prng: () => number, fn: () => void): void
+export function seed(
+  seed: number | (() => number),
+  fn?: () => void
+): void | (() => void) {
+  let prev = RANDOM
+  let unseed = () => {
+    RANDOM = prev
+  }
+
+  RANDOM = typeof seed === 'number' ? prng(seed) : seed
+  if (!fn) return unseed
+  fn()
+  unseed()
 }
 
 /** Generate a sign (`1` or `-1`). */

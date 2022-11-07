@@ -13,6 +13,14 @@ export function dimensions(config: Config): Sizes<2> {
     : d
 }
 
+/** Resolve the hash from a `config`. */
+export function hash(config: Config): string {
+  if (config.hash) return config.hash
+  let seed = Config.seed(config)
+  let hash = `0x${Math.hash(seed >>> 0).toString(16)}`
+  return hash
+}
+
 /** Resolve the margin from a `config`. */
 export function margin(config: Config): Sizes<4> {
   let { margin } = config
@@ -73,9 +81,21 @@ export function precision(config: Config): Sizes<1> {
   return precision
 }
 
+/** Resolve the seed from a `config`, optionally overridden by a hash. */
+export function seed(config: Config): number {
+  let { seed = 1, hash } = config
+
+  if (hash != null && hash.startsWith('0x')) {
+    let parsed = Number(hash)
+    if (!isNaN(parsed)) seed = Math.unhash(parsed)
+  }
+
+  return seed
+}
+
 /** Get the fully resolved `Settings` object a `config`. */
 export function settings(config: Config): Sketch['settings'] {
-  let { dpi = 72, fps = 60, frames = Infinity, seed = 1 } = config
+  let { dpi = 72, fps = 60, frames = Infinity } = config
   let orientation = Config.orientation(config)
   let units = Config.units(config)
 
@@ -107,10 +127,15 @@ export function settings(config: Config): Sketch['settings'] {
   height -= mt + mb
   let margin = [mt, mr, mb, ml] as [number, number, number, number]
 
+  // Hash the seed to uniformly distribute auto-incrementing seeds.
+  let hash = Config.hash(config)
+  let seed = parseInt(hash, 16)
+
   return {
     dpi,
     fps,
     frames,
+    hash,
     height,
     margin,
     precision,

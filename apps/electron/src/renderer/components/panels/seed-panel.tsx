@@ -4,33 +4,35 @@ import { useTab } from '../../contexts/tab'
 import { SidebarPanel } from '../ui/sidebar-panel'
 import { IconButton } from '../ui/icon-button'
 import { useSketch } from '../../contexts/sketch'
+import { Config, Math } from 'void'
+import { useCallback } from 'react'
 
 export let SeedPanel = () => {
   let [, changeTab] = useTab()
   let sketch = useSketch()
-  let { settings } = sketch
+  let seed = Config.seed(sketch.config)
+  let min = 1
+  let max = 2 ** 32
+
+  let setSeed = useCallback(
+    (s: number) => {
+      changeTab((t) => {
+        t.config.seed = Math.clamp(s, 1, 2 ** 32)
+      })
+    },
+    [changeTab]
+  )
+
   return (
     <SidebarPanel
       title="Seed"
-      summary={settings.seed}
+      summary={seed}
       buttons={
         <>
-          <IconButton
-            onClick={() => {
-              changeTab((t) => {
-                t.config.seed = Math.max(0, settings.seed - 1)
-              })
-            }}
-          >
+          <IconButton disabled={seed === min} onClick={() => setSeed(seed - 1)}>
             <MdWest />
           </IconButton>
-          <IconButton
-            onClick={() => {
-              changeTab((t) => {
-                t.config.seed = Math.max(0, settings.seed + 1)
-              })
-            }}
-          >
+          <IconButton disabled={seed === max} onClick={() => setSeed(seed + 1)}>
             <MdEast />
           </IconButton>
         </>
@@ -39,15 +41,11 @@ export let SeedPanel = () => {
       <NumberField
         icon={<MdFingerprint />}
         label="Seed"
-        value={settings.seed}
+        value={seed}
         step={1}
-        min={0}
-        max={9999}
-        onChange={(seed) => {
-          changeTab((t) => {
-            t.config.seed = seed
-          })
-        }}
+        min={min}
+        max={max}
+        onChange={(seed) => setSeed(seed)}
       />
     </SidebarPanel>
   )

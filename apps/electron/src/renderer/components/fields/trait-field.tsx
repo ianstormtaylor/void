@@ -55,12 +55,12 @@ export let TraitField = (props: {
         onChange={onChange}
       />
     )
-  } else if (schema.type === 'choice') {
+  } else if (schema.type === 'pick') {
     field = (
       <EnumField
         label={label}
         value={value}
-        options={schema.options}
+        choices={schema.choices}
         valueClassName={valueClassName}
         onChange={onChange}
       />
@@ -135,18 +135,17 @@ export function generate(schema: Schema): any {
         return min + Math.floor(value, step)
       }
     }
-    case 'choice': {
-      let { options } = schema
-      let values = options.map((o) => o.value)
-      let value = Random.choice(values)
-      return value
+    case 'pick': {
+      let { choices } = schema
+      let choice = Random.pick(choices)
+      return choice.value
     }
     case 'sample': {
-      let { options, min, max } = schema
-      let values = options.map((c) => c.value)
+      let { choices, min, max } = schema
       let amount = Random.int(min, max)
-      let value = Random.sample(amount, values)
-      return value
+      let sample = Random.sample(amount, choices)
+      let values = sample.map((c) => c.value)
+      return values
     }
   }
 }

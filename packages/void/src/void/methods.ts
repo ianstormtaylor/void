@@ -3,24 +3,17 @@ import { svgStringToDataUri } from '../utils'
 import {
   Sketch,
   Schema,
-  OptionSchema,
+  SchemaChoice,
   Config,
   Random,
-  SchemaChoice,
+  SchemaPick,
   SchemaSample,
 } from '..'
 
 /** Define a trait that is a boolean, with optional `probability` of being true. */
 export function bool(name: string, probability = 0.5): boolean {
   let value = Random.bool(probability)
-  return register(name, value, { type: 'boolean', probability })
-}
-
-/** Define a trait that is one of many `choices`. */
-export function choice<V>(name: string, choices: Choices<V>): V {
-  let { options, weights } = normalizeChoices(choices)
-  let option = Random.choice(options, weights)
-  return registerChoice(name, option, { type: 'choice', options })
+  return resolve(name, value, { type: 'boolean', probability })
 }
 
 /** Define a `draw` function that renders each frame. */
@@ -46,14 +39,14 @@ export function float(
   step?: number
 ): number {
   let value = Random.float(min, max, step)
-  register(name, value, { type: 'float', min, max, step })
+  resolve(name, value, { type: 'float', min, max, step })
   return value
 }
 
 /** Define a trait that is an integer, between `min` and `max`, with optional `step` to increment by. */
 export function int(name: string, min: number, max: number, step = 1): number {
   let value = Random.int(min, max, step)
-  register(name, value, { type: 'int', min, max, step })
+  resolve(name, value, { type: 'int', min, max, step })
   return value
 }
 
@@ -110,6 +103,13 @@ export function layer(name?: string): CanvasRenderingContext2D {
   return ctx
 }
 
+/** Define a trait that picks one of many `choices`. */
+export function pick<V>(name: string, choices: Choices<V>): V {
+  let { choices: cs, weights } = normalizeChoices(choices)
+  let option = Random.pick(cs, weights)
+  return resolveChoice(name, option, { type: 'pick', choices: cs })
+}
+
 /** Define a trait that samples from a set of many `choices`, either a certain `amount` of times, or between `min` and `max` amount of times. */
 export function sample<V>(
   name: string,
@@ -129,10 +129,10 @@ export function sample<V>(
   choices?: Choices<V>
 ): V[] {
   if (typeof max !== 'number') (choices = max), (max = min)
-  let { options, weights } = normalizeChoices(choices!)
+  let { choices: cs, weights } = normalizeChoices(choices!)
   let amount = Random.int(min, max)
-  let opts = Random.sample(amount, options, weights)
-  return registerSample(name, opts, { type: 'sample', min, max, options })
+  let opts = Random.sample(amount, cs, weights)
+  return resolveChoices(name, opts, { type: 'sample', min, max, choices: cs })
 }
 
 /** Setup the canvas and current scene for a sketch. */
@@ -171,11 +171,11 @@ type Choices<V> =
 
 /** Normalize the shorthand for defining choices into `OptionSchema` objects. */
 function normalizeChoices<V>(choices: Choices<V>): {
-  options: OptionSchema<V>[]
+  choices: SchemaChoice<V>[]
   values: V[]
   weights: number[]
 } {
-  let options: OptionSchema<V>[] = []
+  let cs: SchemaChoice<V>[] = []
   let values: V[] = []
   let weights: number[] = []
 
@@ -183,27 +183,27 @@ function normalizeChoices<V>(choices: Choices<V>): {
     for (let sc of choices) {
       let [weight, value] = Array.isArray(sc) ? sc : [1, sc]
       let v = value as V
-      options.push({ type: 'option', name: `${value}`, value: v, weight })
+      cs.push({ type: 'option', name: `${value}`, value: v, weight })
       values.push(v)
       weights.push(weight)
     }
   } else {
     for (let [name, sc] of Object.entries(choices)) {
       let [weight, value] = Array.isArray(sc) ? sc : [1, sc]
-      options.push({ type: 'option', name, value, weight })
+      cs.push({ type: 'option', name, value, weight })
       values.push(value)
       weights.push(weight)
     }
   }
 
-  return { options, values, weights }
+  return { choices: cs, values, weights }
 }
 
-/** Register a trait value and schema on the global Void namespace. */
-function register<V>(
+/** Resolve a traits `value` and `schema`. */
+function resolve<V>(
   name: string,
   value: V,
-  schema: Exclude<Schema, SchemaChoice | SchemaSample>
+  schema: Exclude<Schema, SchemaPick | SchemaSample>
 ): V {
   let sketch = Sketch.current()
   if (!sketch) {
@@ -217,11 +217,11 @@ function register<V>(
   return v
 }
 
-/** Register an enum trait key and schema on the global Void namespace. */
-function registerChoice<V>(
+/** Resolve a `choice` trait and its `schema`. */
+function resolveChoice<V>(
   name: string,
-  option: OptionSchema<V>,
-  schema: SchemaChoice<V>
+  choice: SchemaChoice<V>,
+  schema: SchemaPick<V>
 ): V {
   let sketch = Sketch.current()
   if (!sketch) {
@@ -230,18 +230,18 @@ function registerChoice<V>(
 
   let traits = sketch.overrides?.traits ?? sketch.traits
   if (name in traits) {
-    option = schema.options.find((o) => o.name === traits[name]) ?? option
+    choice = schema.choices.find((o) => o.name === traits[name]) ?? choice
   }
 
   sketch.schemas[name] = schema
-  sketch.traits[name] = option.name
-  return option.value
+  sketch.traits[name] = choice.name
+  return choice.value
 }
 
-/** Register an enum trait key and schema on the global Void namespace. */
-function registerSample<V>(
+/** Resolve a `choices` trait and its `schema`. */
+function resolveChoices<V>(
   name: string,
-  options: OptionSchema<V>[],
+  choices: SchemaChoice<V>[],
   schema: SchemaSample<V>
 ): V[] {
   let sketch = Sketch.current()
@@ -252,17 +252,17 @@ function registerSample<V>(
   let traits = sketch.overrides?.traits ?? sketch.traits
   if (name in traits && Array.isArray(traits[name])) {
     let keys = traits[name] as any[]
-    let opts = keys.map((k) => schema.options.find((o) => o.name === k))
-    if (opts.every((o) => o != null)) {
-      options = opts as OptionSchema<V>[]
+    let cs = keys.map((k) => schema.choices.find((o) => o.name === k))
+    if (cs.every((o) => o != null)) {
+      choices = cs as SchemaChoice<V>[]
     }
   }
 
   let values: V[] = []
   let names: string[] = []
-  for (let o of options) {
-    names.push(o.name)
-    values.push(o.value)
+  for (let c of choices) {
+    names.push(c.name)
+    values.push(c.value)
   }
 
   sketch.schemas[name] = schema

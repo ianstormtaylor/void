@@ -1,4 +1,4 @@
-import { Math, Units, OUTPUT_MIME_TYPES, Output } from '..'
+import { Math, Units, OUTPUT_MIME_TYPES, Output, Random } from '..'
 import { Sketch } from '.'
 import {
   HTML_CSS_DPI,
@@ -58,9 +58,13 @@ export function dimensions(
 }
 
 /** Emit an `event` to all the sketch's handlers. */
-export function emit(sketch: Sketch, event: keyof Sketch['handlers']): void {
+export function emit<T extends keyof Sketch['handlers']>(
+  sketch: Sketch,
+  event: T,
+  ...args: Parameters<Sketch['handlers'][T][number]>
+): void {
   for (let callback of sketch.handlers[event]) {
-    callback()
+    callback(...(args as [any]))
   }
 }
 
@@ -68,9 +72,17 @@ export function emit(sketch: Sketch, event: keyof Sketch['handlers']): void {
 export function exec(sketch: Sketch, fn: () => void) {
   let VOID = (globalThis.VOID ??= {})
   let prev = VOID.sketch
+  let unseed = Random.seed(sketch.settings.seed)
   VOID.sketch = sketch
-  fn()
+
+  try {
+    fn()
+  } catch (e) {
+    Sketch.emit(sketch, 'error', e as Error)
+  }
+
   VOID.sketch = prev
+  unseed()
 }
 
 /** Create a sketch from a `construct` function, with optional `el` and `overrides`. */
@@ -93,7 +105,14 @@ export function of(attrs: {
     construct,
     container,
     el,
-    handlers: { construct: [], draw: [], play: [], pause: [], stop: [] },
+    handlers: {
+      construct: [],
+      draw: [],
+      error: [],
+      play: [],
+      pause: [],
+      stop: [],
+    },
     layers: {},
     output: output ?? { type: 'png' },
     overrides,
@@ -102,10 +121,11 @@ export function of(attrs: {
       dpi: 72,
       fps: 60,
       frames: Infinity,
+      hash: '0x86d2fa73',
       height: container.offsetHeight,
       margin: [0, 0, 0, 0],
       precision: 1,
-      seed: 0,
+      seed: 1,
       units: 'px',
       width: container.offsetWidth,
     },
@@ -115,12 +135,12 @@ export function of(attrs: {
 }
 
 /** Attach a `callback` to when an `event` is emitted. */
-export function on(
+export function on<T extends keyof Sketch['handlers']>(
   sketch: Sketch,
-  event: keyof Sketch['handlers'],
-  callback: () => void
+  event: T,
+  callback: Sketch['handlers'][T][number]
 ): void {
-  sketch.handlers[event].push(callback)
+  sketch.handlers[event].push(callback as any)
 }
 
 /** Play the sketch's draw loop. */

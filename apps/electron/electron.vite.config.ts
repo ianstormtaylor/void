@@ -18,6 +18,7 @@ export default defineConfig({
   },
   renderer: {
     build: {
+      minify: false,
       sourcemap: true,
     },
     plugins: [react()],

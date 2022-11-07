@@ -19,7 +19,7 @@ export type Schema =
   | SchemaBool
   | SchemaInt
   | SchemaFloat
-  | SchemaChoice
+  | SchemaPick
   | SchemaSample
 
 /** A schema for boolean traits. */
@@ -45,9 +45,9 @@ export type SchemaFloat = {
 }
 
 /** A schema for enum traits. */
-export type SchemaChoice<V = any> = {
-  type: 'choice'
-  options: OptionSchema<V>[]
+export type SchemaPick<V = any> = {
+  type: 'pick'
+  choices: SchemaChoice<V>[]
 }
 
 /** A schema for enum-like traits where multiple choices are sampled. */
@@ -55,11 +55,11 @@ export type SchemaSample<V = any> = {
   type: 'sample'
   min: number
   max: number
-  options: OptionSchema<V>[]
+  choices: SchemaChoice<V>[]
 }
 
 /** A schema for the individual options/choices when making a choice. */
-export type OptionSchema<V = any> = {
+export type SchemaChoice<V = any> = {
   type: 'option'
   name: string
   value: V

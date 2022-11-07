@@ -1,4 +1,4 @@
-import { Void, Math, Random } from 'void'
+import { Void, Math } from 'void'
 
 export default function () {
   let size = Void.int('size', 600, 600)
@@ -6,7 +6,7 @@ export default function () {
   let layer = Void.layer()
   let cell = 1
 
-  let prng = Void.choice('prng', {
+  let prng = Void.pick('prng', {
     'Crypto': createCrypto(seed),
     'P5.js': createP5(seed),
     'LCG': createLcg(seed),
@@ -15,7 +15,7 @@ export default function () {
     'PCG': createPcg(seed),
   })
 
-  let test = Void.choice('test', {
+  let test = Void.pick('test', {
     'chance': (x: number) => x < 0.5,
     'mod 2': (x: number) => Math.trunc(x * 2 ** 32) % 2 === 0,
   })
