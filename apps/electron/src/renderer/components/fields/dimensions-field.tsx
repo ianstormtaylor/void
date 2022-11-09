@@ -39,7 +39,7 @@ export let DimensionsField = (props: { sketch: Sketch }) => {
         <span>
           {width} &times; {height} {units}
         </span>
-        {infinite && <span className="text-gray-400">(Screen)</span>}
+        {infinite && <span className="text-gray-400">(Fullscreen)</span>}
         {size && <span className="text-gray-400">({size})</span>}
       </div>
     </div>

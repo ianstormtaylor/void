@@ -11,7 +11,7 @@ export let WindowTabs = (props: { window: WindowState }) => {
   let [store] = useStore()
   let tabs = window.tabIds.map((tid) => store.tabs[tid])
   return (
-    <div className="flex h-10 pl-20 bg-gray-900 border-b border-gray-800 items-stretch app-drag">
+    <div className="flex h-10 pl-20 border-b border-gray-800 items-stretch">
       <div className="flex overflow-auto items-stretch px-px -space-x-px app-no-drag">
         {Object.values(tabs).map((tab) => (
           <Tab

@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react'
 import { Editor } from './components/editor'
 import { HashRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useStore } from './contexts/store'
-import { WindowTabs } from './components/window-tabs'
 import { Sketch } from 'void'
 import { TabContext } from './contexts/tab'
 import { EntrypointContext } from './contexts/entrypoint'
+import { WindowContext } from './contexts/window'
+import { Window } from './components/window'
 
 let App = () => {
   let [dragging, setDragging] = useState(false)
@@ -58,7 +59,13 @@ let WindowPage = () => {
   let { id } = useParams()
   let [config] = useStore()
   let window = config.windows[id!]
-  return window && <WindowTabs key={window.id} window={window} />
+  return (
+    window && (
+      <WindowContext.Provider value={window}>
+        <Window />
+      </WindowContext.Provider>
+    )
+  )
 }
 
 let TabPage = () => {
