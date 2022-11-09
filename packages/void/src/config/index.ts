@@ -8,10 +8,8 @@ export type Config = {
   dpi?: number
   fps?: number
   frames?: number
-  hash?: string
   margin?: Sizes<1> | Sizes<2> | Sizes<3> | Sizes<4>
   orientation?: Orientation
   precision?: Sizes<1>
-  seed?: number
   units?: Units
 }

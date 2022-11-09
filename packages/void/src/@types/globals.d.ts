@@ -5,5 +5,6 @@ declare global {
     | undefined
     | {
         sketch?: Sketch
+        random?: () => number
       }
 }

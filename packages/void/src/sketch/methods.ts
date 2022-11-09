@@ -1,6 +1,7 @@
-import { Math, Units, OUTPUT_MIME_TYPES, Output, Random } from '..'
-import { Sketch } from '.'
+import { Math, Units, OUTPUT_MIME_TYPES, Random, Config } from '..'
+import { Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
+  applyOrientation,
   HTML_CSS_DPI,
   svgDataUriToString,
   svgElementToString,
@@ -9,13 +10,28 @@ import {
   SVG_NAMESPACE,
 } from '../utils'
 
+/** Get the current sketch and assert one exists. */
+export function assert(): Sketch {
+  let sketch = current()
+  if (!sketch) {
+    throw new Error(
+      `No active sketch! Make sure only call Void helpers inside a sketch function!`
+    )
+  }
+  return sketch
+}
+
 /** Attach the sketch to the DOM. */
 export function attach(sketch: Sketch): void {
   let { container, el } = sketch
   let [width, height] = dimensions(sketch, 'pixel')
+  container.style.position = 'relative'
+  el.style.position = 'absolute'
   el.style.width = `${width}px`
   el.style.height = `${height}px`
-  el.style.position = 'relative'
+  el.style.top = '50%'
+  el.style.left = '50%'
+  el.style.margin = `${-height / 2}px 0 0 ${-width / 2}px`
   el.style.background = 'white'
   el.style.outline = '1px solid #e4e4e4'
   container.appendChild(el)
@@ -49,7 +65,6 @@ export function dimensions(
       : mode === 'device'
       ? HTML_CSS_DPI * window.devicePixelRatio
       : settings.dpi
-
   let w = width + left + right
   let h = height + top + bottom
   let x = Math.convert(w, units, to, { dpi, precision })
@@ -58,94 +73,127 @@ export function dimensions(
 }
 
 /** Emit an `event` to all the sketch's handlers. */
-export function emit<T extends keyof Sketch['handlers']>(
+export function emit<T extends keyof Handlers>(
   sketch: Sketch,
   event: T,
-  ...args: Parameters<Sketch['handlers'][T][number]>
+  ...args: Parameters<Handlers[T][number]>
 ): void {
-  for (let callback of sketch.handlers[event]) {
+  for (let callback of sketch.handlers?.[event] ?? []) {
     callback(...(args as [any]))
   }
 }
 
 /** Execute a `fn` with the sketch loaded on the global `VOID` context. */
 export function exec(sketch: Sketch, fn: () => void) {
+  let prng = (sketch.prng ??= Random.prng(sketch.seed))
+  let unseed = Random.seed(prng)
   let VOID = (globalThis.VOID ??= {})
   let prev = VOID.sketch
-  let unseed = Random.seed(sketch.settings.seed)
   VOID.sketch = sketch
-
   try {
     fn()
   } catch (e) {
     Sketch.emit(sketch, 'error', e as Error)
+  } finally {
+    VOID.sketch = prev
+    unseed()
+  }
+}
+
+/** Get the sketch's current keyboard information. */
+export function keyboard(sketch: Sketch): Keyboard {
+  return (sketch.keyboard ??= {
+    key: null,
+    keys: {},
+    code: null,
+    codes: {},
+  })
+}
+
+/** Create a new layer with `name`. */
+export function layer(sketch: Sketch, name?: string): Layer {
+  if (!name) {
+    let { length } = Object.keys(sketch.layers)
+    while ((name = `Layer ${++length}`) in sketch.layers) {}
   }
 
-  VOID.sketch = prev
-  unseed()
+  // Delete and reassign existing layers to preserve the sketch's layer order.
+  let layer: Layer = sketch.layers[name] ?? { hidden: false }
+  if (name in sketch.layers) delete sketch.layers[name]
+  sketch.layers[name] = layer
+  return layer
 }
 
 /** Create a sketch from a `construct` function, with optional `el` and `overrides`. */
 export function of(attrs: {
   construct: () => void
-  container?: HTMLElement
-  el?: HTMLElement
-  overrides?: Sketch['overrides']
-  output?: Output
+  container: HTMLElement
+  hash: string
+  layers?: Sketch['layers']
+  config?: Sketch['config']
+  traits?: Sketch['traits']
+  output?: Sketch['output']
 }): Sketch {
   let {
     construct,
-    container = document.body,
-    el = document.createElement('div'),
-    overrides = {},
-    output,
+    container,
+    hash,
+    output = { type: 'png' },
+    config = {},
+    layers = {},
+    traits = {},
   } = attrs
+
+  let seed = Number(hash)
+  if (isNaN(seed)) {
+    throw new Error(`Unable to parse hexadecimal hash: "${hash}"`)
+  }
+
   return {
-    config: {},
+    config,
     construct,
     container,
-    el,
-    handlers: {
-      construct: [],
-      draw: [],
-      error: [],
-      play: [],
-      pause: [],
-      stop: [],
-    },
-    layers: {},
-    output: output ?? { type: 'png' },
-    overrides,
-    schemas: {},
+    el: document.createElement('el'),
+    hash,
+    layers,
+    output,
+    seed,
     settings: {
       dpi: 72,
       fps: 60,
       frames: Infinity,
-      hash: '0x86d2fa73',
       height: container.offsetHeight,
       margin: [0, 0, 0, 0],
       precision: 1,
-      seed: 1,
       units: 'px',
       width: container.offsetWidth,
     },
-    status: 'stopped',
-    traits: {},
+    traits,
   }
 }
 
 /** Attach a `callback` to when an `event` is emitted. */
-export function on<T extends keyof Sketch['handlers']>(
+export function on<T extends keyof Handlers>(
   sketch: Sketch,
   event: T,
-  callback: Sketch['handlers'][T][number]
+  callback: Handlers[T][number]
 ): void {
+  sketch.handlers ??= {
+    construct: [],
+    draw: [],
+    error: [],
+    play: [],
+    pause: [],
+    stop: [],
+  }
   sketch.handlers[event].push(callback as any)
 }
 
 /** Play the sketch's draw loop. */
 export function play(sketch: Sketch) {
   if (sketch.raf) return
+  if (sketch.status === 'stopped') return
+
   if (sketch.status !== 'playing') {
     sketch.status = 'playing'
     Sketch.emit(sketch, 'play')
@@ -153,11 +201,7 @@ export function play(sketch: Sketch) {
 
   let now = window.performance.now()
   if (!sketch.frame) {
-    sketch.config = {}
     sketch.frame = { count: -1, time: now, rate: 0 }
-    sketch.layers = {}
-    sketch.schemas = {}
-    sketch.traits = {}
     Sketch.exec(sketch, sketch.construct)
     Sketch.emit(sketch, 'construct')
     Sketch.attach(sketch)
@@ -170,7 +214,6 @@ export function play(sketch: Sketch) {
     return
   }
 
-  let { draw } = sketch
   let delta = now - frame.time
   let target = 1000 / fps
   let epsilon = 5
@@ -178,7 +221,7 @@ export function play(sketch: Sketch) {
     frame.time = now
     frame.count = frame.count + 1
     frame.rate = 1000 / delta
-    Sketch.exec(sketch, () => draw(frame))
+    Sketch.exec(sketch, sketch.draw)
     Sketch.emit(sketch, 'draw')
   }
 
@@ -195,6 +238,18 @@ export function pause(sketch: Sketch) {
   delete sketch.raf
   sketch.status = 'paused'
   Sketch.emit(sketch, 'pause')
+}
+
+/** Get the sketch's current pointer information. */
+export function pointer(sketch: Sketch): Pointer {
+  return (sketch.pointer ??= {
+    type: null,
+    x: null,
+    y: null,
+    point: null,
+    button: null,
+    buttons: {},
+  })
 }
 
 /** Save the sketch's layers as an image. */
@@ -230,15 +285,17 @@ export async function saveImage(sketch: Sketch): Promise<string> {
   canvas.style.height = `${pixelWidth}px`
 
   let images = await Promise.all(
-    Object.values(sketch.layers).map((layer) => {
-      return new Promise<HTMLImageElement>((resolve, reject) => {
-        let img = new Image()
-        let url = layer.export()
-        img.onload = () => resolve(img)
-        img.onerror = (e, source, lineno, colno, error) => reject(error)
-        img.src = url
+    Object.values(sketch.layers)
+      .filter((layer) => layer.export != null)
+      .map((layer) => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          let img = new Image()
+          let url = layer.export!()
+          img.onload = () => resolve(img)
+          img.onerror = (e, source, lineno, colno, error) => reject(error)
+          img.src = url
+        })
       })
-    })
   )
 
   for (let image of images) {
@@ -257,6 +314,7 @@ export async function saveSvg(sketch: Sketch): Promise<string> {
   let svg = document.createElementNS(SVG_NAMESPACE, 'svg') as SVGSVGElement
 
   for (let layer of Object.values(sketch.layers)) {
+    if (!layer.export) continue
     let url = layer.export()
     let string = svgDataUriToString(url)
     let el = svgStringToElement(string)
@@ -301,6 +359,53 @@ export async function saveSvg(sketch: Sketch): Promise<string> {
 //     doc.save('download.pdf')
 //   }
 // }
+
+/** Resolve a `config` object into the sketch's settings. */
+export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
+  config = { ...config, ...sketch.config }
+  let { dpi = 72, fps = 60, frames = Infinity } = config
+  let orientation = Config.orientation(config)
+  let units = Config.units(config)
+
+  // Convert the precision to the sketch's units.
+  let [precision, pu] = Config.precision(config)
+  precision = Math.convert(precision, pu, units, { dpi })
+
+  // Create a unit conversion helper with the sketch's default units.
+  let [width, height, du] = Config.dimensions(config)
+  if (width === Infinity) width = sketch.container.offsetWidth
+  if (height === Infinity) height = sketch.container.offsetHeight
+  width = Math.convert(width, du, units, { precision, dpi })
+  height = Math.convert(height, du, units, { precision, dpi })
+
+  // Apply the orientation setting to the dimensions.
+  if (orientation != null) {
+    ;[width, height] = applyOrientation(width, height, orientation)
+  }
+
+  // Apply a margin, so the canvas is drawn without need to know it.
+  let [mt, mr, mb, ml, mu] = Config.margin(config)
+  mt = Math.convert(mt, mu, units, { precision, dpi })
+  mr = Math.convert(mr, mu, units, { precision, dpi })
+  mb = Math.convert(mb, mu, units, { precision, dpi })
+  ml = Math.convert(ml, mu, units, { precision, dpi })
+  width -= mr + ml
+  height -= mt + mb
+  let margin = [mt, mr, mb, ml] as [number, number, number, number]
+
+  sketch.config = config
+  sketch.settings = {
+    dpi,
+    fps,
+    frames,
+    height,
+    margin,
+    precision,
+    units,
+    width,
+  }
+  return sketch.settings
+}
 
 /** Stop the sketch's draw loop. */
 export function stop(sketch: Sketch) {

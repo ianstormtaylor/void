@@ -36,6 +36,7 @@ export class Tab {
         id,
         entrypointId: entrypoint.id,
         zoom: null,
+        seed: 1,
         config: {},
         traits: {},
         layers: {},

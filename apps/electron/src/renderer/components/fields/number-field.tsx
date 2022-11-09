@@ -97,7 +97,7 @@ export let NumberField = (props: {
         {icon ? (
           <span className="text-base text-gray-400 -ml-0.5">{icon}</span>
         ) : (
-          <span className="font-light text-gray-500">{label}</span>
+          <span className="text-gray-400">{label}</span>
         )}
       </div>
       <div className="relative flex-1">

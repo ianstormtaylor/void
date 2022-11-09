@@ -13,7 +13,7 @@ export let BooleanField = (props: {
       `}
     >
       <div className="flex flex-0 flex-shrink-0 w-24 items-center space-x-1">
-        <span className="font-light text-gray-500">{label}</span>
+        <span className="text-gray-400">{label}</span>
       </div>
       <div
         className={`

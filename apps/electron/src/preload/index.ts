@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { initialState } from '../shared/store-state'
-import { createRendererStore } from '../shared/store/renderer'
+import { createPreloadStore } from '../shared/store/preload'
 
 /** A shared store. */
-let store = createRendererStore(initialState)
+let store = createPreloadStore(initialState)
 
 /** The global object exposed to use Electron APIs. */
 export type Electron = typeof electron

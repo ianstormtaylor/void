@@ -39,6 +39,22 @@ export function svgElementToString(el: SVGSVGElement): string {
   return string
 }
 
+/** Apply an `orientation` to a `width` and `height`. */
+export function applyOrientation(
+  width: number,
+  height: number,
+  orientation: Orientation
+): [number, number] {
+  if (orientation === 'square' && width != height) {
+    width = height = Math.min(width, height)
+  } else if (orientation === 'landscape' && width < height) {
+    ;[width, height] = [height, width]
+  } else if (orientation === 'portrait' && height < width) {
+    ;[width, height] = [height, width]
+  }
+  return [width, height]
+}
+
 /** Resolve the orientation of a `width` and `height`. */
 export function resolveOrientation(width: number, height: number): Orientation {
   return width === height ? 'square' : width < height ? 'portrait' : 'landscape'

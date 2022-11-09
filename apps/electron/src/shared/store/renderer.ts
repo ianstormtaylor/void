@@ -1,34 +1,24 @@
-import { Patch } from 'immer'
-import { ipcRenderer } from 'electron'
-import { CHANGE_CHANNEL, CONNECT_CHANNEL } from './base'
-import { createStore } from './base'
+import { Store, createStore } from './base'
 
 /** Create a store used in Electron renderer processes. */
 export function createRendererStore<T extends Record<string, any>>(
-  initialState: T
+  preloadStore: Store<T>
 ) {
   let isSyncing = false
-  let store = createStore(initialState, (patches) => {
+
+  // Create a new store that sends patches to the preload process.
+  let store = createStore(preloadStore.get(), (patches) => {
     if (!isSyncing && patches.length > 0) {
-      ipcRenderer.send(CHANGE_CHANNEL, patches)
+      preloadStore.patch(patches)
     }
   })
 
-  // When the renderer first connects, it will get sent the current state.
-  ipcRenderer.on(CONNECT_CHANNEL, (e, state: T) => {
-    isSyncing = true
-    store.change(() => state)
-    isSyncing = false
-  })
-
-  // When the renderer receives a change, apply it and emit.
-  ipcRenderer.on(CHANGE_CHANNEL, (e, patches: Patch[]) => {
+  // Sync any new patches from the preload process.
+  preloadStore.subscribe((next, prev, patches) => {
     isSyncing = true
     store.patch(patches)
     isSyncing = false
   })
 
-  // Ask for the current state.
-  ipcRenderer.send(CONNECT_CHANNEL)
   return store
 }

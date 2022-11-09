@@ -7,6 +7,7 @@ export let SidebarPanel = (props: {
   buttons?: React.ReactNode
   summary?: React.ReactNode
   className?: string
+  initialExpanded?: boolean
 }) => {
   let {
     title,
@@ -14,13 +15,14 @@ export let SidebarPanel = (props: {
     buttons = null,
     summary = null,
     className = '',
+    initialExpanded = true,
   } = props
-  let [expanded, setExpanded] = useState(true)
+  let [expanded, setExpanded] = useState(initialExpanded)
   return (
     <div
       className={`
         ${className}
-        group px-4 py-2.5 space-y-0.5
+        group px-4 py-2.5 space-y-0.5 border-b border-gray-200
       `}
     >
       <div className="flex items-center justify-between h-7">

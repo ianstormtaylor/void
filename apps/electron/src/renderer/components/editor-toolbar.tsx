@@ -3,7 +3,7 @@ import { useTab } from '../contexts/tab'
 import { useEntrypoint } from '../contexts/entrypoint'
 
 export let EditorToolbar = () => {
-  let [tab] = useTab()
+  let [tab, changeTab] = useTab()
   let entrypoint = useEntrypoint()
   let path = `.../${entrypoint.path.split('/').slice(-3).join('/')}`
   return (
@@ -14,6 +14,7 @@ export let EditorToolbar = () => {
           className={`
             flex w-8 h-8 items-center justify-center rounded cursor-default
             text-gray-300
+            focus-visible:outline-none
             hover:text-white hover:bg-gray-700
           `}
           onClick={() => {
@@ -22,26 +23,29 @@ export let EditorToolbar = () => {
         >
           <MdBuild className="text-lg" />
         </button>
-        {/* <select
+        <select
           title="Zoom Level"
           value={tab.zoom ?? 1}
           className={`
             flex h-8 px-2 items-center justify-center space-x-1 rounded cursor-default
             text-sm tracking-light
             text-gray-300 bg-transparent
+            focus-visible:outline-none
             hover:text-white hover:bg-gray-700
           `}
           onChange={(e) => {
-            let value = e.target.value
             changeTab((t) => {
-              t.zoom = Number(value)
+              t.zoom = Number(e.target.value)
             })
           }}
         >
+          <option value={4}>400%</option>
+          <option value={2}>200%</option>
           <option value={1}>100%</option>
           <option value={0.5}>50%</option>
           <option value={0.25}>25%</option>
-        </select> */}
+          <option value={0.125}>13%</option>
+        </select>
       </div>
       <div className="text-sm text-gray-400">{path}</div>
       <div className="flex items-center space-x-1">

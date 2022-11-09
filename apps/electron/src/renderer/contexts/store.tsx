@@ -1,36 +1,31 @@
-import produce, { Patch, enablePatches } from 'immer'
-import { useEffect, useMemo, useState } from 'react'
+import { enablePatches } from 'immer'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { StoreState } from '../../shared/store-state'
+import { createRendererStore } from '../../shared/store/renderer'
 
+// Enable patches in this process's immer package.
 enablePatches()
 
-/** Use the synchronized store. */
+// Create a renderer store that proxies to the preload store.
+let store = createRendererStore(electron.store)
+
+/** Use the synchronized store's state as a hook. */
 export let useStore = (): readonly [
   StoreState,
   (recipe: (draft: StoreState) => StoreState | void) => void
 ] => {
-  let { store } = electron
   let [count, setCount] = useState(0)
+  let value = useMemo(() => store.get(), [count])
+  let setValue = useCallback(
+    (recipe: (draft: StoreState) => StoreState | void) => {
+      store.change(recipe)
+    },
+    []
+  )
 
-  // Create the return value memoized by the counter to react to changes.
-  let ret = useMemo(() => {
-    return [
-      store.get(),
-      (recipe: (draft: StoreState) => StoreState | void) => {
-        let patches: Patch[] = []
-        let state = store.get()
-        produce(state, recipe, (p) => (patches = p))
-        store.patch(patches)
-      },
-    ] as const
-  }, [store, count])
-
-  // Listen to changes in the store and increment a counter.
   useEffect(() => {
-    return store.subscribe(() => {
-      setCount(count++)
-    })
-  }, [store])
+    return store.subscribe(() => setCount(count++))
+  }, [])
 
-  return ret as any
+  return [value, setValue]
 }

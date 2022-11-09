@@ -8,17 +8,16 @@ export let TabContext = createContext<TabState | null>(null)
 
 /** Use the sketch's tab. */
 export let useTab = (): [TabState, Changer<TabState>] => {
-  let [, setStore] = useStore()
   let tab = useContext(TabContext)
+  let [, changeStore] = useStore()
   let changeTab = useCallback(
     (recipe: Producer<TabState>) => {
-      setStore((c) => {
+      changeStore((c) => {
         if (!tab) return
-        let t = c.tabs[tab.id]
-        recipe(t)
+        recipe(c.tabs[tab.id])
       })
     },
-    [tab, setStore]
+    [tab, changeStore]
   )
 
   if (!tab) {

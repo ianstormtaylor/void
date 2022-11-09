@@ -190,11 +190,11 @@ t('Math.gcd', () => {
 
 t('Math.hash', () => {
   e(Math.hash(0)).toEqual(0)
-  e(Math.hash(1)).toEqual(1753845952)
-  e(Math.hash(2)).toEqual(3507691905)
-  e(Math.hash(3)).toEqual(1408362973)
-  e(Math.hash(4)).toEqual(3648937681)
-  e(Math.hash(5)).toEqual(1548080446)
+  e(Math.hash(1)).toEqual(2261973619)
+  e(Math.hash(2)).toEqual(229111015)
+  e(Math.hash(3)).toEqual(3983417082)
+  e(Math.hash(4)).toEqual(2393575859)
+  e(Math.hash(5)).toEqual(2793899052)
 })
 
 t('Math.isBetween', () => {
@@ -399,11 +399,11 @@ t('Math.trunc', () => {
 
 t('Math.unhash', () => {
   e(Math.unhash(0)).toEqual(0)
-  e(Math.unhash(1753845952)).toEqual(1)
-  e(Math.unhash(3507691905)).toEqual(2)
-  e(Math.unhash(1408362973)).toEqual(3)
-  e(Math.unhash(3648937681)).toEqual(4)
-  e(Math.unhash(1548080446)).toEqual(5)
+  e(Math.unhash(2261973619)).toEqual(1)
+  e(Math.unhash(229111015)).toEqual(2)
+  e(Math.unhash(3983417082)).toEqual(3)
+  e(Math.unhash(2393575859)).toEqual(4)
+  e(Math.unhash(2793899052)).toEqual(5)
 })
 
 t('Math.unlerp', () => {

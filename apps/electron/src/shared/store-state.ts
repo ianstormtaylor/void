@@ -16,6 +16,7 @@ export type TabState = {
   id: string
   entrypointId: string
   zoom: number | null
+  seed: number
   config: Config
   traits: Record<string, any>
   layers: Record<string, { hidden: boolean }>

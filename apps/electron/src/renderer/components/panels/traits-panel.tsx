@@ -1,3 +1,4 @@
+import plur from 'plur'
 import { MdClear } from 'react-icons/md'
 import { useSketch } from '../../contexts/sketch'
 import { useTab } from '../../contexts/tab'
@@ -8,11 +9,14 @@ import { SidebarPanel } from '../ui/sidebar-panel'
 export let TraitsPanel = () => {
   let sketch = useSketch()
   let [tab, changeTab] = useTab()
-  let sketchHas = Object.keys(sketch.traits).length > 0
+  let count = Object.keys(sketch.traits).length
+  let sketchHas = count > 0
   let tabHas = Object.keys(tab.traits).length > 0
   return (
     <SidebarPanel
       title="Traits"
+      initialExpanded={count > 0}
+      summary={`${count} ${plur('trait', count)}`}
       buttons={
         <>
           <IconButton
@@ -30,7 +34,7 @@ export let TraitsPanel = () => {
       }
     >
       {sketchHas ? (
-        Object.entries(sketch.schemas).map(([key, schema]) => (
+        Object.entries(sketch.schemas ?? {}).map(([key, schema]) => (
           <TraitField
             key={key}
             prop={key}

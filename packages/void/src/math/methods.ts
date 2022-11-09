@@ -477,7 +477,7 @@ export function split(
   b: number,
   chunks: number
 ): [number, number][] {
-  return Array.from(range(chunks), (i) => [
+  return Array.from({ length: chunks }, (_, i) => [
     lerp(a, b, i / chunks),
     lerp(a, b, (i + 1) / chunks),
   ])

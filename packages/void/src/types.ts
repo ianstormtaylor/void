@@ -1,3 +1,16 @@
+/** A type that when used in generics allows narrowing of return values. */
+export type Narrowable =
+  | string
+  | number
+  | bigint
+  | boolean
+  | symbol
+  | object
+  | undefined
+  | void
+  | null
+  | {}
+
 /** The orientation of a set of dimensions. */
 export type Orientation = 'square' | 'portrait' | 'landscape'
 

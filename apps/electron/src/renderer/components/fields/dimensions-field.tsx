@@ -7,10 +7,12 @@ export let DimensionsField = (props: { sketch: Sketch }) => {
   let orientation = Config.orientation(config)
   let dimensions = Config.dimensions(config)
   let [width, height, units] = dimensions
+  let infinite = false
 
   if (width === Infinity || height === Infinity) {
     ;[width, height] = Sketch.dimensions(sketch)
     units = sketch.settings.units
+    infinite = true
   }
 
   let size = Size.match(width, height, units)
@@ -37,7 +39,8 @@ export let DimensionsField = (props: { sketch: Sketch }) => {
         <span>
           {width} &times; {height} {units}
         </span>
-        {size && <span className="text-gray-500 font-light">({size})</span>}
+        {infinite && <span className="text-gray-400">(Screen)</span>}
+        {size && <span className="text-gray-400">({size})</span>}
       </div>
     </div>
   )

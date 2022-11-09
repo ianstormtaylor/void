@@ -13,14 +13,6 @@ export function dimensions(config: Config): Sizes<2> {
     : d
 }
 
-/** Resolve the hash from a `config`. */
-export function hash(config: Config): string {
-  if (config.hash) return config.hash
-  let seed = Config.seed(config)
-  let hash = `0x${Math.hash(seed >>> 0).toString(16)}`
-  return hash
-}
-
 /** Resolve the margin from a `config`. */
 export function margin(config: Config): Sizes<4> {
   let { margin } = config
@@ -50,12 +42,13 @@ export function merge(...configs: Config[]): Config {
 }
 
 /** Resolve the orientation from a `config`. */
-export function orientation(config: Config): Orientation {
+export function orientation(config: Config): Orientation | undefined {
   let { orientation } = config
 
   if (orientation == null) {
     let [w, h] = dimensions(config)
-    orientation = resolveOrientation(w, h)
+    orientation =
+      w === Infinity || h === Infinity ? undefined : resolveOrientation(w, h)
   }
 
   return orientation
@@ -79,70 +72,6 @@ export function precision(config: Config): Sizes<1> {
   }
 
   return precision
-}
-
-/** Resolve the seed from a `config`, optionally overridden by a hash. */
-export function seed(config: Config): number {
-  let { seed = 1, hash } = config
-
-  if (hash != null && hash.startsWith('0x')) {
-    let parsed = Number(hash)
-    if (!isNaN(parsed)) seed = Math.unhash(parsed)
-  }
-
-  return seed
-}
-
-/** Get the fully resolved `Settings` object a `config`. */
-export function settings(config: Config): Sketch['settings'] {
-  let { dpi = 72, fps = 60, frames = Infinity } = config
-  let orientation = Config.orientation(config)
-  let units = Config.units(config)
-
-  // Convert the precision to the sketch's units.
-  let [precision, pu] = Config.precision(config)
-  precision = Math.convert(precision, pu, units, { dpi })
-
-  // Create a unit conversion helper with the sketch's default units.
-  let [width, height, du] = Config.dimensions(config)
-  width = Math.convert(width, du, units, { precision, dpi })
-  height = Math.convert(height, du, units, { precision, dpi })
-
-  // Apply the orientation setting to the dimensions.
-  if (orientation === 'square' && width != height) {
-    width = height = Math.min(width, height)
-  } else if (orientation === 'landscape' && width < height) {
-    ;[width, height] = [height, width]
-  } else if (orientation === 'portrait' && height < width) {
-    ;[width, height] = [height, width]
-  }
-
-  // Apply a margin, so the canvas is drawn without need to know it.
-  let [mt, mr, mb, ml, mu] = Config.margin(config)
-  mt = Math.convert(mt, mu, units, { precision, dpi })
-  mr = Math.convert(mr, mu, units, { precision, dpi })
-  mb = Math.convert(mb, mu, units, { precision, dpi })
-  ml = Math.convert(ml, mu, units, { precision, dpi })
-  width -= mr + ml
-  height -= mt + mb
-  let margin = [mt, mr, mb, ml] as [number, number, number, number]
-
-  // Hash the seed to uniformly distribute auto-incrementing seeds.
-  let hash = Config.hash(config)
-  let seed = parseInt(hash, 16)
-
-  return {
-    dpi,
-    fps,
-    frames,
-    hash,
-    height,
-    margin,
-    precision,
-    seed,
-    units,
-    width,
-  }
 }
 
 /** Resolve the units of a `config`. */

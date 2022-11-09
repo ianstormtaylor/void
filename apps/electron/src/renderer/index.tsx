@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Editor } from './components/editor'
 import { HashRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useStore } from './contexts/store'
-import { Banner } from './components/banner'
+import { WindowTabs } from './components/window-tabs'
 import { Sketch } from 'void'
 import { TabContext } from './contexts/tab'
 import { EntrypointContext } from './contexts/entrypoint'
@@ -58,7 +58,7 @@ let WindowPage = () => {
   let { id } = useParams()
   let [config] = useStore()
   let window = config.windows[id!]
-  return window && <Banner key={window.id} window={window} />
+  return window && <WindowTabs key={window.id} window={window} />
 }
 
 let TabPage = () => {

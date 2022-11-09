@@ -6,13 +6,13 @@ import {
 } from '../../shared/store-state'
 import { MdAdd, MdClose } from 'react-icons/md'
 
-export let Banner = (props: { window: WindowState }) => {
+export let WindowTabs = (props: { window: WindowState }) => {
   let { window } = props
   let [store] = useStore()
   let tabs = window.tabIds.map((tid) => store.tabs[tid])
   return (
     <div className="flex h-10 pl-20 bg-gray-900 border-b border-gray-800 items-stretch app-drag">
-      <div className="flex items-stretch px-px -space-x-px app-no-drag">
+      <div className="flex overflow-auto items-stretch px-px -space-x-px app-no-drag">
         {Object.values(tabs).map((tab) => (
           <Tab
             key={tab.id}
@@ -22,7 +22,7 @@ export let Banner = (props: { window: WindowState }) => {
           />
         ))}
       </div>
-      <div className="flex items-center ml-1 app-no-drag">
+      <div className="flex items-center pl-1 pr-1 app-no-drag">
         <button
           className={`
             flex w-7 h-7 items-center justify-center rounded-full cursor-default
@@ -63,7 +63,9 @@ export let Tab = (props: {
         if (!active) electron.activateTab(id)
       }}
     >
-      <span className="pb-px select-none">{file}</span>{' '}
+      <span className="pb-px select-none inline-block max-w-[96px] text-ellipsis overflow-hidden whitespace-nowrap">
+        {file}
+      </span>{' '}
       <button
         title="Close Tab"
         className={`

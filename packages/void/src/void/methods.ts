@@ -8,6 +8,9 @@ import {
   Random,
   SchemaPick,
   SchemaSample,
+  Narrowable,
+  Pointer,
+  Keyboard,
 } from '..'
 
 /** Define a trait that is a boolean, with optional `probability` of being true. */
@@ -17,18 +20,22 @@ export function bool(name: string, probability = 0.5): boolean {
 }
 
 /** Define a `draw` function that renders each frame. */
-export function draw(fn: (frame: Sketch['frame']) => void) {
-  let sketch = Sketch.current()
-  if (!sketch) {
-    throw new Error(`You must call Void.draw() inside a sketch!`)
-  }
-
+export function draw(fn: () => void) {
+  let sketch = Sketch.assert()
   sketch.draw = fn
-  return {
-    play: () => Sketch.play(sketch!),
-    pause: () => Sketch.pause(sketch!),
-    stop: () => Sketch.stop(sketch!),
-  }
+}
+
+/** Attach an event listener to the canvas. */
+export function event<E extends keyof GlobalEventHandlersEventMap>(
+  event: E,
+  callback: (e: GlobalEventHandlersEventMap[E]) => void
+): () => void {
+  let sketch = Sketch.assert()
+  let { el } = sketch
+  el.addEventListener(event, callback)
+  let off = () => el.removeEventListener(event, callback)
+  Sketch.on(sketch, 'stop', off)
+  return off
 }
 
 /** Define a trait that is a floating point number, between `min` and `max`, with optional `step` to increment by. */
@@ -39,38 +46,53 @@ export function float(
   step?: number
 ): number {
   let value = Random.float(min, max, step)
-  resolve(name, value, { type: 'float', min, max, step })
-  return value
+  return resolve(name, value, { type: 'float', min, max, step })
 }
 
 /** Define a trait that is an integer, between `min` and `max`, with optional `step` to increment by. */
 export function int(name: string, min: number, max: number, step = 1): number {
   let value = Random.int(min, max, step)
-  resolve(name, value, { type: 'int', min, max, step })
-  return value
+  return resolve(name, value, { type: 'int', min, max, step })
 }
+
+/** Get a reference to the current keyboard data. */
+export function keyboard(): Keyboard {
+  let sketch = Sketch.assert()
+  let keyboard = Sketch.keyboard(sketch)
+
+  if (!KEYBOARD_LISTENING.has(sketch)) {
+    event('keydown', (e) => {
+      keyboard.code = e.code
+      keyboard.key = e.key
+      keyboard.codes[e.code] = true
+      keyboard.keys[e.key] = true
+    })
+
+    event('keyup', (e) => {
+      keyboard.code = null
+      keyboard.key = null
+      delete keyboard.codes[e.code]
+      delete keyboard.keys[e.key]
+    })
+
+    KEYBOARD_LISTENING.set(sketch, true)
+  }
+
+  return keyboard
+}
+
+let KEYBOARD_LISTENING: WeakMap<Sketch, true> = new WeakMap()
 
 /** Get a canvas layer to draw with. */
 export function layer(name?: string): CanvasRenderingContext2D {
-  let sketch = Sketch.current()
-  if (!sketch) {
-    throw new Error(`You must call Void.layer() inside a sketch!`)
-  }
-
-  if (!name) {
-    let { length } = Object.keys(sketch.layers)
-    while ((name = `Layer ${++length}`) in sketch.layers) {}
-  }
-
-  let { settings, output, overrides } = sketch
+  let sketch = Sketch.assert()
+  let { settings, output, el } = sketch
   let { width, height, margin, units } = settings
-  let hidden = overrides.layers?.[name]?.hidden ?? false
   let canvas = document.createElement('canvas')
   let vector = output.type === 'svg' || output.type === 'pdf'
   let ctx = vector
     ? new Context(`${width}${units}`, `${height}${units}`)
     : canvas.getContext('2d')
-
   if (!ctx) {
     throw new Error(`Unable to get 2D rendering context from canvas!`)
   }
@@ -79,31 +101,75 @@ export function layer(name?: string): CanvasRenderingContext2D {
   let [totalWidth, totalHeight] = Sketch.dimensions(sketch)
   let [pixelWidth, pixelHeight] = Sketch.dimensions(sketch, 'pixel')
   let [deviceWidth, deviceHeight] = Sketch.dimensions(sketch, 'device')
+  let layer = Sketch.layer(sketch, name)
   canvas.width = deviceWidth
   canvas.height = deviceHeight
   canvas.style.position = 'absolute'
+  canvas.style.display = layer.hidden ? 'none' : 'block'
   canvas.style.width = `${pixelWidth}px`
   canvas.style.height = `${pixelHeight}px`
+  el.appendChild(canvas)
   ctx.scale(deviceWidth / totalWidth, deviceHeight / totalHeight)
   ctx.translate(top, left)
-
-  sketch.layers[name] = {
-    hidden,
-    export: () => {
-      return vector
-        ? svgStringToDataUri(ctx.getSerializedSvg())
-        : canvas.toDataURL('image/png')
-    },
-  }
-
-  if (!hidden) {
-    sketch.el.appendChild(canvas)
+  layer.export = () => {
+    return vector
+      ? svgStringToDataUri(ctx.getSerializedSvg())
+      : canvas.toDataURL('image/png')
   }
 
   return ctx
 }
 
+/** Get a reference to the current pointer data. */
+export function pointer(): Pointer {
+  let sketch = Sketch.assert()
+  let pointer = Sketch.pointer(sketch)
+
+  if (!POINTER_LISTENING.has(sketch)) {
+    event('pointermove', (e) => {
+      if (!e.isPrimary) return
+      let rect = sketch.el.getBoundingClientRect()
+      pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
+      pointer.x = e.x - rect.left
+      pointer.y = e.y - rect.top
+      if (pointer.point) {
+        pointer.point[0] = pointer.x
+        pointer.point[1] = pointer.y
+      } else {
+        pointer.point = [pointer.x, pointer.y]
+      }
+    })
+
+    event('pointerleave', (e) => {
+      if (!e.isPrimary) return
+      pointer.x = null
+      pointer.y = null
+      pointer.point = null
+    })
+
+    event('pointerdown', (e) => {
+      if (!e.isPrimary) return
+      pointer.button = e.button
+      pointer.buttons[e.button] = true
+    })
+
+    event('pointerup', (e) => {
+      if (!e.isPrimary) return
+      pointer.button = null
+      delete pointer.buttons[e.button]
+    })
+
+    POINTER_LISTENING.set(sketch, true)
+  }
+
+  return pointer
+}
+
+let POINTER_LISTENING: WeakMap<Sketch, true> = new WeakMap()
+
 /** Define a trait that picks one of many `choices`. */
+export function pick<V extends Narrowable>(name: string, choices: Choices<V>): V
+export function pick<V>(name: string, choices: Choices<V>): V
 export function pick<V>(name: string, choices: Choices<V>): V {
   let { choices: cs, weights } = normalizeChoices(choices)
   let option = Random.pick(cs, weights)
@@ -111,9 +177,20 @@ export function pick<V>(name: string, choices: Choices<V>): V {
 }
 
 /** Define a trait that samples from a set of many `choices`, either a certain `amount` of times, or between `min` and `max` amount of times. */
+export function sample<V extends Narrowable>(
+  name: string,
+  amount: number,
+  choices: Choices<V>
+): V[]
 export function sample<V>(
   name: string,
   amount: number,
+  choices: Choices<V>
+): V[]
+export function sample<V extends Narrowable>(
+  name: string,
+  min: number,
+  max: number,
   choices: Choices<V>
 ): V[]
 export function sample<V>(
@@ -146,26 +223,15 @@ export function settings(
     config = { dimensions: config }
   }
 
-  config ??= {}
-  let sketch = Sketch.current()
-  if (!sketch) {
-    throw new Error(`You must call Void.settings() inside a sketch!`)
-  }
-
-  let { settings } = sketch
-  let defaults: Config = { dimensions: [settings.width, settings.height, 'px'] }
-  let overrides = sketch.overrides.config ?? {}
-  let c = Config.merge(defaults, config, overrides)
-  let s = Config.settings(c)
-  sketch.config = c
-  sketch.settings = s
-  return s
+  let sketch = Sketch.assert()
+  let settings = Sketch.settings(sketch, config ?? {})
+  return settings
 }
 
 /** The shorthand for define a set of choices. */
 type Choices<V> =
-  | Exclude<V, any[]>[]
-  | [number, V][]
+  | Exclude<readonly V[], readonly any[][]>
+  | readonly [number, V][]
   | Record<string, Exclude<V, any[]>>
   | Record<string, [number, V]>
 
@@ -205,13 +271,9 @@ function resolve<V>(
   value: V,
   schema: Exclude<Schema, SchemaPick | SchemaSample>
 ): V {
-  let sketch = Sketch.current()
-  if (!sketch) {
-    throw new Error(`You must define traits inside a Void sketch function!`)
-  }
-
-  let traits = sketch.overrides?.traits ?? sketch.traits
-  let v = name in traits ? (traits[name] as any) : value
+  let sketch = Sketch.assert()
+  let v = name in sketch.traits ? sketch.traits[name] : value
+  sketch.schemas ??= {}
   sketch.schemas[name] = schema
   sketch.traits[name] = v
   return v
@@ -223,16 +285,14 @@ function resolveChoice<V>(
   choice: SchemaChoice<V>,
   schema: SchemaPick<V>
 ): V {
-  let sketch = Sketch.current()
-  if (!sketch) {
-    throw new Error(`You must define traits inside a Void sketch function!`)
+  let sketch = Sketch.assert()
+
+  if (name in sketch.traits) {
+    choice =
+      schema.choices.find((o) => o.name === sketch!.traits[name]) ?? choice
   }
 
-  let traits = sketch.overrides?.traits ?? sketch.traits
-  if (name in traits) {
-    choice = schema.choices.find((o) => o.name === traits[name]) ?? choice
-  }
-
+  sketch.schemas ??= {}
   sketch.schemas[name] = schema
   sketch.traits[name] = choice.name
   return choice.value
@@ -244,14 +304,10 @@ function resolveChoices<V>(
   choices: SchemaChoice<V>[],
   schema: SchemaSample<V>
 ): V[] {
-  let sketch = Sketch.current()
-  if (!sketch) {
-    throw new Error(`You must define traits inside a Void sketch function!`)
-  }
+  let sketch = Sketch.assert()
 
-  let traits = sketch.overrides?.traits ?? sketch.traits
-  if (name in traits && Array.isArray(traits[name])) {
-    let keys = traits[name] as any[]
+  if (name in sketch.traits && Array.isArray(sketch.traits[name])) {
+    let keys = sketch.traits[name] as any[]
     let cs = keys.map((k) => schema.choices.find((o) => o.name === k))
     if (cs.every((o) => o != null)) {
       choices = cs as SchemaChoice<V>[]
@@ -265,6 +321,7 @@ function resolveChoices<V>(
     values.push(c.value)
   }
 
+  sketch.schemas ??= {}
   sketch.schemas[name] = schema
   sketch.traits[name] = names
   return values

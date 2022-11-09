@@ -11,7 +11,7 @@ export let InfoField = (props: {
       <label
         title={Icon ? label : undefined}
         className={`
-          flex-none mr-2 font-light text-gray-500 select-none
+          flex-none mr-2 text-gray-400 select-none
           ${Icon ? '-mx-0.5' : ''}
         `}
       >

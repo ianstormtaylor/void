@@ -8,13 +8,13 @@ export let EditorSidebar = () => {
   return (
     <div className="text-xs">
       <LayoutPanel />
-      <div className="border-t border-gray-200" />
+      {/* <div className="border-t border-gray-200" /> */}
       <SeedPanel />
-      <div className="border-t border-gray-200" />
+      {/* <div className="border-t border-gray-200" /> */}
       <TraitsPanel />
-      <div className="border-t border-gray-200" />
+      {/* <div className="border-t border-gray-200" /> */}
       <LayersPanel />
-      <div className="border-t border-gray-200" />
+      {/* <div className="border-t border-gray-200" /> */}
       <ExportPanel />
     </div>
   )

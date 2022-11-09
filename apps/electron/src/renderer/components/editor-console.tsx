@@ -15,7 +15,7 @@ export let EditorConsole = (props: { error: Error }) => {
 
   return (
     <div className="mx-4">
-      <div className="bg-gray-900 p-5 pt-4 max-h-96 rounded-t-lg">
+      <div className="bg-gray-900 p-5 pt-4 max-h-80 overflow-auto rounded-t-lg">
         <p className="mb-3 text-base font-mono">
           <span className="text-red-500">{error.name}: </span>
           <span className="text-gray-200">{error.message}</span>
@@ -54,45 +54,56 @@ let EditorErrorFrame = (props: { frame: Frame }) => {
         {original.file}:{original.line}:{original.column}
       </div>
       {expanded ? (
-        <pre className="text-xs bg-gray-800">
+        <pre className="text-xs bg-gray-800 py-1">
           <code>
             {original.context.map((c) => {
-              let isLine = c.line === original.line
-              let isFirst = c.line === first.line
-              let isLast = c.line === last?.line
               return (
-                <div key={c.line}>
-                  <span
-                    className={`
-                        inline-block px-1.5 py-px 
-                        ${isFirst ? 'pt-1' : isLast ? 'pb-1' : ''}
-                        ${
-                          isLine
-                            ? 'bg-red-500 bg-opacity-20 border-l border-red-400 text-red-400'
-                            : 'border-l border-transparent text-gray-600'
-                        }
-                      `}
-                  >
-                    {c.line.toString().padStart(pad)}
-                  </span>
-                  <span
-                    className={`
-                        inline-block pl-1.5 pr-px py-px 
-                        ${isFirst ? 'pt-1' : isLast ? 'pb-1' : ''}
-                        ${
-                          isLine
-                            ? 'bg-red-500 bg-opacity-20 text-red-400'
-                            : 'text-gray-500'
-                        }
-                      `}
-                  >
-                    {c.text}
-                  </span>
-                </div>
+                <EditorErrorLine
+                  key={c.line}
+                  row={c}
+                  line={original.line}
+                  column={original.column}
+                  pad={pad}
+                />
               )
             })}
           </code>
         </pre>
+      ) : null}
+    </div>
+  )
+}
+
+let EditorErrorLine = (props: {
+  row: Row
+  line: number
+  column: number
+  pad: number
+}) => {
+  let { row, line, column, pad } = props
+  let highlight = row.line === line
+  return (
+    <div>
+      <span
+        className={`
+          inline-block px-1.5 py-px 
+          ${highlight ? 'text-red-400/80' : 'text-gray-600'}
+        `}
+      >
+        {row.line.toString().padStart(pad)}
+      </span>
+      <span
+        className={`
+        inline-block pl-1.5 pr-px py-px 
+        ${highlight ? 'text-red-400/80' : 'text-gray-500'}
+      `}
+      >
+        {highlight ? row.text.slice(0, column) : row.text}
+      </span>
+      {highlight ? (
+        <span className="inline-block pr-px py-px text-red-400 bg-red-500/20">
+          {row.text.slice(column)}
+        </span>
       ) : null}
     </div>
   )
@@ -104,11 +115,11 @@ type Frame = {
   column: number
   method: string | null
   text: string
-  context: Line[]
+  context: Row[]
   original: Omit<Frame, 'original'>
 }
 
-type Line = {
+type Row = {
   line: number
   text: string
 }
@@ -148,12 +159,11 @@ async function parseFrames(error: Error): Promise<Frame[]> {
   for (let frame of frames) {
     let { file, lineNumber: line, column, methodName: method } = frame
     if (file == null || line == null || column == null) {
-      debugger
       throw new Error('unknown frame!')
     }
 
     // Skip frames above the `Sketch.exec` call in Void's library.
-    if (file.endsWith('void.mjs') && method === 'exec') {
+    if (method === 'exec' && new URL(file).pathname.endsWith('void.mjs')) {
       break
     }
 
@@ -182,7 +192,7 @@ async function parseFrames(error: Error): Promise<Frame[]> {
 }
 
 /** Get `n` lines around `line` in `text`. */
-function getLinesAround(text: string, line: number, n: number): Line[] {
+function getLinesAround(text: string, line: number, n: number): Row[] {
   let lines = text.split('\n')
   let context: { line: number; text: string }[] = []
   let start = Math.max(0, line - 1 - n)

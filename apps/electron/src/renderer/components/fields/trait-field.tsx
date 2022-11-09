@@ -20,8 +20,7 @@ export let TraitField = (props: {
   let { prop: key, schema, value } = props
   let [tab, changeTab] = useTab()
   let label = capitalCase(key)
-  let overridden =
-    tab.traits != null && key in tab.traits && tab.traits[key] === value
+  let overridden = tab.traits != null && key in tab.traits
   let valueClassName = overridden ? 'font-bold' : ''
   let field: React.ReactNode
 
@@ -73,27 +72,7 @@ export let TraitField = (props: {
   return (
     <div key={key} className="group flex items-center">
       <div className="flex-1 mr-3">{field}</div>
-      <div className=" flex -mr-2">
-        <IconButton
-          title="Auto-generate"
-          className="opacity-0 group-hover:opacity-100"
-          onClick={() => {
-            let attempts = 10
-            let current =
-              tab.traits != null && key in tab.traits ? tab.traits[key] : value
-
-            let v = schema.type === 'boolean' ? !current : current
-            while (v === current && attempts--) {
-              v = generate(schema)
-            }
-
-            changeTab((t) => {
-              t.traits[key] = v
-            })
-          }}
-        >
-          <MdOutlineAutoAwesome />
-        </IconButton>
+      <div className="flex -mr-2">
         <IconButton
           title="Lock"
           active={overridden}

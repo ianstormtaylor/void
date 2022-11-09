@@ -14,7 +14,10 @@ export let ExportPanel = () => {
       let s = Sketch.of({
         construct: sketch.construct,
         container: div,
-        overrides: sketch.overrides,
+        hash: sketch.hash,
+        traits: sketch.traits,
+        layers: sketch.layers,
+        config: sketch.config,
         output: { type, quality: 1 },
       })
 
@@ -35,8 +38,8 @@ export let ExportPanel = () => {
   )
 
   return (
-    <SidebarPanel title="Export">
-      <div className="flex space-x-2 pt-2">
+    <SidebarPanel title="Export" initialExpanded={false}>
+      <div className="flex space-x-2 py-2">
         <SidebarButton className="flex-1" onClick={() => onDownload('png')}>
           PNG
         </SidebarButton>

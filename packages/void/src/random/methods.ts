@@ -1,10 +1,9 @@
-import { Math } from '..'
+import { Math, Narrowable } from '..'
+import { createNoise4D } from 'simplex-noise'
 
-// Export noise functions.
-export * from './noise'
-
-/** The current pseudo-random number generator to use for all methods. */
-let RANDOM: () => number = Math.random
+/** The current 4D noise generator, implicitly created. */
+let NOISE: null | ((x: number, y: number, z: number, w: number) => number) =
+  null
 
 /** Generate a binomially-distributed number with `n` tries and `p` probability. */
 export function binomial(n = 1, p = 0.5) {
@@ -68,6 +67,69 @@ export function int(min?: number, max?: number, step = 1): number {
   return float(min, max, step)
 }
 
+/** Options for the `noise` method. */
+export type NoiseOptions = {
+  amplitude?: number
+  frequency?: number
+  lacunarity?: number
+  octaves?: number
+  persistence?: number
+}
+
+/** Generate simplex noise from `x`, `y`, `z`, and `w` coordinates, with `options`. */
+export function noise(x: number, options?: NoiseOptions): number
+export function noise(x: number, y: number, options?: NoiseOptions): number
+export function noise(
+  x: number,
+  y: number,
+  z: number,
+  options?: NoiseOptions
+): number
+export function noise(
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  options?: NoiseOptions
+): number
+export function noise(
+  x: number,
+  y?: number | NoiseOptions,
+  z?: number | NoiseOptions,
+  w?: number | NoiseOptions,
+  options?: NoiseOptions
+): number {
+  if (typeof y === 'object') (options = y), (y = 0)
+  if (typeof z === 'object') (options = z), (z = 0)
+  if (typeof w === 'object') (options = w), (w = 0)
+  y ??= 0
+  z ??= 0
+  w ??= 0
+  options ??= {}
+  let noise = (NOISE ??= createNoise4D(random))
+  let {
+    amplitude = 1.0,
+    frequency = 1,
+    lacunarity = 2,
+    octaves = 4,
+    persistence = 0.5,
+  } = options
+  let sum = 0
+  let max = 0
+
+  // https://catlikecoding.com/unity/tutorials/pseudorandom-noise/noise-variants/
+  for (let o = 0; o < octaves; o++) {
+    let n = noise(x * frequency, y * frequency, z * frequency, w * frequency)
+    sum += n * amplitude
+    max += amplitude
+    amplitude *= persistence
+    frequency *= lacunarity
+  }
+
+  sum /= 2 - 1 / 2 ** (octaves - 1)
+  return sum / max
+}
+
 /** Generate a Pareto-distributed number with `alpha`. */
 export function pareto(alpha = 1) {
   // https://github.com/transitive-bullshit/random/blob/master/src/distributions/pareto.ts
@@ -75,6 +137,8 @@ export function pareto(alpha = 1) {
 }
 
 /** Pick a random item from a `list`, with optional `weights`. */
+export function pick<T extends Narrowable>(list: T[], weights?: number[]): T
+export function pick<T>(list: T[], weights?: number[]): T
 export function pick<T>(list: T[], weights?: number[]): T {
   if (weights == null) return list[int(0, list.length - 1)]
   if (list.length !== weights.length)
@@ -118,7 +182,8 @@ export function prng(seed: number): () => number {
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
-  return RANDOM()
+  let fn = globalThis.VOID?.random ?? Math.random
+  return fn()
 }
 
 /** Generate rolls of an n-`sided` die, with optional number of `times`. */
@@ -129,6 +194,12 @@ export function roll(sides = 20, times = 1): number {
 }
 
 /** Pick a random sample of `size` from a `list`, with optional `weights`. */
+export function sample<T extends Narrowable>(
+  size: number,
+  list: T[],
+  weights?: number[]
+): T[]
+export function sample<T>(size: number, list: T[], weights?: number[]): T[]
 export function sample<T>(size: number, list: T[], weights?: number[]): T[] {
   if (size > list.length)
     throw new Error(`Sample size must be less than list length`)
@@ -154,12 +225,13 @@ export function seed(
   seed: number | (() => number),
   fn?: () => void
 ): void | (() => void) {
-  let prev = RANDOM
+  let VOID = (globalThis.VOID ??= {})
+  let prev = VOID.random
   let unseed = () => {
-    RANDOM = prev
+    VOID.random = prev
   }
 
-  RANDOM = typeof seed === 'number' ? prng(seed) : seed
+  VOID.random = typeof seed === 'number' ? prng(seed) : seed
   if (!fn) return unseed
   fn()
   unseed()
@@ -171,6 +243,8 @@ export function sign(): number {
 }
 
 /** Sort the elements of an array in a random order. */
+export function shuffle<T extends Narrowable>(list: T[]): T[]
+export function shuffle<T>(list: T[]): T[]
 export function shuffle<T>(list: T[]): T[] {
   // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
   let l = list.slice()

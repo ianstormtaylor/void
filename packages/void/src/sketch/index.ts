@@ -11,55 +11,67 @@ export type Frame = {
 }
 
 /** Data about the mouse while a sketch is running. */
-export type Mouse = {
+export type Pointer = {
+  type: 'mouse' | 'pen' | 'touch' | null
   x: number | null
   y: number | null
+  point: [number, number] | null
+  button: number | null
+  buttons: Record<number, true>
+}
+
+/** Data about the keyboard while a sketch is running. */
+export type Keyboard = {
+  code: string | null
+  codes: Record<string, true>
+  key: string | null
+  keys: Record<string, true>
 }
 
 /** A layer of the sketch. */
 export type Layer = {
-  hidden?: boolean
-  export: () => string
+  hidden: boolean
+  export?: () => string
+}
+
+/** The event handlers of a sketch. */
+export type Handlers = {
+  construct: Array<() => void>
+  draw: Array<() => void>
+  error: Array<(error: Error) => void>
+  play: Array<() => void>
+  pause: Array<() => void>
+  stop: Array<() => void>
 }
 
 /** An object representing a Void sketch's state. */
 export type Sketch = {
   config: Config
   construct: () => void
-  draw?: (frame: Frame) => void
+  draw?: () => void
   container: HTMLElement
   el: HTMLElement
   frame?: Frame
-  handlers: {
-    construct: Array<() => void>
-    draw: Array<() => void>
-    error: Array<(error: Error) => void>
-    play: Array<() => void>
-    pause: Array<() => void>
-    stop: Array<() => void>
-  }
+  handlers?: Handlers
+  hash: string
+  keyboard?: Keyboard
   layers: Record<string, Layer>
-  mouse?: Mouse
+  pointer?: Pointer
   output: Output
-  overrides: {
-    layers?: Record<string, { hidden: boolean }>
-    config?: Config
-    traits?: Record<string, any>
-  }
+  prng?: () => number
   raf?: number
-  schemas: Record<string, Schema>
+  schemas?: Record<string, Schema>
+  seed: number
   settings: {
     dpi: number
     fps: number
     frames: number
-    hash: string
     height: number
     margin: [number, number, number, number]
     precision: number
-    seed: number
     units: Units
     width: number
   }
-  status: 'playing' | 'paused' | 'stopped'
+  status?: 'playing' | 'paused' | 'stopped'
   traits: Record<string, any>
 }
