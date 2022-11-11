@@ -1,8 +1,8 @@
-import { Math, Units, OUTPUT_MIME_TYPES, Random, Config } from '..'
-import { Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
+import { Math, Units, OUTPUT_MIME_TYPES, Random, Config, Schema } from '..'
+import { Frame, Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
   applyOrientation,
-  HTML_CSS_DPI,
+  CSS_CPI,
   svgDataUriToString,
   svgElementToString,
   svgStringToDataUri,
@@ -46,7 +46,7 @@ export function current(): Sketch | undefined {
 export function detach(sketch: Sketch): void {
   let { container, el } = sketch
   stop(sketch)
-  container.removeChild(el)
+  if (el.parentNode === container) container.removeChild(el)
 }
 
 /** Get the full-sized dimensions of a `sketch`, including margins, in the sketch's own units. */
@@ -61,9 +61,9 @@ export function dimensions(
   let to: Units = mode === 'sketch' ? settings.units : 'px'
   let dpi =
     mode === 'pixel'
-      ? HTML_CSS_DPI
+      ? CSS_CPI
       : mode === 'device'
-      ? HTML_CSS_DPI * window.devicePixelRatio
+      ? CSS_CPI * window.devicePixelRatio
       : settings.dpi
   let w = width + left + right
   let h = height + top + bottom
@@ -98,6 +98,15 @@ export function exec(sketch: Sketch, fn: () => void) {
     VOID.sketch = prev
     unseed()
   }
+}
+
+/** Get the sketch's current frame information. */
+export function frame(sketch: Sketch): Frame {
+  return (sketch.frame ??= {
+    count: -1,
+    time: window.performance.now(),
+    rate: sketch.settings.fps,
+  })
 }
 
 /** Get the sketch's current keyboard information. */
@@ -153,13 +162,13 @@ export function of(attrs: {
     config,
     construct,
     container,
-    el: document.createElement('el'),
+    el: document.createElement('div'),
     hash,
     layers,
     output,
     seed,
     settings: {
-      dpi: 72,
+      dpi: CSS_CPI,
       fps: 60,
       frames: Infinity,
       height: container.offsetHeight,
@@ -194,32 +203,32 @@ export function play(sketch: Sketch) {
   if (sketch.raf) return
   if (sketch.status === 'stopped') return
 
-  if (sketch.status !== 'playing') {
+  let { status, settings } = sketch
+  let frame = Sketch.frame(sketch)
+
+  if (status !== 'playing') {
     sketch.status = 'playing'
     Sketch.emit(sketch, 'play')
   }
 
-  let now = window.performance.now()
-  if (!sketch.frame) {
-    sketch.frame = { count: -1, time: now, rate: 0 }
+  if (status == null) {
     Sketch.exec(sketch, sketch.construct)
     Sketch.emit(sketch, 'construct')
     Sketch.attach(sketch)
   }
 
-  let { frame, settings } = sketch
-  let { fps, frames } = settings
-  if (!sketch.draw || frame.count >= frames) {
+  if (!sketch.draw || frame.count >= settings.frames) {
     Sketch.stop(sketch)
     return
   }
 
-  let delta = now - frame.time
-  let target = 1000 / fps
+  let target = 1000 / settings.fps
+  let now = window.performance.now()
+  let delta = frame.count < 0 ? target : now - frame.time
   let epsilon = 5
   if (delta >= target - epsilon) {
+    frame.count++
     frame.time = now
-    frame.count = frame.count + 1
     frame.rate = 1000 / delta
     Sketch.exec(sketch, sketch.draw)
     Sketch.emit(sketch, 'draw')
@@ -363,7 +372,7 @@ export async function saveSvg(sketch: Sketch): Promise<string> {
 /** Resolve a `config` object into the sketch's settings. */
 export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
   config = { ...config, ...sketch.config }
-  let { dpi = 72, fps = 60, frames = Infinity } = config
+  let { dpi = CSS_CPI, fps = 60, frames = Infinity } = config
   let orientation = Config.orientation(config)
   let units = Config.units(config)
 
@@ -414,4 +423,16 @@ export function stop(sketch: Sketch) {
   delete sketch.raf
   sketch.status = 'stopped'
   Sketch.emit(sketch, 'stop')
+}
+
+/** Set a trait on a `sketch` to a new value. */
+export function trait(
+  sketch: Sketch,
+  name: string,
+  value: any,
+  schema: Schema
+): void {
+  sketch.schemas ??= {}
+  sketch.traits[name] = value
+  sketch.schemas[name] = schema
 }

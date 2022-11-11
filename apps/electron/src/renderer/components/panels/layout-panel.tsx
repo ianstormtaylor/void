@@ -19,9 +19,13 @@ export let LayoutPanel = () => {
     <SidebarPanel
       title="Layout"
       summary={
-        <span>
-          {width} &times; {height} {units}
-        </span>
+        width === Infinity || height === Infinity ? (
+          <span>Fullscreen</span>
+        ) : (
+          <span>
+            {width} &times; {height} {units}
+          </span>
+        )
       }
       buttons={
         <>

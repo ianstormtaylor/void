@@ -1,5 +1,6 @@
-import { Math, Narrowable } from '..'
+import { Math, Narrowable } from '.'
 import { createNoise4D } from 'simplex-noise'
+import { createPrng } from './utils'
 
 /** The current 4D noise generator, implicitly created. */
 let NOISE: null | ((x: number, y: number, z: number, w: number) => number) =
@@ -57,7 +58,8 @@ export function float(min?: number, max?: number, step?: number): number {
 /** Run a `fn` with a fork of the current PRNG, only consuming one random value. */
 export function fork(fn: () => void): void {
   let s = int(0, 2 ** 32)
-  seed(s, fn)
+  let prng = createPrng(s)
+  seed(prng, fn)
 }
 
 /** Generate an integer, with optional `min`, `max`, and `step`. */
@@ -163,23 +165,6 @@ export function poisson(mean = 1) {
   return k - 1
 }
 
-/** Create a pseudo-random number generator using the SFC32 algorithm, with a `seed`. */
-export function prng(seed: number): () => number {
-  let state = seed | 0
-  let random = () => {
-    let next = (state >>> ((state >>> 28) + 4)) ^ state
-    next = Math.imul(next, 277803737)
-    next = (next >>> 22) ^ next
-    state = Math.imul(state, 747796405) + 2891336453
-    return (next >>> 0) / 4294967296
-  }
-
-  random()
-  state = (state + seed) | 0
-  random()
-  return random
-}
-
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
   let fn = globalThis.VOID?.random ?? Math.random
@@ -216,22 +201,17 @@ export function sample<T>(size: number, list: T[], weights?: number[]): T[] {
   return samp
 }
 
-/** Set a seed for the prng, either until reset, or while executing a `handler`. */
-export function seed(seed: number): () => void
+/** Set the seeded prng, either until reset, or just while executing a `handler`. */
 export function seed(prng: () => number): () => void
-export function seed(seed: number, fn: () => void): void
 export function seed(prng: () => number, fn: () => void): void
-export function seed(
-  seed: number | (() => number),
-  fn?: () => void
-): void | (() => void) {
+export function seed(prng: () => number, fn?: () => void): void | (() => void) {
   let VOID = (globalThis.VOID ??= {})
   let prev = VOID.random
   let unseed = () => {
     VOID.random = prev
   }
 
-  VOID.random = typeof seed === 'number' ? prng(seed) : seed
+  VOID.random = prng
   if (!fn) return unseed
   fn()
   unseed()

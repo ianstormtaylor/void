@@ -1,6 +1,5 @@
-import { mergeWith } from 'lodash'
 import { Config } from '.'
-import { Sizes, Size, Orientation, Units, Math, Sketch } from '..'
+import { Sizes, Size, Orientation, Units } from '..'
 import { resolveOrientation } from '../utils'
 
 /** Resolve the dimensions of a `config`. */
@@ -32,13 +31,6 @@ export function margin(config: Config): Sizes<4> {
   }
 
   return margin
-}
-
-/** Merge multiple `configs` into one. */
-export function merge(...configs: Config[]): Config {
-  return mergeWith({}, ...configs, (a: Config, b: Config) => {
-    if (Array.isArray(a)) return b
-  })
 }
 
 /** Resolve the orientation from a `config`. */

@@ -1,8 +1,9 @@
+export * as Math from './math'
+export * as Random from './random'
+export * as Void from './void'
+
 export * from './config'
-export * from './math'
 export * from './output'
-export * from './random'
 export * from './size'
 export * from './sketch'
 export * from './types'
-export * from './void'

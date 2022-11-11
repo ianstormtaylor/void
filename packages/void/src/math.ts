@@ -1,4 +1,5 @@
-import { Sketch, Units, UnitsSystem } from '..'
+import { Sketch, Units, UnitsSystem } from '.'
+import { CSS_CPI } from './utils'
 
 /** The golden ratio. */
 export const PHI = (1 + Math.sqrt(5)) / 2
@@ -48,19 +49,19 @@ export function bounce(value: number, min: number, max: number): number {
 /** Round a `value` _up_, with optional `precision` or `multiple`. */
 export function ceil(value: number): number
 export function ceil(value: number, precision: number): number
+export function ceil(value: number, options: { multiple: number }): number
 export function ceil(
   value: number,
-  options: { precision: number } | { multiple: number }
-): number
-export function ceil(
-  value: number,
-  options?: number | { precision: number } | { multiple: number }
+  options?: number | { multiple: number }
 ): number {
-  if (options == null) return Math.ceil(value)
-  if (typeof options === 'number') options = { precision: options }
-  let by =
-    'multiple' in options ? 1 / options.multiple : 10 ** options.precision
-  return Math.ceil(value * by) / by
+  if (typeof options === 'number') {
+    let p = 10 ** options
+    return Math.ceil(value * p) / p
+  } else if (options != null) {
+    return Math.ceil(value / options.multiple) * options.multiple
+  } else {
+    return Math.ceil(value)
+  }
 }
 
 /** Clamp a `value` between `min` and `max`. */
@@ -127,7 +128,7 @@ export function convert(
   let sketch = Sketch.current()
   let s = sketch?.settings
   to = to ?? s?.units ?? 'px'
-  let { dpi = s?.dpi ?? 72, precision = s?.precision } = options
+  let { dpi = s?.dpi ?? CSS_CPI, precision } = options
 
   // Early exit.
   if (from === to) return value
@@ -179,7 +180,7 @@ export function easeOutIn(t: number, p = 2): number {
 
 /** Check if `a` and `b` are equal, with optional `tolerance`. */
 export function equals(a: number, b: number, tolerance = TOLERANCE): boolean {
-  return Math.abs(a - b) <= tolerance
+  return a === b || Math.abs(a - b) <= tolerance
 }
 
 /** Calculate the extent of a list of `numbers`. */
@@ -210,19 +211,19 @@ export function factorial(value: number): number {
 /** Round a `value` _down_, with optional `precision` or `multiple`. */
 export function floor(value: number): number
 export function floor(value: number, precision: number): number
+export function floor(value: number, options: { multiple: number }): number
 export function floor(
   value: number,
-  options: { precision: number } | { multiple: number }
-): number
-export function floor(
-  value: number,
-  options?: number | { precision: number } | { multiple: number }
+  options?: number | { multiple: number }
 ): number {
-  if (options == null) return Math.floor(value)
-  if (typeof options === 'number') options = { precision: options }
-  let by =
-    'multiple' in options ? 1 / options.multiple : 10 ** options.precision
-  return Math.floor(value * by) / by
+  if (typeof options === 'number') {
+    let p = 10 ** options
+    return Math.floor(value * p) / p
+  } else if (options != null) {
+    return Math.floor(value / options.multiple) * options.multiple
+  } else {
+    return Math.floor(value)
+  }
 }
 
 /** Calculate the greatest common divisor of a set of `numbers`. */
@@ -260,23 +261,23 @@ export function isBetween(
 }
 
 /** Check if a `value` is an integer. */
-export function isInteger(value: number, tolerance = TOLERANCE): boolean {
-  return Number.isInteger(value) ? true : equals(value % 1, 0, tolerance)
+export function isInteger(value: number, tolerance?: number): boolean {
+  return Number.isInteger(value) || equals(value % 1, 0, tolerance)
 }
 
 /** Check if a `value` is negative. */
-export function isNegative(value: number, tolerance = TOLERANCE): boolean {
+export function isNegative(value: number, tolerance?: number): boolean {
   return value < 0 && !isZero(value, tolerance)
 }
 
 /** Check if a `value` is positive. */
-export function isPositive(value: number, tolerance = TOLERANCE): boolean {
+export function isPositive(value: number, tolerance?: number): boolean {
   return value > 0 && !isZero(value, tolerance)
 }
 
 /** Check if a `value` is zero. */
-export function isZero(value: number, tolerance = TOLERANCE): boolean {
-  return equals(value, 0, tolerance)
+export function isZero(value: number, tolerance?: number): boolean {
+  return value === 0 || equals(value, 0, tolerance)
 }
 
 /** Calculate the least common multiple of a set of `numbers`. */
@@ -302,6 +303,19 @@ export function lerpAngle(a: number, b: number, t: number): number {
 /** Calculate the logarithm of `value`, with optional `base`. */
 export function log(value: number, base?: number): number {
   return base == null ? Math.log(value) : Math.log(value) / Math.log(base)
+}
+
+/** Map a `value` between `inMin` and `inMax` to a new scale between `outMin` and `outMax`. */
+export function map(
+  value: number,
+  inMin: number,
+  inMax: number,
+  outMin: number,
+  outMax: number
+): number {
+  let t = unlerp(inMin, inMax, value)
+  let v = lerp(outMin, outMax, t)
+  return v
 }
 
 /** Calculate the mean of a set of `numbers`. */
@@ -366,13 +380,13 @@ export function permutations<T>(list: T[]): T[][] {
 export function quantile(
   values: number[],
   p: number,
-  options: { sorted?: boolean } = {}
+  options?: { sorted?: boolean }
 ): number {
   // https://github.com/mathigon/fermat.js/blob/master/src/statistics.ts
   let { length } = values
   if (!length) return NaN
   if (length === 1) return values[0]
-  if (!options.sorted) values = values.slice().sort((a, b) => a - b)
+  if (!options?.sorted) values = values.slice().sort((a, b) => a - b)
   if (p === 0) return values[0]
   if (p === 1) return values.at(-1)!
   let index = p * (length - 1)
@@ -426,32 +440,19 @@ export function rolling<T>(list: T[], size: number): T[][] {
 /** Round a `value`, with optional `precision` or `multiple`. */
 export function round(value: number): number
 export function round(value: number, precision: number): number
+export function round(value: number, options: { multiple: number }): number
 export function round(
   value: number,
-  options: { precision: number } | { multiple: number }
-): number
-export function round(
-  value: number,
-  options?: number | { precision: number } | { multiple: number }
+  options?: number | { multiple: number }
 ): number {
-  if (options == null) return Math.round(value)
-  if (typeof options === 'number') options = { precision: options }
-  let by =
-    'multiple' in options ? 1 / options.multiple : 10 ** options.precision
-  return Math.round(value * by) / by
-}
-
-/** Scale a `value` between `inMin` and `inMax` to a new scale between `outMin` and `outMax`. */
-export function scale(
-  value: number,
-  inMin: number,
-  inMax: number,
-  outMin: number,
-  outMax: number
-): number {
-  let t = unlerp(inMin, inMax, value)
-  let v = lerp(outMin, outMax, t)
-  return v
+  if (typeof options === 'number') {
+    let p = 10 ** options
+    return Math.round(value * p) / p
+  } else if (options != null) {
+    return Math.round(value / options.multiple) * options.multiple
+  } else {
+    return Math.round(value)
+  }
 }
 
 /** Get the sign of a number, with optional `tolerance`. */
@@ -502,19 +503,19 @@ export function sum(...numbers: number[]): number {
 /** Round a `value` towards zero, with optional `precision` or `multiple`. */
 export function trunc(value: number): number
 export function trunc(value: number, precision: number): number
+export function trunc(value: number, options: { multiple: number }): number
 export function trunc(
   value: number,
-  options: { precision: number } | { multiple: number }
-): number
-export function trunc(
-  value: number,
-  options?: number | { precision: number } | { multiple: number }
+  options?: number | { multiple: number }
 ): number {
-  if (options == null) return Math.trunc(value)
-  if (typeof options === 'number') options = { precision: options }
-  let by =
-    'multiple' in options ? 1 / options.multiple : 10 ** options.precision
-  return Math.trunc(value * by) / by
+  if (typeof options === 'number') {
+    let p = 10 ** options
+    return Math.trunc(value * p) / p
+  } else if (options != null) {
+    return Math.trunc(value / options.multiple) * options.multiple
+  } else {
+    return Math.trunc(value)
+  }
 }
 
 /** Un-hash an integer `x` back into another integer, from `0` to `2^32`. */
@@ -554,7 +555,7 @@ export function wrap(
   value: number,
   min: number,
   max: number,
-  inclusive = false
+  inclusive?: boolean
 ): number {
   // https://github.com/mattdesl/canvas-sketch-util/blob/master/lib/wrap.js
   var range = max - min

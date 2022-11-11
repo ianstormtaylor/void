@@ -6,7 +6,7 @@ export default function () {
     margin: [0.25, 'in'],
   })
 
-  let ctx = Void.layer('main')
+  let ctx = Void.layer()
   let cols = Void.int('columns', 4, 16)
   let ease = Void.float('ease', 0, 2, 0.05)
   let disp = Void.int('displacement', 0, 50)

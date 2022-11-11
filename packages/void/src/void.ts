@@ -1,5 +1,5 @@
 import { Context } from 'svgcanvas'
-import { svgStringToDataUri } from '../utils'
+import { svgStringToDataUri } from './utils'
 import {
   Sketch,
   Schema,
@@ -11,7 +11,8 @@ import {
   Narrowable,
   Pointer,
   Keyboard,
-} from '..'
+  Math,
+} from '.'
 
 /** Define a trait that is a boolean, with optional `probability` of being true. */
 export function bool(name: string, probability = 0.5): boolean {
@@ -32,8 +33,12 @@ export function event<E extends keyof GlobalEventHandlersEventMap>(
 ): () => void {
   let sketch = Sketch.assert()
   let { el } = sketch
-  el.addEventListener(event, callback)
-  let off = () => el.removeEventListener(event, callback)
+  let fn = (e: GlobalEventHandlersEventMap[E]) => {
+    Sketch.exec(sketch, () => callback(e))
+  }
+
+  el.addEventListener(event, fn)
+  let off = () => el.removeEventListener(event, fn)
   Sketch.on(sketch, 'stop', off)
   return off
 }
@@ -128,10 +133,17 @@ export function pointer(): Pointer {
   if (!POINTER_LISTENING.has(sketch)) {
     event('pointermove', (e) => {
       if (!e.isPrimary) return
-      let rect = sketch.el.getBoundingClientRect()
+      let { el } = sketch
+      let canvas = el.querySelector('canvas')
+      if (!canvas) return
       pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
-      pointer.x = e.x - rect.left
-      pointer.y = e.y - rect.top
+      pointer.x = Math.convert(e.offsetX, 'px')
+      pointer.y = Math.convert(e.offsetY, 'px')
+      // pointer.x = (e.offsetX * canvas.width) / canvas.offsetWidth
+      // pointer.y = (e.offsetY * canvas.height) / canvas.offsetHeight
+      // let rect = sketch.el.getBoundingClientRect()
+      // pointer.x = e.x - rect.left
+      // pointer.y = e.y - rect.top
       if (pointer.point) {
         pointer.point[0] = pointer.x
         pointer.point[1] = pointer.y
@@ -273,9 +285,7 @@ function resolve<V>(
 ): V {
   let sketch = Sketch.assert()
   let v = name in sketch.traits ? sketch.traits[name] : value
-  sketch.schemas ??= {}
-  sketch.schemas[name] = schema
-  sketch.traits[name] = v
+  Sketch.trait(sketch, name, v, schema)
   return v
 }
 
@@ -292,9 +302,7 @@ function resolveChoice<V>(
       schema.choices.find((o) => o.name === sketch!.traits[name]) ?? choice
   }
 
-  sketch.schemas ??= {}
-  sketch.schemas[name] = schema
-  sketch.traits[name] = choice.name
+  Sketch.trait(sketch, name, choice.name, schema)
   return choice.value
 }
 
@@ -321,8 +329,6 @@ function resolveChoices<V>(
     values.push(c.value)
   }
 
-  sketch.schemas ??= {}
-  sketch.schemas[name] = schema
-  sketch.traits[name] = names
+  Sketch.trait(sketch, name, names, schema)
   return values
 }

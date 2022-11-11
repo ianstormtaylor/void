@@ -6,8 +6,8 @@ export let SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 /** The prefix for Base64-encoded SVG data URIs. */
 export let SVG_DATA_URI_PREFIX = 'data:image/svg+xml;base64,'
 
-/** The fixed DPI that HTML/CSS use when displaying. */
-export let HTML_CSS_DPI = 96
+/** The fixed DPI that CSS uses when displaying real-world units. */
+export let CSS_CPI = 96
 
 /** Convert an SVG string to a data URI. */
 export function svgStringToDataUri(svg: string): string {
@@ -58,4 +58,21 @@ export function applyOrientation(
 /** Resolve the orientation of a `width` and `height`. */
 export function resolveOrientation(width: number, height: number): Orientation {
   return width === height ? 'square' : width < height ? 'portrait' : 'landscape'
+}
+
+/** Create a pseudo-random number generator using the PCG algorithm, with a `seed`. */
+export function createPrng(seed: number): () => number {
+  let state = seed | 0
+  let random = () => {
+    let next = (state >>> ((state >>> 28) + 4)) ^ state
+    next = Math.imul(next, 277803737)
+    next = (next >>> 22) ^ next
+    state = Math.imul(state, 747796405) + 2891336453
+    return (next >>> 0) / 4294967296
+  }
+
+  random()
+  state = (state + seed) | 0
+  random()
+  return random
 }

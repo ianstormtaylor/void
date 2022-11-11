@@ -41,8 +41,6 @@ t('Math.ceil', () => {
   e(Math.ceil(4.0)).toEqual(4)
   e(Math.ceil(Math.PI, 2)).toEqual(3.15)
   e(Math.ceil(Math.PI, 4)).toEqual(3.1416)
-  e(Math.ceil(Math.PI, { precision: 2 })).toEqual(3.15)
-  e(Math.ceil(Math.PI, { precision: 4 })).toEqual(3.1416)
   e(Math.ceil(Math.PI, { multiple: 0.2 })).toEqual(3.2)
   e(Math.ceil(Math.PI, { multiple: 0.5 })).toEqual(3.5)
   e(Math.ceil(4.34201, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
@@ -175,8 +173,6 @@ t('Math.floor', () => {
   e(Math.floor(5.0)).toEqual(5)
   e(Math.floor(Math.PI, 2)).toEqual(3.14)
   e(Math.floor(Math.PI, 4)).toEqual(3.1415)
-  e(Math.floor(Math.PI, { precision: 2 })).toEqual(3.14)
-  e(Math.floor(Math.PI, { precision: 4 })).toEqual(3.1415)
   e(Math.floor(Math.PI, { multiple: 0.2 })).toEqual(3.0)
   e(Math.floor(Math.PI, { multiple: 0.5 })).toEqual(3)
   e(Math.floor(4.34201, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
@@ -255,6 +251,11 @@ t('Math.lerpAngle', () => {
 t('Math.log', () => {
   e(Math.log(10)).toBeCloseTo(2.3)
   e(Math.log(10, 2)).toBeCloseTo(3.32)
+})
+
+t('Math.map', () => {
+  e(Math.map(0.5, 0, 1, 0, 10)).toEqual(5)
+  e(Math.map(3, 0, 10, 0, 1)).toEqual(0.3)
 })
 
 t('Math.mean', () => {
@@ -336,17 +337,10 @@ t('Math.round', () => {
   e(Math.round(5.0)).toEqual(5)
   e(Math.round(Math.PI, 2)).toEqual(3.14)
   e(Math.round(Math.PI, 4)).toEqual(3.1416)
-  e(Math.round(Math.PI, { precision: 2 })).toEqual(3.14)
-  e(Math.round(Math.PI, { precision: 4 })).toEqual(3.1416)
   e(Math.round(Math.PI, { multiple: 0.2 })).toEqual(3.2)
   e(Math.round(Math.PI, { multiple: 0.5 })).toEqual(3)
   e(Math.round(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
   e(Math.round(4.349, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
-})
-
-t('Math.scale', () => {
-  e(Math.scale(0.5, 0, 1, 0, 10)).toEqual(5)
-  e(Math.scale(3, 0, 10, 0, 1)).toEqual(0.3)
 })
 
 t('Math.sign', () => {
@@ -389,8 +383,6 @@ t('Math.trunc', () => {
   e(Math.trunc(5.0)).toEqual(5)
   e(Math.trunc(Math.PI, 2)).toEqual(3.14)
   e(Math.trunc(Math.PI, 4)).toEqual(3.1415)
-  e(Math.trunc(Math.PI, { precision: 2 })).toEqual(3.14)
-  e(Math.trunc(Math.PI, { precision: 4 })).toEqual(3.1415)
   e(Math.trunc(Math.PI, { multiple: 0.2 })).toEqual(3.0)
   e(Math.trunc(Math.PI, { multiple: 0.5 })).toEqual(3)
   e(Math.trunc(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)

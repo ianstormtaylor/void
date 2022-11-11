@@ -5,32 +5,26 @@ import { BooleanField } from './boolean-field'
 import { useTab } from '../../contexts/tab'
 import { Schema, Math, Random } from 'void'
 import { IconButton } from '../ui/icon-button'
-import {
-  MdOutlineAutoAwesome,
-  MdOutlineLock,
-  MdOutlineLockOpen,
-} from 'react-icons/md'
+import { MdOutlineLock, MdOutlineLockOpen } from 'react-icons/md'
 import { EnumField } from './enum-field'
+import { useSketch } from '../../contexts/sketch'
 
-export let TraitField = (props: {
-  prop: string
-  schema: Schema
-  value: any
-}) => {
-  let { prop: key, schema, value } = props
+export let TraitField = (props: { name: string }) => {
+  let sketch = useSketch()
+  let { name } = props
+  let value = sketch.traits[name]
+  let schema = sketch.schemas![name]
   let [tab, changeTab] = useTab()
-  let label = capitalCase(key)
-  let overridden = tab.traits != null && key in tab.traits
+  let label = capitalCase(name)
+  let overridden = tab.traits != null && name in tab.traits
   let valueClassName = overridden ? 'font-bold' : ''
   let field: React.ReactNode
 
   let onChange = useCallback(
-    (value: any) => {
-      changeTab((t) => {
-        t.traits[key] = value
-      })
+    (v: any) => {
+      changeTab((t) => (t.traits[name] = v))
     },
-    [tab, key, changeTab]
+    [changeTab]
   )
 
   if (schema.type === 'int' || schema.type === 'float') {
@@ -70,7 +64,7 @@ export let TraitField = (props: {
   }
 
   return (
-    <div key={key} className="group flex items-center">
+    <div key={name} className="group flex items-center">
       <div className="flex-1 mr-3">{field}</div>
       <div className="flex -mr-2">
         <IconButton
@@ -78,10 +72,10 @@ export let TraitField = (props: {
           active={overridden}
           onClick={() => {
             changeTab((t) => {
-              if (key in t.traits) {
-                delete t.traits[key]
+              if (name in t.traits) {
+                delete t.traits[name]
               } else {
-                t.traits[key] = value
+                t.traits[name] = value
               }
             })
           }}

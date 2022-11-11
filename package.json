@@ -12,6 +12,8 @@
     "clean": "rm -rf ./node_modules && rm -rf ./{apps,packages}/*/{dist,node_modules,out}"
   },
   "devDependencies": {
+    "@types/d3-scale-chromatic": "^3.0.0",
+    "d3-scale-chromatic": "^3.0.0",
     "prettier": "^2.6.2",
     "typescript": "^4.9.0-dev.20221026",
     "vite": "^3.1.8",

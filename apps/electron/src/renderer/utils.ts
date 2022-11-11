@@ -1,4 +1,5 @@
 import { Draft } from 'immer'
+import { Sketch, Units } from 'void'
 
 /** A simplified `Producer` type for Immer. */
 export type Producer<T> = (draft: Draft<T>) => void

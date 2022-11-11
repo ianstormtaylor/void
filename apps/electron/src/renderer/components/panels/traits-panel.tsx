@@ -34,13 +34,8 @@ export let TraitsPanel = () => {
       }
     >
       {sketchHas ? (
-        Object.entries(sketch.schemas ?? {}).map(([key, schema]) => (
-          <TraitField
-            key={key}
-            prop={key}
-            schema={schema}
-            value={sketch.traits[key]}
-          />
+        Object.keys(sketch.schemas ?? {}).map((name) => (
+          <TraitField key={name} name={name} />
         ))
       ) : (
         <div className="text-gray-400 pb-2">No traits were defined.</div>
