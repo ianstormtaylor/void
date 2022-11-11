@@ -1,13 +1,13 @@
 {
+  "include": ["./examples", "apps/electron/test"],
   "references": [{ "path": "./apps/electron" }, { "path": "./packages/void" }],
-  "include": ["./examples", "./tmp"],
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "esModuleInterop": false,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["DOM", "DOM.Iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
     "skipLibCheck": true,

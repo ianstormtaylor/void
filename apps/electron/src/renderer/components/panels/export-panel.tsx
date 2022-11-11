@@ -46,9 +46,6 @@ export let ExportPanel = () => {
         <SidebarButton className="flex-1" onClick={() => onDownload('svg')}>
           SVG
         </SidebarButton>
-        <SidebarButton className="flex-1" onClick={() => onDownload('pdf')}>
-          PDF
-        </SidebarButton>
       </div>
     </SidebarPanel>
   )

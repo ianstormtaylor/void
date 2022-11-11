@@ -7,7 +7,7 @@ export default function () {
   })
 
   let grid = Void.int('grid', 10, 50, 5)
-  let ctx = Void.layer('main')
+  let ctx = Void.layer()
   ctx.lineWidth = 1.5
   ctx.lineCap = 'round'
 

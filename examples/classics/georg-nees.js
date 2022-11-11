@@ -8,7 +8,7 @@ export default function () {
 
   let ctx = Void.layer()
   let cols = Void.int('columns', 4, 16)
-  let ease = Void.float('ease', 0, 2, 0.05)
+  let ease = Void.float('ease', 0, 0.5, 0.01)
   let disp = Void.int('displacement', 0, 50)
   let rot = Void.int('rotation', 0, 360, 30)
   let cell = width / cols

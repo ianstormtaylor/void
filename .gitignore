@@ -8,6 +8,8 @@ out/
 node_modules/
 
 # Temporary files
+.next/
 tmp/
 *.log
 *.tsbuildinfo
+apps/site

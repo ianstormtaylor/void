@@ -1,4 +1,4 @@
-import { Math, Random, Void } from 'void'
+import { Void, Math, Random } from 'void'
 
 // https://www.moma.org/collection/works/37202
 export default function () {
@@ -7,7 +7,7 @@ export default function () {
   bg.fillStyle = '#E6E0D2'
   bg.fillRect(0, 0, width, height)
 
-  let ctx = Void.layer('cells')
+  let ctx = Void.layer('tiles')
   let grid = Void.int('grid', 12, 48)
   let count = Void.int('count', 200, 1000, 100)
   let v = Void.float('variance', 0.5, 1.5, 0.1)

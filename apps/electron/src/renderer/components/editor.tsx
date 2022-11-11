@@ -69,9 +69,7 @@ export let Editor = (props: { construct: Sketch['construct'] }) => {
   useLayoutEffect(() => {
     if (!ref.current) return
     let el = ref.current
-    el!.style.transition = 'none'
-    el!.style.transform = `scale(${tab.zoom})`
-    setTimeout(() => (el!.style.transition = `transform .1s ease-in`))
+    el.style.transform = `scale(${tab.zoom})`
   }, [tab.zoom])
 
   return (

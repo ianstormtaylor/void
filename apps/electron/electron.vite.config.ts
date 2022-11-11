@@ -18,6 +18,7 @@ export default defineConfig({
   },
   renderer: {
     build: {
+      target: 'chrome',
       minify: false,
       sourcemap: true,
     },

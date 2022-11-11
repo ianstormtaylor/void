@@ -1,6 +1,6 @@
 {
-  "private": true,
   "name": "@apps/electron",
+  "private": true,
   "version": "0.0.0",
   "description": "Void is an editing studio for creative coding.",
   "author": "Ian Storm Taylor",
@@ -21,7 +21,7 @@
     "dotenv-cli": "^6.0.0",
     "electron-devtools-vendor": "^1.1.0",
     "electron-notarize": "^1.2.1",
-    "electron-vite": "^1.0.11",
+    "electron-vite": "^1.0.13",
     "esbuild": "^0.14.48",
     "esbuild-darwin-64": "^0.14.48",
     "esbuild-wasm": "^0.14.48",

@@ -1,14 +1,15 @@
 import { Void } from 'void'
 
-// A basic animation example sketch.
 export default function () {
-  // Setup our layout, traits, and variables.
+  // Get the canvas's dimensions and setup some variables.
   let { width, height } = Void.settings()
-  let speed = Void.int('speed', 1, 11)
   let y = 0
 
+  // Define a `speed` trait that will control how fact our line moves.
+  let speed = Void.int('speed', 1, 11)
+
   // Create a layer to draw on, and fill it with black.
-  let context = Void.layer('main')
+  let context = Void.layer()
   context.fillStyle = 'black'
   context.fillRect(0, 0, width, height)
 

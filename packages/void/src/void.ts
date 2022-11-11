@@ -144,11 +144,11 @@ export function pointer(): Pointer {
       // let rect = sketch.el.getBoundingClientRect()
       // pointer.x = e.x - rect.left
       // pointer.y = e.y - rect.top
-      if (pointer.point) {
-        pointer.point[0] = pointer.x
-        pointer.point[1] = pointer.y
+      if (pointer.position) {
+        pointer.position[0] = pointer.x
+        pointer.position[1] = pointer.y
       } else {
-        pointer.point = [pointer.x, pointer.y]
+        pointer.position = [pointer.x, pointer.y]
       }
     })
 
@@ -156,7 +156,7 @@ export function pointer(): Pointer {
       if (!e.isPrimary) return
       pointer.x = null
       pointer.y = null
-      pointer.point = null
+      pointer.position = null
     })
 
     event('pointerdown', (e) => {

@@ -3,16 +3,17 @@
   "version": "0.0.0",
   "license": "MIT",
   "repository": "git://github.com/ianstormtaylor/void.git",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "exports": {
     "import": "./dist/void.mjs",
-    "require": "./dist/void.js"
+    "require": "./dist/void.js",
+    "types": "./dist/index.d.ts"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=16",
+    "typescript": ">=4.9"
   },
   "scripts": {
     "build": "vite build && tsc",

@@ -1,12 +1,13 @@
 {
-  "private": true,
   "name": "void-monorepo",
+  "private": true,
   "version": "0.0.0",
   "license": "MIT",
   "repository": "git://github.com/ianstormtaylor/void.git",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "examples"
   ],
   "scripts": {
     "clean": "rm -rf ./node_modules && rm -rf ./{apps,packages}/*/{dist,node_modules,out}"

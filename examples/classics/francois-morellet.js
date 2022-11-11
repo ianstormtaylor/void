@@ -1,5 +1,4 @@
 import { Random, Void } from 'void'
-import { Box, Path } from 'vexes'
 
 export default function () {
   let grid = Void.pick('grid', [3, 5, 7])
@@ -25,15 +24,19 @@ export default function () {
 
   let padding = width * 0.025
   let cell = (width - padding * 2) / grid
-  let edges: number[] = [0, 1, 2, 3]
-  let boxes: Box[] = []
+  let edges = [0, 1, 2, 3]
+  let boxes = []
 
   for (let col = 0; col < grid; col++) {
     for (let row = 0; row < grid; row++) {
       let x = padding + col * cell
       let y = padding + row * cell
-      let box = Box.ofAnchor([x, y], cell)
-      boxes.push(box)
+      boxes.push([
+        [x, y],
+        [x, y + cell],
+        [x + cell, y + cell],
+        [x + cell, y],
+      ])
     }
   }
 
@@ -43,12 +46,11 @@ export default function () {
     offs.clearRect(0, 0, width, height)
 
     for (let [i, box] of boxes.entries()) {
-      let path = Box.path(box)
-      let h = highlights.at(i % highlights.length)!
+      let h = highlights.at(i % highlights.length)
 
-      for (let [j, [a, b]] of Path.segments(path).entries()) {
-        let [ax, ay] = a
-        let [bx, by] = b
+      for (let j = 1; j < box.length; j++) {
+        let [ax, ay] = box[j - 1]
+        let [bx, by] = box[j]
         offs.beginPath()
         offs.moveTo(ax, ay)
         offs.lineTo(bx, by)

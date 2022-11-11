@@ -96,7 +96,7 @@ export class Entrypoint {
       return
     }
 
-    let { id, path } = this
+    let { path } = this
     let dir = Path.dirname(path)
     let file = `${Path.basename(path, Path.extname(path))}.js`
 
@@ -105,6 +105,7 @@ export class Entrypoint {
       entryPoints: [path],
       outdir: dir,
       write: false,
+      allowOverwrite: true,
       watch: {
         onRebuild: (error) => {
           if (error) {
@@ -124,6 +125,7 @@ export class Entrypoint {
         entryPoints: [path],
         outdir: dir,
         bundle: true,
+        allowOverwrite: true,
         sourcemap: true,
         format: 'esm',
       }

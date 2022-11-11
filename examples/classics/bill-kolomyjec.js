@@ -12,7 +12,7 @@ export default function () {
     margin: [cell / 2, 'mm'],
   })
 
-  let ctx = Void.layer('main')
+  let ctx = Void.layer()
 
   for (let x = 0; x < width; x += cell) {
     for (let y = 0; y < height; y += cell) {

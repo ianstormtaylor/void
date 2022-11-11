@@ -2,6 +2,7 @@ import { Math, Units, OUTPUT_MIME_TYPES, Random, Config, Schema } from '..'
 import { Frame, Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
   applyOrientation,
+  createPrng,
   CSS_CPI,
   svgDataUriToString,
   svgElementToString,
@@ -85,7 +86,7 @@ export function emit<T extends keyof Handlers>(
 
 /** Execute a `fn` with the sketch loaded on the global `VOID` context. */
 export function exec(sketch: Sketch, fn: () => void) {
-  let prng = (sketch.prng ??= Random.prng(sketch.seed))
+  let prng = (sketch.prng ??= createPrng(sketch.seed))
   let unseed = Random.seed(prng)
   let VOID = (globalThis.VOID ??= {})
   let prev = VOID.sketch
@@ -255,7 +256,7 @@ export function pointer(sketch: Sketch): Pointer {
     type: null,
     x: null,
     y: null,
-    point: null,
+    position: null,
     button: null,
     buttons: {},
   })

@@ -71,7 +71,7 @@ export type Pointer = {
   type: 'mouse' | 'pen' | 'touch' | null
   x: number | null
   y: number | null
-  point: [number, number] | null
+  position: [number, number] | null
   button: number | null
   buttons: Record<number, true>
 }

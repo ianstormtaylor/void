@@ -10,14 +10,13 @@ export default function () {
     margin: [0.25, 'in'],
   })
 
-  let ctx = Void.layer('main')
+  let ctx = Void.layer()
   ctx.lineCap = cap
   ctx.lineWidth = weight
 
   for (var x = 0; x < width; x += cell) {
     for (var y = 0; y < height; y += cell) {
       ctx.beginPath()
-
       if (Random.bool()) {
         ctx.moveTo(x, y)
         ctx.lineTo(x + cell, y + cell)
@@ -25,7 +24,6 @@ export default function () {
         ctx.moveTo(x + cell, y)
         ctx.lineTo(x, y + cell)
       }
-
       ctx.stroke()
     }
   }
