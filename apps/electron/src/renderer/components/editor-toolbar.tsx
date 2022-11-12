@@ -47,7 +47,7 @@ export let EditorToolbar = () => {
           <option value={0.125}>13%</option>
         </select>
       </div>
-      <div className="text-sm text-gray-400">{path}</div>
+      <div className="text-sm text-gray-500">{path}</div>
       <div className="flex items-center space-x-1">
         <button
           title="Favorite Variant"
