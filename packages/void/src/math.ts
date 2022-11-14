@@ -34,6 +34,17 @@ const CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
   pt: ['imperial', 1 / 72],
 }
 
+/** Check if a `value` is included in a range between `min` and `max`. */
+export function between(
+  value: number,
+  min: number,
+  max: number,
+  tolerance = TOLERANCE
+): boolean {
+  if (min > max) [min, max] = [max, min]
+  return min + tolerance < value && value < max - tolerance
+}
+
 /** Clamp a `value` between `min` and `max` by bouncing between the two. */
 export function bounce(value: number, min: number, max: number): number {
   if (min <= value && value <= max) return value
@@ -46,21 +57,18 @@ export function bounce(value: number, min: number, max: number): number {
   return ret
 }
 
-/** Round a `value` _up_, with optional `precision` or `multiple`. */
-export function ceil(value: number): number
-export function ceil(value: number, precision: number): number
-export function ceil(value: number, options: { multiple: number }): number
-export function ceil(
+/** Round a `value` _up_ by `precision` or `multiple`. */
+export function ceilTo(value: number, precision: number): number
+export function ceilTo(value: number, options: { multiple: number }): number
+export function ceilTo(
   value: number,
-  options?: number | { multiple: number }
+  by: number | { multiple: number }
 ): number {
-  if (typeof options === 'number') {
-    let p = 10 ** options
+  if (typeof by === 'number') {
+    let p = 10 ** by
     return Math.ceil(value * p) / p
-  } else if (options != null) {
-    return Math.ceil(value / options.multiple) * options.multiple
   } else {
-    return Math.ceil(value)
+    return Math.ceil(value / by.multiple) * by.multiple
   }
 }
 
@@ -97,6 +105,19 @@ export function combinations<T>(list: T[], min?: number, max?: number): T[][] {
   }
 
   return combos
+}
+
+/**
+ * Compare a `value` to a `target`, returning `-1`, `0`, or `1` depending on
+ * whether it is less than, equal to, or greater than the target.
+ */
+
+export function compare(
+  value: number,
+  target: number,
+  tolerance?: number
+): -1 | 0 | 1 {
+  return equals(value, target, tolerance) ? 0 : value > target ? 1 : -1
 }
 
 /** Convert a `value` from one unit to another, defaulting to the sketch's units. */
@@ -208,21 +229,18 @@ export function factorial(value: number): number {
   return n
 }
 
-/** Round a `value` _down_, with optional `precision` or `multiple`. */
-export function floor(value: number): number
-export function floor(value: number, precision: number): number
-export function floor(value: number, options: { multiple: number }): number
-export function floor(
+/** Round a `value` _down_ by `precision` or `multiple`. */
+export function floorTo(value: number, precision: number): number
+export function floorTo(value: number, options: { multiple: number }): number
+export function floorTo(
   value: number,
-  options?: number | { multiple: number }
+  by: number | { multiple: number }
 ): number {
-  if (typeof options === 'number') {
-    let p = 10 ** options
+  if (typeof by === 'number') {
+    let p = 10 ** by
     return Math.floor(value * p) / p
-  } else if (options != null) {
-    return Math.floor(value / options.multiple) * options.multiple
   } else {
-    return Math.floor(value)
+    return Math.floor(value / by.multiple) * by.multiple
   }
 }
 
@@ -247,37 +265,6 @@ export function hash(x: number): number {
   x = Math.imul(x, 1935289751)
   x = (x ^ (x >>> 15)) >>> 0
   return x
-}
-
-/** Check if a `value` is between `a` and `b`. */
-export function isBetween(
-  value: number,
-  a: number,
-  b: number,
-  tolerance = TOLERANCE
-): boolean {
-  if (a > b) [a, b] = [b, a]
-  return a + tolerance < value && value < b - tolerance
-}
-
-/** Check if a `value` is an integer. */
-export function isInteger(value: number, tolerance?: number): boolean {
-  return Number.isInteger(value) || equals(value % 1, 0, tolerance)
-}
-
-/** Check if a `value` is negative. */
-export function isNegative(value: number, tolerance?: number): boolean {
-  return value < 0 && !isZero(value, tolerance)
-}
-
-/** Check if a `value` is positive. */
-export function isPositive(value: number, tolerance?: number): boolean {
-  return value > 0 && !isZero(value, tolerance)
-}
-
-/** Check if a `value` is zero. */
-export function isZero(value: number, tolerance?: number): boolean {
-  return value === 0 || equals(value, 0, tolerance)
 }
 
 /** Calculate the least common multiple of a set of `numbers`. */
@@ -308,14 +295,12 @@ export function log(value: number, base?: number): number {
 /** Map a `value` between `inMin` and `inMax` to a new scale between `outMin` and `outMax`. */
 export function map(
   value: number,
-  inMin: number,
-  inMax: number,
-  outMin: number,
-  outMax: number
+  inA: number,
+  inB: number,
+  outA: number,
+  outB: number
 ): number {
-  let t = unlerp(inMin, inMax, value)
-  let v = lerp(outMin, outMax, t)
-  return v
+  return lerp(outA, outB, unlerp(inA, inB, value))
 }
 
 /** Calculate the mean of a set of `numbers`. */
@@ -390,8 +375,8 @@ export function quantile(
   if (p === 0) return values[0]
   if (p === 1) return values.at(-1)!
   let index = p * (length - 1)
-  if (isInteger(index)) return values[index]
-  let i = floor(index)
+  if (Number.isInteger(index)) return values[index]
+  let i = Math.floor(index)
   let q = lerp(values[i], values[i + 1], index - i)
   return q
 }
@@ -438,26 +423,18 @@ export function rolling<T>(list: T[], size: number): T[][] {
 }
 
 /** Round a `value`, with optional `precision` or `multiple`. */
-export function round(value: number): number
-export function round(value: number, precision: number): number
-export function round(value: number, options: { multiple: number }): number
-export function round(
+export function roundTo(value: number, precision: number): number
+export function roundTo(value: number, options: { multiple: number }): number
+export function roundTo(
   value: number,
-  options?: number | { multiple: number }
+  by: number | { multiple: number }
 ): number {
-  if (typeof options === 'number') {
-    let p = 10 ** options
+  if (typeof by === 'number') {
+    let p = 10 ** by
     return Math.round(value * p) / p
-  } else if (options != null) {
-    return Math.round(value / options.multiple) * options.multiple
   } else {
-    return Math.round(value)
+    return Math.round(value / by.multiple) * by.multiple
   }
-}
-
-/** Get the sign of a number, with optional `tolerance`. */
-export function sign(value: number, tolerance?: number): 1 | 0 | -1 {
-  return equals(value, 0, tolerance) ? 0 : value > 0 ? 1 : -1
 }
 
 /** Spherically interpolate between `a` and `b` by a normalized amount `t` around an angle in `degrees`. */
@@ -500,21 +477,18 @@ export function sum(...numbers: number[]): number {
   return numbers.reduce((m, n) => m + n, 0)
 }
 
-/** Round a `value` towards zero, with optional `precision` or `multiple`. */
-export function trunc(value: number): number
-export function trunc(value: number, precision: number): number
-export function trunc(value: number, options: { multiple: number }): number
-export function trunc(
+/** Round a `value` towards zero by `precision` or `multiple`. */
+export function truncTo(value: number, precision: number): number
+export function truncTo(value: number, options: { multiple: number }): number
+export function truncTo(
   value: number,
-  options?: number | { multiple: number }
+  by: number | { multiple: number }
 ): number {
-  if (typeof options === 'number') {
-    let p = 10 ** options
+  if (typeof by === 'number') {
+    let p = 10 ** by
     return Math.trunc(value * p) / p
-  } else if (options != null) {
-    return Math.trunc(value / options.multiple) * options.multiple
   } else {
-    return Math.trunc(value)
+    return Math.trunc(value / by.multiple) * by.multiple
   }
 }
 
@@ -590,13 +564,13 @@ let {
   atanh,
   atan2,
   cbrt,
-  // ceil,
+  ceil,
   clz32,
   cos,
   cosh,
   exp,
   expm1,
-  // floor,
+  floor,
   fround,
   hypot,
   imul,
@@ -607,14 +581,14 @@ let {
   min,
   pow,
   random,
-  // round,
-  // sign,
+  round,
+  sign,
   sin,
   sinh,
   sqrt,
   tan,
   tanh,
-  // trunc,
+  trunc,
 } = Math
 export {
   E,
@@ -633,13 +607,13 @@ export {
   atanh,
   atan2,
   cbrt,
-  // ceil,
+  ceil,
   clz32,
   cos,
   cosh,
   exp,
   expm1,
-  // floor,
+  floor,
   fround,
   hypot,
   imul,
@@ -650,15 +624,12 @@ export {
   min,
   pow,
   random,
-  // round,
-  // sign,
+  round,
+  sign,
   sin,
   sinh,
   sqrt,
   tan,
   tanh,
-  // trunc,
+  trunc,
 }
-
-let { isNaN } = Number
-export { isNaN }

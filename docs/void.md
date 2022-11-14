@@ -6,6 +6,8 @@ import { Void } from 'void'
 
 The `Void` namespace contains the main methods you use to configure and control sketches in Void. You use them to setup your canvas, define custom traits, and hook up interactions.
 
+All the methods are fully treeshakeable, so you will only bundle what you use.
+
 - [**Canvas**](#canvas)
   - [`Void.draw()`](#voiddraw)
   - [`Void.layer()`](#voidlayer)
