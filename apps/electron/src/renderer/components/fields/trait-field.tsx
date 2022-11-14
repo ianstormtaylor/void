@@ -113,12 +113,5 @@ export function generate(schema: Schema): any {
       let choice = Random.pick(choices)
       return choice.value
     }
-    case 'sample': {
-      let { choices, min, max } = schema
-      let amount = Random.int(min, max)
-      let sample = Random.sample(amount, choices)
-      let values = sample.map((c) => c.value)
-      return values
-    }
   }
 }

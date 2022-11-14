@@ -1,54 +1,61 @@
 # `Void`
 
+```ts
+import { Void } from 'void'
+```
+
 The `Void` namespace contains the main methods you use to configure and control sketches in Void. You use them to setup your canvas, define custom traits, and hook up interactions.
 
-- **Canvas**
-  - [`Void.draw`](#voiddraw)
-  - [`Void.layer`](#voidlayer)
-  - [`Void.settings`](#voidsettings)
-- **Traits**
-  - [`Void.bool`](#voidbool)
-  - [`Void.float`](#voidfloat)
-  - [`Void.int`](#voidint)
-  - [`Void.pick`](#voidpick)
-- **Interaction**
-  - [`Void.keyboard`](#voidkeyboard)
-  - [`Void.pointer`](#voidpointer)
-  - [`Void.event`](#voidevent)
+- [**Canvas**](#canvas)
+  - [`Void.draw()`](#voiddraw)
+  - [`Void.layer()`](#voidlayer)
+  - [`Void.settings()`](#voidsettings)
+- [**Traits**](#traits)
+  - [`Void.bool()`](#voidbool)
+  - [`Void.float()`](#voidfloat)
+  - [`Void.int()`](#voidint)
+  - [`Void.pick()`](#voidpick)
+- [**Interaction**](#interaction)
+  - [`Void.keyboard()`](#voidkeyboard)
+  - [`Void.pointer()`](#voidpointer)
+  - [`Void.event()`](#voidevent)
 
 ## Canvas
 
 The canvas methods help your setup up your sketch's layout and determine how you draw the output of your sketch.
 
-- [`Void.draw`](#voiddraw)
-- [`Void.layer`](#voidlayer)
-- [`Void.settings`](#voidsettings)
-
-### `Void.draw`
-
-Defines the looping draw function for the sketch, which is called to render each new frame in an animation.
+### `Void.draw()`
 
 ```ts
-type draw = (callback: () => void) => void
+Void.draw(callback: () => void) => void
 ```
+
+Defines the function used to draw each frame in an animated sketch. You aren't _required_ to define a draw function. You could choose to draw everything in a single frame in the sketch's main function instead.
+
+The drawing frame rate is determined by the `fps` option of [`Void.settings()`](#settings).
 
 ```ts
-Void.draw(() => {
-  // Run your animation drawing logic here...
-})
+export default function () {
+  let ctx = Void.layer()
+  let x = 0
+  let y = 0
+  Void.draw(() => {
+    ctx.fillRect(x, y, 100, 150)
+    x += 5
+    y += 10
+  })
+}
 ```
 
-Note that you aren't _required_ to define a draw function. You could choose to draw everything in a single frame in the main function instead.
+### `Void.layer()`
 
-The drawing frame rate is determined by the `fps` option of [`Void.settings`](#settings).
-
-### `Void.layer`
+```ts
+Void.layer(name?: string) => CanvasRenderingContext2D
+```
 
 Creates a new layer in the sketch's canvas, on top of any previous layers.
 
-```ts
-type layer = (name?: string) => CanvasRenderingContext2D
-```
+The returned value is a 2D [`context`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) object for the canvas with familiar canvas methods like `fill`, `stroke`, `rect`, `arc`, etc. The context is pre-transformed so that it uses the units you've set with [`Void.settings()`](#settings). So if your canvas is `42 mm` in width, the context will also be `42` units wide.
 
 ```ts
 // Create a new layer.
@@ -61,19 +68,11 @@ border.stokeStyle = 'gray'
 border.strokeRect(0, 0, width, height)
 ```
 
-The returned value is a 2D [`context`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) object for the canvas. So you can use any of the familiar canvas methods like `fill`, `stroke`, `rect`, `arc`, etc.
-
-The context is already pre-transformed so that it uses the units you've setup your sketch with from the [`Void.settings`](#settings) method. So if your canvas is `42 mm` in width, the context will also be `42` units wide.
-
-The `name` argument is optional, and will be auto-incremented as `Layer {number}` if omitted.
-
-### `Void.settings`
-
-Configures the sketch and return a settings object that you can use to tailor your drawings to the width, height, frame rate, dpi, etc.
+### `Void.settings()`
 
 ```ts
-type settings = (dimensions: Size | [number, number, Units]) => { ... }
-type settings = (options?: {
+Void.settings(dimensions: Size | [number, number, Units]) => { ... }
+Void.settings(options?: {
   dimensions?: Size | [number, number, Units]
   dpi?: number
   fps?: number
@@ -94,7 +93,19 @@ type settings = (options?: {
 }
 ```
 
+Configures the sketch and return a settings object that you can use to tailor your drawings to the width, height, frame rate, dpi, etc.
+
+The `dimensions` argument can either be a `[number, number, Units]` tuple, a screen size keyword (eg. `1080p`) or a paper size keyword (eg. `A4`). If omitted, the sketch will be fullscreen.
+
+The `margin` option will be subtracted from `dimensions`, and the returned `width` and `height` will too. This way you don't need to be constantly accounting for the margins in calculations.
+
 ```ts
+// Define a canvas that takes up all the available screen space.
+let { width, height } = Void.settings()
+
+// Define a canvas using the shorthand, that's 300 pixels square.
+let { width, height } = Void.settings([300, 300, 'px'])
+
 // Define a canvas that is the size of an A4 sheet of paper, with 4mm margins,
 // in landscape orientation. And use those variables for drawing.
 let { width, height, margin } = Void.settings({
@@ -102,9 +113,6 @@ let { width, height, margin } = Void.settings({
   margin: [4, 'mm'],
   orientation: 'landscape',
 })
-
-// Define a canvas using the shorthand, that's 300 pixels square.
-let { width, height } = Void.settings([300, 300, 'px'])
 
 // Define a canvas that's 6 inches square, but using millimeters as the unit
 // of measurement.
@@ -115,89 +123,83 @@ let { width, height, margin } = Void.settings({
 })
 ```
 
-The `dimensions` argument can either be a `[number, number, Units]` tuple, a screen size keyword (eg. `1080p`) or a paper size keyword (eg. `A4`).
-
-If the `dimensions` option is omitted, the sketch will be fullscreen.
-
-The `margin` option will be subtracted from the dimensions, and the `width` and `height` returned will have the margin already subtracted. This way you don't need to constantly do math to ensure your margins stay in place.
-
 ## Traits
 
 Traits are special variables that you can define that will appear in the interface along with controls to tweak them. They let you quickly try different variations of ideas as your sketching.
 
-- [`Void.bool`](#voidbool)
-- [`Void.float`](#voidfloat)
-- [`Void.int`](#voidint)
-- [`Void.pick`](#voidpick)
+### `Void.bool()`
 
-### `Void.bool`
+```ts
+Void.bool(name: string, initial?: boolean) => boolean
+Void.bool(name: string, probability?: number) => boolean
+```
 
 Defines a boolean trait for the sketch.
 
-```ts
-type bool = (name: string, default?: boolean) => boolean
-```
+If you don't supply an `initial` argument, the boolean will be randomly generated with a 50/50 chance of being `true`. You can change this by passing in a custom `probability` argument instead.
 
 ```ts
-// Define a boolean trait named "enabled", that is randomly generated.
+// Define a boolean trait named "hidden" initially set to `false`.
+let hidden = Void.bool('hidden', true)
+
+// Define a boolean trait named "enabled" that is randomly generated.
 let enabled = Void.bool('enabled')
 
-// Define a boolean trait named "hidden", that defaults to `false`.
-let hidden = Void.bool('hidden', true)
+// The same "enabled" boolean, but with a 25% chance of being true.
+let enabled = Void.bool('enabled', 0.25)
 ```
 
-If you don't supply a default, the boolean will be randomly generated with a 50/50 chance of being `true`.
+### `Void.float()`
 
-### `Void.float`
+```ts
+Void.float(name: string, initial: number) => number
+Void.float(name: string, min: number, max: number, step?: number) => number
+```
 
 Defines a floating point number trait for the sketch.
 
 ```ts
-type float = (name: string, default: number) => number
-type float = (name: string, min: number, max: number, step?: number) => number
-```
-
-```ts
-// Define a trait named "multiplier", that defaults to `0.5`.
+// Define a trait named "multiplier" initially set to `0.5`.
 let mul = Void.float('multiplier', 0.5)
 
-// Define a trait named "ratio", that is randomly generated between `0` and
-// `1`, in incrementing of `0.1`.
+// Define a trait named "ratio" that is randomly generated between `0` and
+// `1`, in increments of `0.1`.
 let ratio = Void.float('ratio', 0, 1, 0.1)
 ```
 
-### `Void.int`
+### `Void.int()`
+
+```ts
+Void.int(name: string, initial: number) => number
+Void.int(name: string, min: number, max: number, step?: number) => number
+```
 
 Defines an integer trait for the sketch.
 
 ```ts
-type int = (name: string, default: number) => number
-type int = (name: string, min: number, max: number, step?: number) => number
-```
-
-```ts
-// Define a trait named "columns", that defaults to `12`.
+// Define a trait named "columns" initially set to `12`.
 let cols = Void.int('columns', 12)
 
-// Define a trait named "angle", that is randomly generated between `0` and
-// `360`.
+// Define a trait named "angle" that is randomly generated between `0` and `360`.
 let angle = Void.int('angle', 0, 360)
 ```
 
-### `Void.pick`
-
-Defines an enum trait for the sketch, choosing one of many values.
+### `Void.pick()`
 
 ```ts
-type pick<T> = (name: string, choices: T[] | Record<string, T>) => T
-type pick<T> = (
+Void.pick<T>(
   name: string,
-  choices: [number, T][] | Record<string, [number, T]>
+  initial?: string,
+  choices: T[] | [number, T][] | Record<string, T> | Record<string, [number, T]>
 ) => T
 ```
 
+Defines an enum trait for the sketch, choosing one of many values.
+
+When defining weighted choices the weights do not need to add to `1`. They will be determined relative to the sum of all weight values.
+
 ```ts
-// Define a trait named "color", that is randomly chosen from a set of options.
+// Define a trait named "color" that is randomly chosen from a set of options.
 let color = Void.pick('color', [
   '#b8baaa',
   '#ac7458',
@@ -206,57 +208,57 @@ let color = Void.pick('color', [
   '#87ac5d',
 ])
 
-// Define a trait named "density", that is randomly chosen from a set of
-// options each with a different weighted probability.
-let density = Void.pick('density', [
-  [3, 'compact'],
-  [5, 'normal'],
-  [1, 'sparse'],
+// The same "color" trait from above, but each of the choices has a weight
+// associated with it, determining the probably with which it'll be chosen.
+let color = Void.pick('color', [
+  [1, '#b8baaa'],
+  [3, '#ac7458'],
+  [2, '#1a1211'],
+  [5, '#f1ce48'],
+  [2, '#87ac5d'],
 ])
 
-// Define a trait "ease", that is randomly chosen from a set of functions.
+// Define a trait "ease" that is randomly chosen from a set of functions.
 let ease = Void.pick('ease', {
   bounce: (t) => { ... },
   linear: (t) => { ... },
   smooth: (t) => { ... },
   quad: (t) => { ... },
 })
-```
 
-When defining weighted choices the weights do not need to add to `1`. They will be determined relative to the sum of all weight values.
+// Define a trait named "density" initially set to "normal", but that can be
+// changed to one of three values.
+let density = Void.pick('density', 'normal', [
+  'compact',
+  'normal',
+  'sparse',
+])
+```
 
 ## Interaction
 
 These methods help manage user interaction while your sketch is running.
 
-- [`Void.event`](#voidevent)
-- [`Void.keyboard`](#voidkeyboard)
-- [`Void.pointer`](#voidpointer)
-
-### `Void.event`
-
-Listens for a DOM event.
+### `Void.event()`
 
 ```ts
-type event = (name: string, callback: (e: event) => void) => () => void
+Void.event(type: string, callback: (e: event) => void) => () => void
 ```
 
-```ts
-Void.event('dblclick', (e) => {
-  // Do something special on double clicks…
-})
-```
-
-This is the most flexible of the interaction methods, and lets you listen to any DOM events you'd like to create complex interactions.
+Listens for a DOM event of `type`. This is the most flexible of the interaction methods, and lets you listen to any DOM events you'd like to create complex interactions.
 
 The return value is an `unsubscribe` function which you can call if you want to stop listening at any point. However it will be automatically called when your sketch ends, so you don't need to worry about cleanup.
 
-### `Void.keyboard`
+```ts
+Void.event('dblclick', (e) => {
+  ctx.lineWidth++
+})
+```
 
-Information about which keys are pressed on the keyboard.
+### `Void.keyboard()`
 
 ```ts
-type keyboard = () => {
+Void.keyboard() => {
   code: string | null
   codes: Record<string, true>
   key: string | null
@@ -264,14 +266,7 @@ type keyboard = () => {
 }
 ```
 
-```ts
-let keyboard = Void.keyboard()
-if (keyboard.keys.Space) {
-  // Perform logic when the spacebar is down…
-}
-```
-
-These properties are based on the DOM's [Keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent).
+Information about which keys are pressed on the keyboard, based on the DOM's [Keyboard events](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent).
 
 - `code` - the [`code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code) value of the key being pressed.
 - `codes` - a dictionary with the [`code`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code) values for every key currently being pressed.
@@ -280,35 +275,38 @@ These properties are based on the DOM's [Keyboard events](https://developer.mozi
 
 These properties will reflect the key in question as long as it continues to be held down. So for example, you could make a sketch that drew in a different color each frame if the space bar was held down.
 
-If you'd instead like to perform a single action when a key is first pressed, using the [`Void.event`](#event) method instead.
-
-### `Void.pointer`
-
-Information about where the pointer is (eg. mouse, stylus, finger) relative to the canvas, and which buttons are pressed.
+If you'd instead like to perform a single action when a key is first pressed, using the [`Void.event()`](#event) method instead.
 
 ```ts
-type pointer = () => {
+let keyboard = Void.keyboard()
+ctx.fillStyle = keyboard.keys.Enter ? 'red' : 'black'
+```
+
+### `Void.pointer()`
+
+```ts
+Void.pointer() => {
   type: 'mouse' | 'pen' | 'touch' | null
   x: number | null
   y: number | null
   position: [number, number] | null
-  button: null | null
+  button: number | null
   buttons: Record<number, true>
 }
 ```
 
-```ts
-let pointer = Void.pointer()
-ctx.fillStyle = pointer.x > width / 2 ? 'red' : 'transparent'
-```
-
-These properties are based on the DOM's [Pointer events](https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent).
+Information about where the pointer is (eg. mouse, stylus, finger) relative to the canvas, and which buttons are pressed, based on the DOM's [Pointer events](https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent).
 
 - `type` - the type of the pointer.
 - `x` - the X-axis position of the pointer.
 - `y` - the Y-axis position of the pointer.
 - `position` - the position of the pointer as a vector tuple.
-- `button` - a number representing the mouse/stylus button being pressed.
-- `buttons` - a dictionary representing every mouse/stylus button currently being pressed.
+- `button` - a number representing the mouse/stylus [`button`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button) being pressed.
+- `buttons` - a dictionary representing every mouse/stylus [`button`](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button) currently being pressed.
 
 All position-related properties are expressed in the same dimensions and units you setup your sketch to use, so you don't need to worry about converting the absolute values to relative units.
+
+```ts
+let pointer = Void.pointer()
+ctx.fillStyle = pointer.x > width / 2 ? 'red' : 'transparent'
+```

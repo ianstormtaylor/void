@@ -2,31 +2,64 @@ import { Context } from 'svgcanvas'
 import { svgStringToDataUri } from './utils'
 import {
   Sketch,
-  Schema,
-  SchemaChoice,
   Config,
   Random,
-  SchemaPick,
-  SchemaSample,
   Narrowable,
   Pointer,
   Keyboard,
   Math,
+  Nameify,
+  Nameable,
 } from '.'
 
-/** Define a trait that is a boolean, with optional `probability` of being true. */
-export function bool(name: string, probability = 0.5): boolean {
+// A reference to whether the keyboard event listeners have been attached.
+let KEYBOARD_EVENTS: WeakMap<Sketch, true> = new WeakMap()
+
+// A reference to whether the pointer event listeners have been attached.
+let POINTER_EVENTS: WeakMap<Sketch, true> = new WeakMap()
+
+/**
+ * Defines a boolean trait.
+ *
+ * If you pass an `initial` value, it will always be used as the default value
+ * for the trait in a sketch, until overriden.
+ *
+ * Other, when randomly generated, you can pass a `probability` which is the
+ * chance that the boolean will be `true`.
+ */
+
+export function bool(name: string, probability?: number): boolean
+export function bool(name: string, initial: boolean): boolean
+export function bool(name: string, options?: boolean | number): boolean {
+  let sketch = Sketch.assert()
+  let probability = typeof options === 'number' ? options : 0.5
+  let initial = typeof options === 'boolean' ? options : undefined
   let value = Random.bool(probability)
-  return resolve(name, value, { type: 'boolean', probability })
+  let { traits } = sketch
+  if (name in traits && typeof traits[name] === 'boolean') {
+    value = traits[name]
+  } else if (initial != null) {
+    value = initial
+  }
+
+  Sketch.trait(sketch, name, value, { type: 'boolean', probability, initial })
+  return value
 }
 
-/** Define a `draw` function that renders each frame. */
+/**
+ * Define a `draw` function with the drawing logic to render each frame of an
+ * animated sketch.
+ */
+
 export function draw(fn: () => void) {
   let sketch = Sketch.assert()
   sketch.draw = fn
 }
 
-/** Attach an event listener to the canvas. */
+/**
+ * Attach an event listener to the canvas.
+ */
+
 export function event<E extends keyof GlobalEventHandlersEventMap>(
   event: E,
   callback: (e: GlobalEventHandlersEventMap[E]) => void
@@ -43,29 +76,95 @@ export function event<E extends keyof GlobalEventHandlersEventMap>(
   return off
 }
 
-/** Define a trait that is a floating point number, between `min` and `max`, with optional `step` to increment by. */
+/**
+ * Define a floating point trait.
+ *
+ * You can either pass a single `initial` argument which will be used as the
+ * default value. Or you can pass a `min`, `max`, and optional `step` and the
+ * trait will be randomly generated.
+ */
+
+export function float(name: string, initial: number): number
 export function float(
   name: string,
   min: number,
   max: number,
   step?: number
+): number
+export function float(
+  name: string,
+  min: number,
+  max?: number,
+  step?: number
 ): number {
+  let sketch = Sketch.assert()
+  let initial
+  if (max == null) {
+    initial = min
+    min = Number.MIN_VALUE
+    max = Number.MAX_VALUE
+  }
+
   let value = Random.float(min, max, step)
-  return resolve(name, value, { type: 'float', min, max, step })
+  let { traits } = sketch
+  if (name in traits && typeof traits[name] === 'number') {
+    value = traits[name]
+  } else if (initial != null) {
+    value = initial
+  }
+
+  Sketch.trait(sketch, name, value, { type: 'float', min, max, step, initial })
+  return value
 }
 
-/** Define a trait that is an integer, between `min` and `max`, with optional `step` to increment by. */
-export function int(name: string, min: number, max: number, step = 1): number {
+/**
+ * Define an integer trait.
+ *
+ * You can either pass a single `initial` argument which will be used as the
+ * default value. Or you can pass a `min`, `max`, and optional `step` and the
+ * trait will be randomly generated.
+ */
+
+export function int(name: string, initial: number): number
+export function int(
+  name: string,
+  min: number,
+  max: number,
+  step?: number
+): number
+export function int(name: string, min: number, max?: number, step = 1): number {
+  let sketch = Sketch.assert()
+  let initial
+  if (max == null) {
+    initial = min
+    min = Number.MIN_SAFE_INTEGER
+    max = Number.MAX_SAFE_INTEGER
+  }
+
   let value = Random.int(min, max, step)
-  return resolve(name, value, { type: 'int', min, max, step })
+  let { traits } = sketch
+  if (name in traits && typeof traits[name] === 'number') {
+    value = traits[name]
+  } else if (initial != null) {
+    value = initial
+  }
+
+  Sketch.trait(sketch, name, value, { type: 'int', min, max, step, initial })
+  return value
 }
 
-/** Get a reference to the current keyboard data. */
+/**
+ * Get a reference to the current keyboard data.
+ *
+ * The returned object is mutable and will continue to stay up to date as keys
+ * are pressed down and lifted up.
+ */
+
 export function keyboard(): Keyboard {
   let sketch = Sketch.assert()
   let keyboard = Sketch.keyboard(sketch)
 
-  if (!KEYBOARD_LISTENING.has(sketch)) {
+  if (!KEYBOARD_EVENTS.has(sketch)) {
     event('keydown', (e) => {
       keyboard.code = e.code
       keyboard.key = e.key
@@ -80,15 +179,18 @@ export function keyboard(): Keyboard {
       delete keyboard.keys[e.key]
     })
 
-    KEYBOARD_LISTENING.set(sketch, true)
+    KEYBOARD_EVENTS.set(sketch, true)
   }
 
   return keyboard
 }
 
-let KEYBOARD_LISTENING: WeakMap<Sketch, true> = new WeakMap()
+/**
+ * Get a new canvas layer to draw on, placed above all other layers.
+ *
+ * If the `name` argument is omitted it will be auto-generated.
+ */
 
-/** Get a canvas layer to draw with. */
 export function layer(name?: string): CanvasRenderingContext2D {
   let sketch = Sketch.assert()
   let { settings, output, el } = sketch
@@ -125,31 +227,31 @@ export function layer(name?: string): CanvasRenderingContext2D {
   return ctx
 }
 
-/** Get a reference to the current pointer data. */
+/**
+ * Get a reference to the current pointer (eg. mouse, pen, finger) data.
+ *
+ * The returned object is mutable and will continue to stay up to date as the
+ * viewer clicks, taps, or hovers.
+ *
+ * Note that the pointer only refers to the "primary" pointer, and to handle
+ * multi-touch scenarios you'll need to attach your own event handlers with the
+ * `Void.event()` method instead.
+ */
+
 export function pointer(): Pointer {
   let sketch = Sketch.assert()
   let pointer = Sketch.pointer(sketch)
 
-  if (!POINTER_LISTENING.has(sketch)) {
+  if (!POINTER_EVENTS.has(sketch)) {
     event('pointermove', (e) => {
       if (!e.isPrimary) return
       let { el } = sketch
       let canvas = el.querySelector('canvas')
       if (!canvas) return
       pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
-      pointer.x = Math.convert(e.offsetX, 'px')
-      pointer.y = Math.convert(e.offsetY, 'px')
-      // pointer.x = (e.offsetX * canvas.width) / canvas.offsetWidth
-      // pointer.y = (e.offsetY * canvas.height) / canvas.offsetHeight
-      // let rect = sketch.el.getBoundingClientRect()
-      // pointer.x = e.x - rect.left
-      // pointer.y = e.y - rect.top
-      if (pointer.position) {
-        pointer.position[0] = pointer.x
-        pointer.position[1] = pointer.y
-      } else {
-        pointer.position = [pointer.x, pointer.y]
-      }
+      pointer.position ??= [] as any
+      pointer.x = pointer.position![0] = Math.convert(e.offsetX, 'px')
+      pointer.y = pointer.position![1] = Math.convert(e.offsetY, 'px')
     })
 
     event('pointerleave', (e) => {
@@ -171,60 +273,63 @@ export function pointer(): Pointer {
       delete pointer.buttons[e.button]
     })
 
-    POINTER_LISTENING.set(sketch, true)
+    POINTER_EVENTS.set(sketch, true)
   }
 
   return pointer
 }
 
-let POINTER_LISTENING: WeakMap<Sketch, true> = new WeakMap()
+/**
+ * Define a trait that picks one of many `choices`.
+ *
+ * You may pass an `initial` value as the second argument. Otherwise, the choice
+ * will be randomly picked for you.
+ *
+ * The choices may either be an array or object of values. For weighted choices,
+ * the array or object values should be a tuple, where the first element is a
+ * number representing the weight.
+ */
 
-/** Define a trait that picks one of many `choices`. */
 export function pick<V extends Narrowable>(name: string, choices: Choices<V>): V
 export function pick<V>(name: string, choices: Choices<V>): V
-export function pick<V>(name: string, choices: Choices<V>): V {
-  let { choices: cs, weights } = normalizeChoices(choices)
-  let option = Random.pick(cs, weights)
-  return resolveChoice(name, option, { type: 'pick', choices: cs })
-}
-
-/** Define a trait that samples from a set of many `choices`, either a certain `amount` of times, or between `min` and `max` amount of times. */
-export function sample<V extends Narrowable>(
+export function pick<V extends Narrowable>(
   name: string,
-  amount: number,
+  initial: Nameify<V>,
   choices: Choices<V>
-): V[]
-export function sample<V>(
+): V
+export function pick<V>(
   name: string,
-  amount: number,
+  initial: Nameify<V>,
   choices: Choices<V>
-): V[]
-export function sample<V extends Narrowable>(
+): V
+export function pick<V>(
   name: string,
-  min: number,
-  max: number,
-  choices: Choices<V>
-): V[]
-export function sample<V>(
-  name: string,
-  min: number,
-  max: number,
-  choices: Choices<V>
-): V[]
-export function sample<V>(
-  name: string,
-  min: number,
-  max: number | Choices<V>,
+  initial: Nameify<V> | Choices<V> | undefined,
   choices?: Choices<V>
-): V[] {
-  if (typeof max !== 'number') (choices = max), (max = min)
-  let { choices: cs, weights } = normalizeChoices(choices!)
-  let amount = Random.int(min, max)
-  let opts = Random.sample(amount, cs, weights)
-  return resolveChoices(name, opts, { type: 'sample', min, max, choices: cs })
+): V {
+  if (choices == null) (choices = initial as Choices<V>), (initial = undefined)
+  let sketch = Sketch.assert()
+  let { names, weights, mapping } = normalizeChoices(choices!)
+  let value = Random.pick(names, weights)
+  let { traits } = sketch
+
+  if (name in traits && traits[name] in mapping) {
+    value = traits[name]
+  } else if (initial !== undefined) {
+    value = String(initial) // allow booleans, numbers, etc. to be real
+  }
+
+  Sketch.trait(sketch, name, value, { type: 'pick', names, weights })
+  return mapping[value]
 }
 
-/** Setup the canvas and current scene for a sketch. */
+/**
+ * Setup the layout and scene for a sketch.
+ *
+ * This method returns an object of all the resolved settings of a sketch,
+ * including the resolved `width` and `height` of the canvas.
+ */
+
 export function settings(): Sketch['settings']
 export function settings(config: Config): Sketch['settings']
 export function settings(dimensions: Config['dimensions']): Sketch['settings']
@@ -240,95 +345,39 @@ export function settings(
   return settings
 }
 
-/** The shorthand for define a set of choices. */
-type Choices<V> =
-  | Exclude<readonly V[], readonly any[][]>
-  | readonly [number, V][]
-  | Record<string, Exclude<V, any[]>>
-  | Record<string, [number, V]>
+// The shorthand for define a set of choices.
+type Choices<V> = V extends Nameable
+  ?
+      | readonly V[]
+      | readonly [number, V][]
+      | Record<string, V>
+      | Record<string, [number, V]>
+  :
+      | Exclude<readonly V[], readonly any[][]>
+      | readonly [number, V][]
+      | Record<string, Exclude<V, any[]>>
+      | Record<string, [number, V]>
 
-/** Normalize the shorthand for defining choices into `OptionSchema` objects. */
-function normalizeChoices<V>(choices: Choices<V>): {
-  choices: SchemaChoice<V>[]
-  values: V[]
+// Normalize the shorthand for defining choices into schema objects.
+function normalizeChoices<V>(shorthand: Choices<V>): {
+  names: string[]
   weights: number[]
+  mapping: Record<string, V>
 } {
-  let cs: SchemaChoice<V>[] = []
-  let values: V[] = []
-  let weights: number[] = []
-
-  if (Array.isArray(choices)) {
-    for (let sc of choices) {
-      let [weight, value] = Array.isArray(sc) ? sc : [1, sc]
-      let v = value as V
-      cs.push({ type: 'option', name: `${value}`, value: v, weight })
-      values.push(v)
-      weights.push(weight)
-    }
-  } else {
-    for (let [name, sc] of Object.entries(choices)) {
-      let [weight, value] = Array.isArray(sc) ? sc : [1, sc]
-      cs.push({ type: 'option', name, value, weight })
-      values.push(value)
-      weights.push(weight)
-    }
-  }
-
-  return { choices: cs, values, weights }
-}
-
-/** Resolve a traits `value` and `schema`. */
-function resolve<V>(
-  name: string,
-  value: V,
-  schema: Exclude<Schema, SchemaPick | SchemaSample>
-): V {
-  let sketch = Sketch.assert()
-  let v = name in sketch.traits ? sketch.traits[name] : value
-  Sketch.trait(sketch, name, v, schema)
-  return v
-}
-
-/** Resolve a `choice` trait and its `schema`. */
-function resolveChoice<V>(
-  name: string,
-  choice: SchemaChoice<V>,
-  schema: SchemaPick<V>
-): V {
-  let sketch = Sketch.assert()
-
-  if (name in sketch.traits) {
-    choice =
-      schema.choices.find((o) => o.name === sketch!.traits[name]) ?? choice
-  }
-
-  Sketch.trait(sketch, name, choice.name, schema)
-  return choice.value
-}
-
-/** Resolve a `choices` trait and its `schema`. */
-function resolveChoices<V>(
-  name: string,
-  choices: SchemaChoice<V>[],
-  schema: SchemaSample<V>
-): V[] {
-  let sketch = Sketch.assert()
-
-  if (name in sketch.traits && Array.isArray(sketch.traits[name])) {
-    let keys = sketch.traits[name] as any[]
-    let cs = keys.map((k) => schema.choices.find((o) => o.name === k))
-    if (cs.every((o) => o != null)) {
-      choices = cs as SchemaChoice<V>[]
-    }
-  }
-
-  let values: V[] = []
   let names: string[] = []
-  for (let c of choices) {
-    names.push(c.name)
-    values.push(c.value)
+  let weights: number[] = []
+  let mapping: Record<string, V> = {}
+  let entries = Array.isArray(shorthand)
+    ? shorthand.entries()
+    : Object.entries(shorthand)
+
+  for (let [i, v] of entries) {
+    let [weight, value] = Array.isArray(v) ? v : [1, v]
+    let name = typeof i === 'number' ? String(value) : i
+    names.push(name)
+    weights.push(weight)
+    mapping[name] = value
   }
 
-  Sketch.trait(sketch, name, names, schema)
-  return values
+  return { names, weights, mapping }
 }

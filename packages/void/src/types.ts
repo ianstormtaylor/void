@@ -1,3 +1,9 @@
+/** A type that can be converted to a stringified name easily. */
+export type Nameable = string | number | boolean | null
+
+/** Convert a type to a `Nameable` type. */
+export type Nameify<T> = T extends Nameable ? T : string
+
 /** A type that when used in generics allows narrowing of return values. */
 export type Narrowable =
   | string
@@ -28,17 +34,13 @@ export type Units = 'm' | 'cm' | 'mm' | 'in' | 'ft' | 'yd' | 'pt' | 'pc' | 'px'
 export type UnitsSystem = 'metric' | 'imperial'
 
 /** A schema which defines the values of a trait. */
-export type Schema =
-  | SchemaBool
-  | SchemaInt
-  | SchemaFloat
-  | SchemaPick
-  | SchemaSample
+export type Schema = SchemaBool | SchemaInt | SchemaFloat | SchemaPick
 
 /** A schema for boolean traits. */
 export type SchemaBool = {
   type: 'boolean'
   probability: number
+  initial?: boolean
 }
 
 /** A schema for integer traits. */
@@ -47,6 +49,7 @@ export type SchemaInt = {
   min: number
   max: number
   step: number
+  initial?: number
 }
 
 /** A schema for floating point number traits. */
@@ -55,26 +58,13 @@ export type SchemaFloat = {
   min: number
   max: number
   step?: number
+  initial?: number
 }
 
 /** A schema for enum traits. */
-export type SchemaPick<V = any> = {
+export type SchemaPick = {
   type: 'pick'
-  choices: SchemaChoice<V>[]
-}
-
-/** A schema for enum-like traits where multiple choices are sampled. */
-export type SchemaSample<V = any> = {
-  type: 'sample'
-  min: number
-  max: number
-  choices: SchemaChoice<V>[]
-}
-
-/** A schema for the individual options/choices when making a choice. */
-export type SchemaChoice<V = any> = {
-  type: 'option'
-  name: string
-  value: V
-  weight: number
+  names: string[]
+  weights: number[]
+  initial?: string
 }

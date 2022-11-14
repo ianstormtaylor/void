@@ -16,7 +16,7 @@ export function assert(): Sketch {
   let sketch = current()
   if (!sketch) {
     throw new Error(
-      `No active sketch! Make sure only call Void helpers inside a sketch function!`
+      'Could not find your sketch! You must call `Void.*` methods inside a sketch function!'
     )
   }
   return sketch
