@@ -4,7 +4,9 @@
 import { Random } from 'void'
 ```
 
-The `Random` namespace contains the main methods you use to configure and control sketches in Random. You use them to setup your canvas, define custom traits, and hook up interactions.
+The `Random` namespace contains methods that help in generating seeded random values. This includes the basics like booleans, floats, and integers. But also more complex use cases like choosing elements from an array, generating simplex noise, unit vectors, etc.
+
+All the methods are fully treeshakeable, so you will only bundle what you use.
 
 - [**Basics**](#basics)
   - [`Random.bool()`](#randombool)
@@ -13,15 +15,15 @@ The `Random` namespace contains the main methods you use to configure and contro
   - [`Random.pick()`](#randompick)
 - [**Extras**](#extras)
   - [`Random.entry()`](#randomentry)
-  - [`Random.fork()`](#randomfork)
   - [`Random.index()`](#randomindex)
   - [`Random.noise()`](#randomnoise)
   - [`Random.random()`](#randomrandom)
   - [`Random.sample()`](#randomsample)
-  - [`Random.seed()`](#randomseed)
   - [`Random.sign()`](#randomsign)
-  - [`Random.unique()`](#randomunique)
   - [`Random.vector()`](#randomvector)
+- [**Utils**](#utils)
+  - [`Random.fork()`](#randomfork)
+  - [`Random.seed()`](#randomseed)
 
 ## Basics
 
@@ -111,7 +113,7 @@ let color = Random.pick(['red', 'yellow', 'green', 'blue'], [2, 1, 1, 1])
 
 ## Extras
 
-These are more specific randomness helpers for specific use cases, to make your code easier to read at a glance.
+These are more specific randomness generators for specific use cases, to make your code easier to read at a glance.
 
 ### `Random.entry()`
 
@@ -136,33 +138,6 @@ let [key, hex] = Random.entry({
   green: '#00FF00',
   blue: '#0000FF',
 })
-```
-
-### `Random.fork()`
-
-```ts
-Random.fork<T>(callback: () => T) => T
-```
-
-Runs a `callback` function with a fork of the current random seed, so that you can call any number of random generator functions inside the callback and still only consume a single iteration of your seed.
-
-This is helpful in situations where you want to conditionally do some logic that requires randomness, but you don't want random values _after_ that logic to remain deterministic.
-
-```ts
-let count = Random.int(1, 4)
-let booleans = []
-
-// Without this fork wrapper, the loop inside this function would have ticked
-// the random seed forward between `1` and `4` times. But with the fork, it
-// only ticks forward once, so any random values after it remain deterministic.
-Random.fork(() => {
-  for (let i = 0; i < count; i++) {
-    booleans.push(Random.bool())
-  }
-})
-
-// Because of the fork above, this boolean stays deterministic.
-let after = Random.bool()
 ```
 
 ### `Random.index()`
@@ -223,27 +198,6 @@ let colors = Random.sample(3, ['red', 'green', 'blue', 'yellow', 'black'])
 // ['blue', 'black', 'red']
 ```
 
-### `Random.seed()`
-
-```ts
-Random.seed(prng: () => number) => void
-Random.seed<T>(prng: () => number, callback: () => T) => T
-```
-
-Sets the pseudo-random number generator used under the covers to a new `prng` function, which conforms to the `Math.random` interface.
-
-If you pass a `callback`, it will be called immediately and the `prng` will only be used for its execution, and restored after that. So this provides an easy way to call a function with deterministic randomness.
-
-```ts
-let seed = 483903481
-let myPrng = new MyPrng(seed)
-Random.seed(myPrng, () => {
-  let b = Random.bool()
-  let i = Random.int(0, 34)
-  // ...
-})
-```
-
 ### `Random.sign()`
 
 ```ts
@@ -269,4 +223,56 @@ Generator a random unit vector of `length`.
 ```ts
 let magnitude = 50
 let direction = Random.vector() * magnitude
+```
+
+## Utils
+
+These are a handful of utility methods that make working with randomness easier.
+
+### `Random.fork()`
+
+```ts
+Random.fork<T>(callback: () => T) => T
+```
+
+Runs a `callback` function with a fork of the current random seed, so that you can call any number of random generator functions inside the callback and still only consume a single iteration of your seed.
+
+This is helpful in situations where you want to conditionally do some logic that requires randomness, but you don't want random values _after_ that logic to remain deterministic.
+
+```ts
+let count = Random.int(1, 4)
+let booleans = []
+
+// Without this fork wrapper, the loop inside this function would have ticked
+// the random seed forward between `1` and `4` times. But with the fork, it
+// only ticks forward once, so any random values after it remain deterministic.
+Random.fork(() => {
+  for (let i = 0; i < count; i++) {
+    booleans.push(Random.bool())
+  }
+})
+
+// Because of the fork above, this boolean stays deterministic.
+let after = Random.bool()
+```
+
+### `Random.seed()`
+
+```ts
+Random.seed(prng: () => number) => void
+Random.seed<T>(prng: () => number, callback: () => T) => T
+```
+
+Sets the pseudo-random number generator used under the covers to a new `prng` function, which conforms to the `Math.random` interface.
+
+If you pass a `callback`, it will be called immediately and the `prng` will only be used for its execution, and restored after that. So this provides an easy way to call a function with deterministic randomness.
+
+```ts
+let seed = 483903481
+let myPrng = new MyPrng(seed)
+Random.seed(myPrng, () => {
+  let b = Random.bool()
+  let i = Random.int(0, 34)
+  // ...
+})
 ```

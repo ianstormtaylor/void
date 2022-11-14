@@ -4,26 +4,21 @@
 import { Math } from 'void'
 ```
 
-The `Math` namespace contains the main methods you use to configure and control sketches in Math. You use them to setup your canvas, define custom traits, and hook up interactions.
+The `Math` namespace contains methods that help you work with math! Things like arithmetic, statistics, trigonometry, interpolation, etc.
+
+All the methods are fully treeshakeable, so you will only bundle what you use.
+
+_The native `Math.*` namespace constants and methods are also all re-exported, so that you have everything in one place and can safely shadow the import._
 
 - [**Constants**](#constants)
-  - [`Math.E`](#mathe)
-  - [`Math.LN10`](#mathln10)
-  - [`Math.LN2`](#mathln2)
-  - [`Math.LOG10E`](#mathlog10e)
-  - [`Math.LOG2E`](#mathlog2e)
-  - [`Math.PI`](#mathpi)
-  - [`Math.SQRT1_2`](#mathsqrt1_2)
-  - [`Math.SQRT2`](#mathsqrt2)
   - [`Math.PHI`](#mathphi)
   - [`Math.TAU`](#mathtau)
   - [`Math.TOLERANCE`](#mathtolerance)
 - [**Rounding**](#rounding)
-  - [`Math.ceil()`](#mathceil)
-  - [`Math.floor()`](#mathfloor)
-  - [`Math.fround()`](#mathfround)
-  - [`Math.round()`](#mathround)
-  - [`Math.trunc()`](#mathtrunc)
+  - [`Math.ceilTo()`](#mathceil)
+  - [`Math.floorTo()`](#mathfloor)
+  - [`Math.roundTo()`](#mathround)
+  - [`Math.truncTo()`](#mathtrunc)
 - [**Interpolation**](#interpolation)
   - [`Math.bounce()`](#mathbounce)
   - [`Math.clamp()`](#mathclamp)
@@ -38,40 +33,25 @@ The `Math` namespace contains the main methods you use to configure and control 
   - [`Math.unlerp()`](#mathunlerp)
   - [`Math.wrap()`](#mathwrap)
 - [**Arithmetic**](#arithmetic)
-  - [`Math.abs()`](#mathabs)
-  - [`Math.cbrt()`](#mathcbrt)
+  - [`Math.between()`](#mathbetween)
   - [`Math.combinations()`](#mathcombinations)
-  - [`Math.exp()](#mathexp)
-  - [`Math.expm1()](#mathexpm1)
+  - [`Math.equals()`](#mathequals)
   - [`Math.factorial()`](#mathfactorial)
   - [`Math.gcd()`](#mathgcd)
-  - [`Math.hypot()`](#mathhypot)
-  - [`Math.imul()`](#mathimul)
   - [`Math.lcm()`](#mathlcm)
-  - [`Math.log()`](#mathlog)
-  - [`Math.log1p()`](#mathlog1p)
-  - [`Math.log10()`](#mathlog10)
-  - [`Math.log2()`](#mathlog2)
   - [`Math.mod()`](#mathmod)
   - [`Math.permutations()`](#mathpermutations)
-  - [`Math.pow()`](#mathpow)
   - [`Math.quantile()`](#mathquantile)
-  - [`Math.sign()`](#mathsign)
-  - [`Math.sqrt()](#mathsqrt)
 - [**Statistics**](#statistics)
   - [`Math.extent()`](#mathextent)
-  - [`Math.max()`](#mathmax)
   - [`Math.mean()`](#mathmean)
   - [`Math.median()`](#mathmedian)
-  - [`Math.min()`](#mathmin)
   - [`Math.mode()`](#mathmode)
   - [`Math.quantile()`](#mathquantile)
-  - [`Math.random()`](#mathrandom)
   - [`Math.stddev()`](#mathstddev)
   - [`Math.sum()`](#mathsum)
   - [`Math.variance()`](#mathvariance)
 - [**Conversions**](#conversions)
-  - [`Math.clz32()`](#mathclz32)
   - [`Math.convert()`](#mathconvert)
   - [`Math.degrees()`](#mathdegrees)
   - [`Math.hash()`](#mathhash)
@@ -82,204 +62,213 @@ The `Math` namespace contains the main methods you use to configure and control 
   - [`Math.rolling()`](#mathrolling)
   - [`Math.split()`](#mathsplit)
   - [`Math.subdivide()`](#mathsubdivide)
-- [**Trigonometry**](#trigonometry)
-  - [`Math.acos()`](#mathacos)
-  - [`Math.acosh()`](#mathacosh)
-  - [`Math.asin()`](#mathasin)
-  - [`Math.asinh()`](#mathasinh)
-  - [`Math.atan()`](#mathatan)
-  - [`Math.atanh()`](#mathatanh)
-  - [`Math.atan2()`](#mathatan2)
-  - [`Math.cos()`](#mathcos)
-  - [`Math.cosh()`](#mathcosh)
-  - [`Math.sin()`](#mathsin)
-  - [`Math.sinh()`](#mathsinh)
-  - [`Math.tan()`](#mathtan)
-  - [`Math.tanh()`](#mathtanh)
-- [**Utils**](#utils)
-  - [`Math.equals()`](#mathequals)
-  - [`Math.isBetween()`](#mathisbetween)
-  - [`Math.isInteger()`](#mathisinteger)
-  - [`Math.isNaN()`](#mathisnan)
-  - [`Math.isNegative()`](#mathisnegative)
-  - [`Math.isPositive()`](#mathispositive)
-  - [`Math.isZero()`](#mathiszero)
 
 ## Constants
 
-### `Math.E` (native)
-
-Euler's number, the base of natural logarithms, `e`, which is approximately `2.718`.
-
-### `Math.LN2`
-
-The natural logarithm of 2, approximately `0.693`.
-
-### `Math.LN10`
-
-The natural logarithm of 10, approximately `2.302`.
-
-### `Math.LOG2E`
-
-The base 2 logarithm of `e`, approximately `1.442`.
-
-### `Math.LOG10E`
-
-The base 10 logarithm of `e`, approximately `0.434`.
-
-### `Math.PI`
-
-The ratio of the circumference of a circle to its diameter, approximately `3.14159`.
-
-### `Math.SQRT1_2`
-
-The square root of 1/2 which is approximately `0.707`.
-
-### `Math.SQRT2`
-
-The square root of 2, approximately `1.414`.
-
 ### `Math.PHI`
+
+The golden ratio, approximately `1.618`.
 
 ### `Math.TAU`
 
+Twice the value of `Math.PI`, approximately `6.283`.
+
 ### `Math.TOLERANCE`
+
+The default tolerance used to ignore floating point errors, `0.000001`.
 
 ## Rounding
 
-### `Math.ceil()`
+### `Math.ceilTo()`
 
-Rounds up and returns the smaller integer greater than or equal to a given number.
+```ts
+Math.ceilTo(x: number, precision: number) => number
+Math.ceilTo(x: number, options: { multiple: number }) => number
+```
 
-### `Math.floor()`
+Rounds `x` _up_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
 
-Rounds down and returns the largest integer less than or equal to a given number.
+### `Math.floorTo()`
 
-### `Math.round()`
+```ts
+Math.floorTo(x: number, precision: number) => number
+Math.floorTo(x: number, options: { multiple: number }) => number
+```
 
-Returns the value of a number rounded to the nearest integer.
+Rounds `x` _down_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
 
-### `Math.trunc()`
+### `Math.roundTo()`
 
-Returns the integer part of a number by removing any fractional digits.
+```ts
+Math.roundTo(x: number, precision: number) => number
+Math.roundTo(x: number, options: { multiple: number }) => number
+```
+
+Rounds `x` _up or down_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
+
+### `Math.truncTo()`
+
+```ts
+Math.truncTo(x: number, precision: number) => number
+Math.truncTo(x: number, options: { multiple: number }) => number
+```
+
+Rounds `x` _towards zero_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
 
 ## Interpolation
 
 ### `Math.bounce()`
 
+```ts
+Math.bounce(x: number, min: number, max: number) => number
+```
+
+Clamp `x` between `min` and `max` by bouncing back and forth between the two, counting from `min` up to `max` and then back down.
+
 ### `Math.clamp()`
+
+```ts
+Math.clamp(x: number, min: number, max: number) => number
+```
+
+Clamp `x` between `min` and `max`.
 
 ### `Math.easeIn()`
 
+```ts
+Math.easeIn(t: number, power: number) => number
+```
+
+Ease a normalized value `t` _in_ by a polynomial power `p`.
+
+This gives you an easy way to ease values in a way that is tweakable. For example, with a power of `2` is quadratic easing, and `3` is cubic easing. But you can also ease by `2.5` or `2.1` or any other decimal value.
+
 ### `Math.easeOut()`
+
+```ts
+Math.easeOut(t: number, power: number) => number
+```
+
+Ease a normalized value `t` _out_ by a polynomial power `p`.
+
+This gives you an easy way to ease values in a way that is tweakable. For example, with a power of `2` is quadratic easing, and `3` is cubic easing. But you can also ease by `2.5` or `2.1` or any other decimal value.
 
 ### `Math.easeInOut()`
 
+```ts
+Math.easeInOut(t: number, power: number) => number
+```
+
+Ease a normalized value `t` _in then out_ by a polynomial power `p`.
+
+This gives you an easy way to ease values in a way that is tweakable. For example, with a power of `2` is quadratic easing, and `3` is cubic easing. But you can also ease by `2.5` or `2.1` or any other decimal value.
+
 ### `Math.easeOutIn()`
+
+```ts
+Math.easeOutIn(t: number, power: number) => number
+```
+
+Ease a normalized value `t` _out then in_ by a polynomial power `p`.
+
+This gives you an easy way to ease values in a way that is tweakable. For example, with a power of `2` is quadratic easing, and `3` is cubic easing. But you can also ease by `2.5` or `2.1` or any other decimal value.
 
 ### `Math.lerp()`
 
+```ts
+Math.lerp(a: number, b: number, t: number) => number
+```
+
+Linearly interpolate between `a` and `b` by a normalized amount `t`.
+
+Note that `t` is not automatically clamped, so you can interpolate out of bounds. But you can always clamp it with [`Math.clamp()`](#mathclamp) first if needed.
+
+```ts
+Math.lerp(0, 10, 0.5)
+// 5
+
+Math.lerp(3, 6, 0.5)
+// 3
+
+Math.lerp(0, 5, 2)
+// 10
+```
+
 ### `Math.lerpAngle()`
+
+```ts
+Math.lerpAngle(a: number, b: number,t:number) => number
+```
+
+Linearly interpolate an angle _in degrees_ between `a` and `b` by a normalized amount `t`.
 
 ### `Math.map()`
 
+```ts
+Math.map(x: number, inA: number, inB: number, outA: number, outB: number) => number
+```
+
+Map `x` from a scale between `inA` and `inB` to a new scale between `outA` and `outB`.
+
 ### `Math.slerp()`
+
+```ts
+Math.slerp(a: number, b: number, degrees: number, t: number) => number
+```
+
+Spherically interpolate between `a` and `b` by a normalized amout `t` around an angle in `degrees`.
 
 ### `Math.unlerp()`
 
+```ts
+Math.unlerp(x: number, a: number, b: number) => number
+```
+
+Un-interpolate a value `x` between `a` and `b`, returning a normalized value.
+
+Note that the returned value is not clamped to between `0` and `1`, so you can use this for out of bounds values. However you can always use [`Math.clamp()`](#mathclamp) after if needed.
+
 ### `Math.wrap()`
+
+```ts
+Math.wrap(x: number, min: number, max: number, inclusive?: boolean) => number
+```
+
+Clamp `x` between `min` and `max` by wrapping around back to the other side if the number is less than `min` or greater than `max`.
+
+By default `max` is exclusive (eg. `0` to `360`), but you can pass the `inclusive` argument to change this behavior.
 
 ## Arithmetic
 
-### `Math.abs()`
-
-Returns the absolute value of a number.
-
-### `Math.cbrt()`
-
-Returns the cube root of a number.
-
 ### `Math.combinations()`
 
-### `Math.exp()`
-
-Returns `e` raised to the power of a number.
-
-### `Math.expm1()`
-
-Returns `e` raised to the power of a number, subtracted by `1`.
+### `Math.equals()`
 
 ### `Math.factorial()`
 
 ### `Math.gcd()`
 
-### `Math.hypot()`
-
-Returns the square root of the sum of squares of its arguments.
-
-### `Math.imul()`
-
-Returns the result of the C-like 32-bit multiplication of the two parameters.
+### `Math.includes()`
 
 ### `Math.lcm()`
-
-### `Math.log()`
-
-Returns the natural logarithm (base `e`) of a number.
-
-### `Math.log1p()`
-
-Returns the natural logarithm (base `e`) of `1 + x`, where `x` is the argument.
-
-### `Math.log10()`
-
-Returns the base 10 logarithm of a number.
-
-### `Math.log2()`
-
-Returns the base 2 logarithm of a number.
 
 ### `Math.mod()`
 
 ### `Math.permutations()`
 
-### `Math.pow()`
-
-Returns the value of a base raised to a power.
-
 ### `Math.quantile()`
-
-### `Math.sign()`
-
-Returns `1` or `-1`, indicating the sign of the number passed as argument. If the input is ``0` or `-0`, it will be returned as-is.
-
-### `Math.sqrt()`
-
-Returns the square root of a number.
 
 ## Statistics
 
 ### `Math.extent()`
 
-### `Math.max()`
-
-Returns the largest of the numbers given as input parameters, or `-Infinity` if there are no parameters.
-
 ### `Math.mean()`
 
 ### `Math.median()`
 
-### `Math.min()`
-
-Returns the smallest of the numbers given as input parameters, or `Infinity` if there are no parameters.
-
 ### `Math.mode()`
 
 ### `Math.quantile()`
-
-### `Math.random()`
-
-Returns a floating-point, pseudo-random number that's greater than or equal to 0 and less than 1, with approximately uniform distribution over that range — which you can then scale to your desired range. The implementation selects the initial seed to the random number generation algorithm; it cannot be chosen or reset by the user.
 
 ### `Math.stddev()`
 
@@ -292,10 +281,6 @@ Returns a floating-point, pseudo-random number that's greater than or equal to 0
 ### `Math.convert()`
 
 ### `Math.degrees()`
-
-### `Math.fround()`
-
-Returns the nearest 32-bit single precision float representation of a number.
 
 ### `Math.hash()`
 
@@ -312,81 +297,3 @@ Returns the nearest 32-bit single precision float representation of a number.
 ### `Math.split()`
 
 ### `Math.subdivide()`
-
-## Trigonometry
-
-### `Math.acos()`
-
-Returns the inverse cosine (in radians) of a number.
-
-### `Math.acosh()`
-
-Returns the inverse hyperbolic cosine of a number.
-
-### `Math.asin()`
-
-Returns the inverse sine (in radians) of a number.
-
-### `Math.asinh()`
-
-Returns the inverse hyperbolic sine of a number.
-
-### `Math.atan()`
-
-Returns the inverse tangent (in radians) of a number.
-
-### `Math.atanh()`
-
-Returns the inverse hyperbolic tangent of a number.
-
-### `Math.atan2()`
-
-Returns the angle in the plane (in radians) between the positive x-axis and the ray from (0, 0) to the point (x, y), for Math.atan2(y, x).
-
-### `Math.cos()`
-
-Returns the cosine of a number in radians.
-
-### `Math.cosh()`
-
-Returns the hyperbolic cosine of a number.
-
-### `Math.sin()`
-
-Returns the sine of a number in radians.
-
-### `Math.sinh()`
-
-Returns the hyperbolic sine of a number.
-
-### `Math.tan()`
-
-Returns the tangent of a number in radians.
-
-### `Math.tanh()`
-
-Returns the hyperbolic tangent of a number.
-
-## Utils
-
-### `Math.clz32()`
-
-Returns the number of leading zero bits in the 32-bit binary representation of a number.
-
-### `Math.equals()`
-
-### `Math.isBetween()`
-
-### `Math.isInteger()`
-
-Determines whether the passed value is an integer.
-
-### `Math.isNaN()`
-
-Determines whether the passed value is NaN and its type is Number. It is a more robust version of the original, global isNaN().
-
-### `Math.isNegative()`
-
-### `Math.isPositive()`
-
-### `Math.isZero()`
