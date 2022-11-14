@@ -1,47 +1,34 @@
 import { Math, Narrowable } from '.'
 import { createNoise4D } from 'simplex-noise'
 import { createPrng } from './utils'
+import * as d3 from 'd3-random'
 
 /** The current 4D noise generator, implicitly created. */
 let NOISE: null | ((x: number, y: number, z: number, w: number) => number) =
   null
-
-/** Generate a binomially-distributed number with `n` tries and `p` probability. */
-export function binomial(n = 1, p = 0.5) {
-  let x = 0
-  for (let i = 0; i < n; i++) x += random() < p ? 1 : 0
-  return x
-}
 
 /** Generate a boolean, with optional probability `p` of being `true`. */
 export function bool(p = 0.5): boolean {
   return random() < p
 }
 
-/** Generate either `0` or `1`, with optional probability `p` of success. */
-export function coin(p = 0.5): 0 | 1 {
-  return random() < p ? 1 : 0
-}
-
-/** Generate an exponentially-distributed number with `lambda`. */
-export function exponential(lambda = 1) {
-  // https://github.com/transitive-bullshit/random/blob/master/src/distributions/exponential.ts
-  return Math.log(1 - random()) / -lambda
-}
-
-/** Generate a normally-distributed number with `mean` and `variance`. */
-export function gaussian(mean = 0, variance = 1): number {
-  // https://stackoverflow.com/a/36481059/154765
-  let a = random()
-  let b = random()
-  let r = Math.sqrt(-2 * Math.log(a)) * Math.cos(2 * Math.PI * b)
-  return r * Math.sqrt(variance) + mean
-}
-
-/** Generate a geometrically-distributed number with probability `p`. */
-export function geometric(p = 0.5) {
-  // https://github.com/transitive-bullshit/random/blob/master/src/distributions/geometric.ts
-  return (1 + Math.log(random()) * (1 / Math.log(1 - p))) | 0
+/** Pick a random entry from a `collection`. */
+export function entry<T>(collection: T[]): [number, T]
+export function entry<T>(collection: Record<string, T>): [string, T]
+export function entry<K, V>(collection: Map<K, V>): [K, V]
+export function entry<V>(collection: Set<V>): [V, V]
+export function entry(
+  collection: any[] | Record<string, any> | Map<any, any> | Set<any>
+): any {
+  if (
+    typeof collection == 'object' &&
+    collection != null &&
+    Object.prototype.toString.call(collection) === '[object Object]'
+  ) {
+    return pick(Object.entries(collection))
+  } else {
+    return pick(Array.from(collection.entries()))
+  }
 }
 
 /** Generate a floating point number, with optional `min`, `max`, and `step`. */
@@ -56,15 +43,20 @@ export function float(min?: number, max?: number, step?: number): number {
 }
 
 /** Run a `fn` with a fork of the current PRNG, only consuming one random value. */
-export function fork(fn: () => void): void {
+export function fork<T>(fn: () => T): T {
   let s = int(0, 2 ** 32)
   let prng = createPrng(s)
-  seed(prng, fn)
+  return seed(prng, fn)
+}
+
+/** Pick a random index from an `array`. */
+export function index(array: any[]): number {
+  return int(array.length - 1)
 }
 
 /** Generate an integer, with optional `min`, `max`, and `step`. */
 export function int(min?: number, max?: number, step = 1): number {
-  if (min == null) (min = 0), (max = 1)
+  if (min == null) (min = 0), (max = Number.MAX_SAFE_INTEGER)
   if (max == null) (max = min), (min = 0)
   return float(min, max, step)
 }
@@ -132,50 +124,24 @@ export function noise(
   return sum / max
 }
 
-/** Generate a Pareto-distributed number with `alpha`. */
-export function pareto(alpha = 1) {
-  // https://github.com/transitive-bullshit/random/blob/master/src/distributions/pareto.ts
-  return 1 / Math.pow(1 - random(), 1 / alpha)
-}
-
-/** Pick a random item from a `list`, with optional `weights`. */
-export function pick<T extends Narrowable>(list: T[], weights?: number[]): T
-export function pick<T>(list: T[], weights?: number[]): T
-export function pick<T>(list: T[], weights?: number[]): T {
-  if (weights == null) return list[int(0, list.length - 1)]
-  if (list.length !== weights.length)
+/** Pick a random item from a set of `choices`, with optional `weights`. */
+export function pick<T extends Narrowable>(choices: T[], weights?: number[]): T
+export function pick<T>(choices: T[], weights?: number[]): T
+export function pick<T>(choices: T[], weights?: number[]): T {
+  if (weights == null) return choices[index(choices)]
+  if (choices.length !== weights.length)
     throw new Error('List and weights must have the same length')
   let total = weights.reduce((m, w) => m + w, 0)
   let r = float(0, total)
   let c = 0
   let i = weights.findIndex((w) => r < (c += w))
-  return list[i]
-}
-
-/** Generate a Poisson-distrubted number with `mean`. */
-export function poisson(mean = 1) {
-  // https://github.com/jhermsmeier/rng.js/blob/master/rng.js
-  let L = Math.exp(-(mean || 1))
-  let k = 0
-  let p = 1
-  while (p > L) {
-    p *= random()
-    k++
-  }
-  return k - 1
+  return choices[i]
 }
 
 /** Generate a random value between `0` and `1`. */
 export function random(): number {
   let fn = globalThis.VOID?.random ?? Math.random
   return fn()
-}
-
-/** Generate rolls of an n-`sided` die, with optional number of `times`. */
-export function roll(sides = 20, times = 1): number {
-  let sum = 0
-  for (let i = 0; i < times; i++) sum += int(1, sides)
-  return sum
 }
 
 /** Pick a random sample of `size` from a `list`, with optional `weights`. */
@@ -203,8 +169,8 @@ export function sample<T>(size: number, list: T[], weights?: number[]): T[] {
 
 /** Set the seeded prng, either until reset, or just while executing a `handler`. */
 export function seed(prng: () => number): () => void
-export function seed(prng: () => number, fn: () => void): void
-export function seed(prng: () => number, fn?: () => void): void | (() => void) {
+export function seed<T>(prng: () => number, fn: () => T): T
+export function seed<T>(prng: () => number, fn?: () => T): T | (() => void) {
   let VOID = (globalThis.VOID ??= {})
   let prev = VOID.random
   let unseed = () => {
@@ -213,8 +179,9 @@ export function seed(prng: () => number, fn?: () => void): void | (() => void) {
 
   VOID.random = prng
   if (!fn) return unseed
-  fn()
+  let ret = fn()
   unseed()
+  return ret
 }
 
 /** Generate a sign (`1` or `-1`). */
@@ -227,13 +194,15 @@ export function shuffle<T extends Narrowable>(list: T[]): T[]
 export function shuffle<T>(list: T[]): T[]
 export function shuffle<T>(list: T[]): T[] {
   // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-  let l = list.slice()
-  let i = l.length
-  while (i--) {
-    const j = Math.floor(random() * (i + 1))
-    ;[l[i], l[j]] = [l[j], l[i]]
-  }
-  return l
+  return fork(() => {
+    let l = list.slice()
+    let i = l.length
+    while (i--) {
+      const j = Math.floor(random() * (i + 1))
+      ;[l[i], l[j]] = [l[j], l[i]]
+    }
+    return l
+  })
 }
 
 /** Get a unique set of `size` random outputs from a `generator` function. */
@@ -242,20 +211,45 @@ export function unique<T>(
   generate: () => T,
   limit = size * 100
 ): T[] {
-  let set = new Set<T>()
-  for (let i = 0; i < limit; i++) {
-    set.add(generate())
-    if (set.size === size) return Array.from(set)
-  }
-  throw new Error(
-    `Could not get ${size} unique values after ${limit} iterations`
-  )
+  return fork(() => {
+    let set = new Set<T>()
+    for (let i = 0; i < limit; i++) {
+      set.add(generate())
+      if (set.size === size) return Array.from(set)
+    }
+    throw new Error(
+      `Could not get ${size} unique values after ${limit} iterations`
+    )
+  })
 }
 
 /** Get a random unit vector of `length`. */
 export function vector(length: number): number[] {
-  let vec = Array.from({ length }, () => random())
-  let mag = Math.sqrt(vec.reduce((m, v) => m + v ** 2, 0))
-  let unit = vec.map((v) => v / mag)
-  return unit
+  return fork(() => {
+    let vec = Array.from({ length }, () => random())
+    let mag = Math.sqrt(vec.reduce((m, v) => m + v ** 2, 0))
+    let unit = vec.map((v) => v / mag)
+    return unit
+  })
 }
+
+/**
+ * Random distribution generators from D3's library, as separate exports so
+ * they're all able to tree-shaked away.
+ */
+
+export let bates = d3.randomBates.source(random)
+export let bernoulli = d3.randomBernoulli.source(random)
+export let beta = d3.randomBeta.source(random)
+export let binomial = d3.randomBinomial.source(random)
+export let cauchy = d3.randomCauchy.source(random)
+export let exponential = d3.randomExponential.source(random)
+export let gamma = d3.randomGamma.source(random)
+export let gaussian = d3.randomNormal.source(random)
+export let geometric = d3.randomGeometric.source(random)
+export let irwinHall = d3.randomIrwinHall.source(random)
+export let logistic = d3.randomLogistic.source(random)
+export let logNormal = d3.randomLogNormal.source(random)
+export let normal = gaussian
+export let pareto = d3.randomPareto.source(random)
+export let weibull = d3.randomWeibull.source(random)
