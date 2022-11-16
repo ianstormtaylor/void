@@ -4,20 +4,20 @@ import { useTab } from '../../contexts/tab'
 import { SidebarPanel } from '../ui/sidebar-panel'
 import { IconButton } from '../ui/icon-button'
 import { useSketch } from '../../contexts/sketch'
-import { Math } from 'void'
 import { useCallback } from 'react'
+import { unhashInt } from '../../utils'
 
 export let SeedPanel = () => {
   let [, changeTab] = useTab()
   let sketch = useSketch()
-  let seed = Math.unhash(sketch.seed)
+  let seed = unhashInt(Number(sketch.hash))
   let min = 1
   let max = 2 ** 32
 
   let setSeed = useCallback(
     (s: number) => {
       changeTab((t) => {
-        t.seed = Math.clamp(s, 1, 2 ** 32)
+        t.seed = Math.min(Math.max(s, 1), 2 ** 32)
       })
     },
     [changeTab]

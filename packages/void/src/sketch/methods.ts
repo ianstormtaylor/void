@@ -1,15 +1,8 @@
-import {
-  Math,
-  Units,
-  OUTPUT_MIME_TYPES,
-  Random,
-  Config,
-  Schema,
-  UnitsSystem,
-} from '..'
+import { Units, OUTPUT_MIME_TYPES, Config, Schema } from '..'
 import { Frame, Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
   applyOrientation,
+  convertUnits,
   createPrng,
   CSS_DPI,
   svgDataUriToString,
@@ -18,24 +11,6 @@ import {
   svgStringToElement,
   SVG_NAMESPACE,
 } from '../utils'
-
-/** The number of inches in a meter. */
-let M_PER_INCH = 0.0254
-
-/** The number of meters in an inch. */
-let INCH_PER_M = 1 / M_PER_INCH
-
-/** Conversions for units within their respective system. */
-let CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
-  m: ['metric', 1],
-  cm: ['metric', 1 / 100],
-  mm: ['metric', 1 / 1000],
-  in: ['imperial', 1],
-  ft: ['imperial', 12],
-  yd: ['imperial', 36],
-  pc: ['imperial', 1 / 6],
-  pt: ['imperial', 1 / 72],
-}
 
 /** Get the current sketch and assert one exists. */
 export function assert(): Sketch {
@@ -62,72 +37,6 @@ export function attach(sketch: Sketch): void {
   el.style.background = 'white'
   el.style.outline = '1px solid #e4e4e4'
   container.appendChild(el)
-}
-
-/**
- * Convert a `value` from one unit to another.
- *
- * By default this uses the sketch's units as the output units, but that can be
- * overriden with the third `to` argument.
- */
-export function convert(
-  sketch: Sketch,
-  value: number,
-  from: Units,
-  to?: Units
-): number
-export function convert(
-  sketch: Sketch,
-  value: number,
-  from: Units,
-  options: {
-    dpi?: number
-    precision?: number
-  }
-): number
-export function convert(
-  sketch: Sketch,
-  value: number,
-  from: Units,
-  to: Units,
-  options: {
-    dpi?: number
-    precision?: number
-  }
-): number
-export function convert(
-  sketch: Sketch,
-  value: number,
-  from: Units,
-  to?: Units | { dpi?: number; precision?: number },
-  options: { dpi?: number; precision?: number } = {}
-): number {
-  if (typeof to === 'object') (options = to), (to = undefined)
-  let { settings } = sketch
-  to = to ?? settings.units ?? 'px'
-  let { dpi = settings.dpi ?? CSS_DPI, precision } = options
-
-  // Early exit.
-  if (from === to) return value
-
-  // Swap pixels for inches using the dynamic `dpi`.
-  let factor = 1
-  if (from === 'px') (factor /= dpi), (from = 'in')
-  if (to === 'px') (factor *= dpi), (to = 'in')
-
-  // Swap systems if `from` and `to` aren't using the same one.
-  let [inSystem, inFactor] = CONVERSIONS[from]
-  let [outSystem, outFactor] = CONVERSIONS[to]
-  factor *= inFactor
-  factor /= outFactor
-  if (inSystem !== outSystem) {
-    factor *= inSystem === 'metric' ? INCH_PER_M : M_PER_INCH
-  }
-
-  // Calculate the result and optionally round to a fixed number of digits.
-  let result = value * factor
-  if (precision != null) result = Math.roundTo(result, precision)
-  return result
 }
 
 /** Get the current sketch from the global `VOID` context. */
@@ -160,8 +69,8 @@ export function dimensions(
       : settings.dpi
   let w = width + left + right
   let h = height + top + bottom
-  let x = convert(sketch, w, units, to, { dpi, precision })
-  let y = convert(sketch, h, units, to, { dpi, precision })
+  let x = convertUnits(w, units, to, { dpi, precision })
+  let y = convertUnits(h, units, to, { dpi, precision })
   return [x, y]
 }
 
@@ -178,8 +87,6 @@ export function emit<T extends keyof Handlers>(
 
 /** Execute a `fn` with the sketch loaded on the global `VOID` context. */
 export function exec(sketch: Sketch, fn: () => void) {
-  let prng = (sketch.prng ??= createPrng(sketch.seed))
-  let unseed = Random.seed(prng)
   let VOID = (globalThis.VOID ??= {})
   let prev = VOID.sketch
   VOID.sketch = sketch
@@ -189,7 +96,6 @@ export function exec(sketch: Sketch, fn: () => void) {
     Sketch.emit(sketch, 'error', e as Error)
   } finally {
     VOID.sketch = prev
-    unseed()
   }
 }
 
@@ -245,12 +151,6 @@ export function of(attrs: {
     layers = {},
     traits = {},
   } = attrs
-
-  let seed = Number(hash)
-  if (isNaN(seed)) {
-    throw new Error(`Unable to parse hexadecimal hash: "${hash}"`)
-  }
-
   return {
     config,
     construct,
@@ -259,7 +159,6 @@ export function of(attrs: {
     hash,
     layers,
     output,
-    seed,
     settings: {
       dpi: CSS_DPI,
       fps: 60,
@@ -352,6 +251,12 @@ export function pointer(sketch: Sketch): Pointer {
     button: null,
     buttons: {},
   })
+}
+
+/** Get a random value usig the sketch's seeded PRNG. */
+export function random(sketch: Sketch): number {
+  sketch.random ??= createPrng(Number(sketch.hash))
+  return sketch.random()
 }
 
 /** Save the sketch's layers as an image. */
@@ -471,14 +376,14 @@ export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
 
   // Convert the precision to the sketch's units.
   let [precision, pu] = Config.precision(config)
-  precision = Math.convert(precision, pu, units, { dpi })
+  precision = convertUnits(precision, pu, units, { dpi })
 
   // Create a unit conversion helper with the sketch's default units.
   let [width, height, du] = Config.dimensions(config)
   if (width === Infinity) width = sketch.container.offsetWidth
   if (height === Infinity) height = sketch.container.offsetHeight
-  width = Math.convert(width, du, units, { precision, dpi })
-  height = Math.convert(height, du, units, { precision, dpi })
+  width = convertUnits(width, du, units, { precision, dpi })
+  height = convertUnits(height, du, units, { precision, dpi })
 
   // Apply the orientation setting to the dimensions.
   if (orientation != null) {
@@ -487,10 +392,10 @@ export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
 
   // Apply a margin, so the canvas is drawn without need to know it.
   let [mt, mr, mb, ml, mu] = Config.margin(config)
-  mt = Math.convert(mt, mu, units, { precision, dpi })
-  mr = Math.convert(mr, mu, units, { precision, dpi })
-  mb = Math.convert(mb, mu, units, { precision, dpi })
-  ml = Math.convert(ml, mu, units, { precision, dpi })
+  mt = convertUnits(mt, mu, units, { precision, dpi })
+  mr = convertUnits(mr, mu, units, { precision, dpi })
+  mb = convertUnits(mb, mu, units, { precision, dpi })
+  ml = convertUnits(ml, mu, units, { precision, dpi })
   width -= mr + ml
   height -= mt + mb
   let margin = [mt, mr, mb, ml] as [number, number, number, number]

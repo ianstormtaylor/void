@@ -1,4 +1,4 @@
-import { Random, Void } from 'void'
+import { Void } from 'void'
 
 export default function () {
   let cell = Void.int('cell', 5, 20)
@@ -17,7 +17,7 @@ export default function () {
   for (var x = 0; x < width; x += cell) {
     for (var y = 0; y < height; y += cell) {
       ctx.beginPath()
-      if (Random.bool()) {
+      if (Void.random() < 0.5) {
         ctx.moveTo(x, y)
         ctx.lineTo(x + cell, y + cell)
       } else {

@@ -2,12 +2,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { EditorSidebar } from './editor-sidebar'
 import { EditorToolbar } from './editor-toolbar'
 import { useTab } from '../contexts/tab'
-import { Math, Sketch } from 'void'
+import { Sketch } from 'void'
 import { SketchContext } from '../contexts/sketch'
 import { EditorConsole } from './editor-console'
 import { zoomOut } from '../../shared/zoom'
 import { cloneDeep } from 'lodash'
 import { useWindowSize } from 'react-use'
+import { hashInt } from '../utils'
 
 export let Editor = (props: { construct: Sketch['construct'] }) => {
   let { construct } = props
@@ -30,7 +31,7 @@ export let Editor = (props: { construct: Sketch['construct'] }) => {
     let s = Sketch.of({
       construct,
       container: el,
-      hash: `0x${Math.hash(tab.seed).toString(16)}`,
+      hash: `0x${hashInt(tab.seed).toString(16)}`,
       layers: cloneDeep(tab.layers),
       traits: cloneDeep(tab.traits),
       config: cloneDeep(tab.config),

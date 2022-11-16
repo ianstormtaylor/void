@@ -1,4 +1,4 @@
-import { Void, Math, Random } from 'void'
+import { Void } from 'void'
 
 // https://www.moma.org/collection/works/37202
 export default function () {
@@ -12,6 +12,7 @@ export default function () {
   let count = Void.int('count', 200, 1000, 100)
   let v = Void.float('variance', 0.5, 1.5, 0.1)
   let cell = width / grid
+  let span = grid - 2
   let palette = [
     '#b8baaa',
     '#ac7458',
@@ -25,15 +26,11 @@ export default function () {
   ]
 
   for (let i = 0; i < count; i++) {
-    let min = 1
-    let max = grid - 2
-    let a = Random.int(min, max)
-    let b = Math.trunc(Random.gaussian(grid / 2, grid * v))
-    b = Math.clamp(b, min, max)
-    ;[a, b] = Random.shuffle([a, b])
+    let a = Math.floor(Void.random() * span) + 1
+    let b = Math.floor(VOid.random() * span) + 1
     let x = a * cell
     let y = b * cell
-    ctx.fillStyle = Random.pick(palette)
+    ctx.fillStyle = palette[Math.floor(Void.random() * palette.length)]
     ctx.fillRect(x, y, cell, cell)
   }
 }

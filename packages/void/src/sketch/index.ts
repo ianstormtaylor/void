@@ -17,10 +17,9 @@ export type Sketch = {
   layers: Record<string, Layer>
   pointer?: Pointer
   output: Output
-  prng?: () => number
+  random?: () => number
   raf?: number
   schemas?: Record<string, Schema>
-  seed: number
   settings: {
     dpi: number
     fps: number
