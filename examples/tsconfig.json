@@ -1,27 +1,22 @@
 {
-  "include": ["./scripts", "./src", "./test"],
-  "exclude": ["./node_modules"],
-  "references": [{ "path": "../../packages/void" }],
+  "include": ["./basics", "./classics"],
+  "references": [{ "path": "../packages/void" }],
   "compilerOptions": {
-    "paths": { "void": ["../../packages/void"] },
-    "allowJs": false,
+    "paths": { "void": ["../packages/void"] },
     "allowSyntheticDefaultImports": true,
     "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": false,
-    "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
-    "outDir": "./dist",
-    "resolveJsonModule": true,
+    "outDir": "./out",
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "useDefineForClassFields": true
+    "target": "esnext"
   }
 }

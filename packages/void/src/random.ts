@@ -1,4 +1,4 @@
-import { Math, Narrowable } from '.'
+import { Narrowable } from '.'
 import { createNoise4D } from 'simplex-noise'
 import { createPrng } from './utils'
 import * as d3 from 'd3-random'
@@ -38,7 +38,7 @@ export function float(min?: number, max?: number, step?: number): number {
   let range = max - min
   if (step != null) range += step
   let r = random() * range
-  if (step != null) r = Math.floor(r, { multiple: step })
+  if (step != null) r = Math.floor(r / step) * step
   return min + r
 }
 

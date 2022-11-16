@@ -11,8 +11,8 @@ export default function () {
   ctx.lineWidth = 1.5
   ctx.lineCap = 'round'
 
-  for (let [x1, x2] of Math.split(0, width, grid)) {
-    for (let [y1, y2] of Math.split(0, height, grid)) {
+  for (let [x1, x2] of Math.bins(0, width, grid)) {
+    for (let [y1, y2] of Math.bins(0, height, grid)) {
       let w = x2 - x1
       let h = y2 - y1
       let x = x1 + w / 2

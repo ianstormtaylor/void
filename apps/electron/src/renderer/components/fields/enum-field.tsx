@@ -1,14 +1,13 @@
 import { useRef } from 'react'
-import { SchemaChoice } from 'void'
 
 export let EnumField = (props: {
-  value: any
   label: string
+  value: string
+  options: string[]
   valueClassName?: string
-  choices: SchemaChoice[]
   onChange: (value: any) => void
 }) => {
-  let { value, choices, label, onChange, valueClassName = '' } = props
+  let { value, options, label, onChange, valueClassName = '' } = props
   let selectRef = useRef<HTMLSelectElement>(null)
   return (
     <label
@@ -40,9 +39,9 @@ export let EnumField = (props: {
             e.stopPropagation()
           }}
         >
-          {choices.map((option) => (
-            <option key={option.name} value={option.name}>
-              {option.name}
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
             </option>
           ))}
         </select>

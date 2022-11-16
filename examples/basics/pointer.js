@@ -1,4 +1,4 @@
-import { Void } from 'void'
+import { Void, Random } from 'void'
 import * as scales from 'd3-scale-chromatic'
 
 // https://p5js.org/examples/interaction-follow-3.html
@@ -23,11 +23,14 @@ export default function () {
 
   // Create a new layer to draw on.
   let ctx = Void.layer()
+  ctx.lineWidth = 9
+  ctx.lineCap = 'round'
 
   // Define a few variables to use for the sketch.
-  let center = [width / 2, height / 2]
-  let target = center
-  let points = []
+  let target = [width / 2, height / 2]
+  let points = Array.from({ length: segments }, () => {
+    return [Random.float(0, width), Random.float(0, height)]
+  })
 
   // On every frame...
   Void.draw(() => {
@@ -40,7 +43,7 @@ export default function () {
     // Draw each segment of the chain, keeping the entire chain connected.
     for (let i = 0; i < segments; i++) {
       // Chain each new point to the previous point.
-      let point = (points[i] ??= center)
+      let point = points[i]
       let prev = i === 0 ? target : points[i - 1]
       let [px, py] = prev
       let [x, y] = point
@@ -49,10 +52,8 @@ export default function () {
       let ny = (point[1] = py - Math.sin(angle) * length)
 
       // Draw the segment.
-      ctx.strokeStyle = palette(1 - i / segments)
-      ctx.lineWidth = 9
-      ctx.lineCap = 'round'
       ctx.save()
+      ctx.strokeStyle = palette(1 - i / segments)
       ctx.translate(nx, ny)
       ctx.rotate(angle)
       ctx.beginPath()

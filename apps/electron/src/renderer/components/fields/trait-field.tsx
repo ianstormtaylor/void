@@ -3,7 +3,7 @@ import { NumberField } from './number-field'
 import { capitalCase } from 'change-case'
 import { BooleanField } from './boolean-field'
 import { useTab } from '../../contexts/tab'
-import { Schema, Math, Random } from 'void'
+import { Schema, Random } from 'void'
 import { IconButton } from '../ui/icon-button'
 import { MdOutlineLock, MdOutlineLockOpen } from 'react-icons/md'
 import { EnumField } from './enum-field'
@@ -53,7 +53,7 @@ export let TraitField = (props: { name: string }) => {
       <EnumField
         label={label}
         value={value}
-        choices={schema.choices}
+        options={schema.names}
         valueClassName={valueClassName}
         onChange={onChange}
       />
@@ -96,17 +96,11 @@ export function generate(schema: Schema): any {
     }
     case 'int': {
       let { min, max, step } = schema
-      let value = Random.int(0, max - min)
-      return min + Math.round(value / step) * step
+      return Random.int(min, max, step)
     }
     case 'float': {
       let { min, max, step } = schema
-      if (step == null) {
-        return Random.float(min, max)
-      } else {
-        let value = Random.float(0, max - min + step)
-        return min + Math.floor(value, step)
-      }
+      return Random.float(min, max, step)
     }
     case 'pick': {
       let { choices } = schema

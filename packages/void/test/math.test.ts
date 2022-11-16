@@ -16,6 +16,33 @@ t('Math.TOLERANCE', () => {
   e(Math.TOLERANCE).toEqual(0.000001)
 })
 
+t('Math.array', () => {
+  e(Math.array(0)).toEqual([])
+  e(Math.array(1)).toEqual([0])
+  e(Math.array(2)).toEqual([0, 1])
+  e(Math.array(3, (i) => i * 2)).toEqual([0, 2, 4])
+})
+
+t('Math.between', () => {
+  e(Math.between(1, 0, 2)).toEqual(true)
+  e(Math.between(0, 1, 2)).toEqual(false)
+  e(Math.between(NEAR_ZERO, 0, 2)).toEqual(false)
+})
+
+t('Math.bins', () => {
+  e(Array.from(Math.bins(0, 4, 0))).toEqual([])
+  e(Array.from(Math.bins(0, 4, 1))).toEqual([[0, 4]])
+  e(Array.from(Math.bins(0, 4, 2))).toEqual([
+    [0, 2],
+    [2, 4],
+  ])
+  e(Array.from(Math.bins(0, 4, 3))).toEqual([
+    [0, 1 + 1 / 3],
+    [1 + 1 / 3, 2 + 2 / 3],
+    [2 + 2 / 3, 4],
+  ])
+})
+
 t('Math.bounce', () => {
   e(Math.bounce(-7, 0, 3)).toEqual(1)
   e(Math.bounce(-5, 0, 3)).toEqual(1)
@@ -36,14 +63,12 @@ t('Math.bounce', () => {
   e(Math.bounce(5, -2, 2)).toEqual(-1)
 })
 
-t('Math.ceil', () => {
-  e(Math.ceil(4.2)).toEqual(5)
-  e(Math.ceil(4.0)).toEqual(4)
-  e(Math.ceil(Math.PI, 2)).toEqual(3.15)
-  e(Math.ceil(Math.PI, 4)).toEqual(3.1416)
-  e(Math.ceil(Math.PI, { multiple: 0.2 })).toEqual(3.2)
-  e(Math.ceil(Math.PI, { multiple: 0.5 })).toEqual(3.5)
-  e(Math.ceil(4.34201, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
+t('Math.ceilTo', () => {
+  e(Math.ceilTo(Math.PI, 2)).toEqual(3.15)
+  e(Math.ceilTo(Math.PI, 4)).toEqual(3.1416)
+  e(Math.ceilTo(Math.PI, { multiple: 0.2 })).toEqual(3.2)
+  e(Math.ceilTo(Math.PI, { multiple: 0.5 })).toEqual(3.5)
+  e(Math.ceilTo(4.34201, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
 })
 
 t('Math.clamp', () => {
@@ -77,30 +102,15 @@ t('Math.combinations', () => {
   ])
 })
 
-t('Math.convert', () => {
-  e(Math.convert(1, 'px')).toEqual(1)
-  // imperial
-  e(Math.convert(1, 'pt')).toEqual(1)
-  e(Math.convert(1, 'pc')).toEqual(72 / 6)
-  e(Math.convert(1, 'in')).toEqual(72)
-  e(Math.convert(1, 'ft')).toEqual(72 * 12)
-  e(Math.convert(1, 'yd')).toEqual(72 * 12 * 3)
-  // metric
-  e(Math.convert(1, 'mm')).toBeCloseTo(2.834645)
-  e(Math.convert(1, 'cm')).toBeCloseTo(28.34645)
-  e(Math.convert(1, 'm')).toBeCloseTo(2834.645)
-  // to specific units
-  e(Math.convert(1, 'in', 'in')).toEqual(1)
-  e(Math.convert(1, 'ft', 'in')).toEqual(12)
-  e(Math.convert(1, 'cm', 'mm')).toEqual(10)
-  e(Math.convert(1, 'in', 'cm')).toEqual(2.54)
-  // custom dpi
-  e(Math.convert(1, 'in', { dpi: 10 })).toEqual(10)
-  // custom precision
-  e(Math.convert(1, 'mm', { precision: 1 })).toEqual(3)
-  e(Math.convert(1, 'mm', { precision: 0.1 })).toBeCloseTo(2.8)
-  e(Math.convert(1, 'mm', { precision: 0.01 })).toBeCloseTo(2.83)
-  e(Math.convert(1, 'mm', { precision: 2 })).toEqual(2)
+t('Math.copySign', () => {
+  e(Math.copySign(2, 1)).toEqual(2)
+  e(Math.copySign(2, -1)).toEqual(-2)
+  e(Math.copySign(-2, 1)).toEqual(2)
+  e(Math.copySign(-2, -1)).toEqual(-2)
+  e(Math.copySign(2, 0)).toEqual(2)
+  e(Math.copySign(2, -0)).toEqual(-2)
+  e(Math.copySign(-2, 0)).toEqual(2)
+  e(Math.copySign(-2, -0)).toEqual(-2)
 })
 
 t('Math.degrees', () => {
@@ -167,15 +177,12 @@ t('Math.factorial', () => {
   e(Math.factorial(4)).toEqual(24)
 })
 
-t('Math.floor', () => {
-  e(Math.floor(4.2)).toEqual(4)
-  e(Math.floor(4.7)).toEqual(4)
-  e(Math.floor(5.0)).toEqual(5)
-  e(Math.floor(Math.PI, 2)).toEqual(3.14)
-  e(Math.floor(Math.PI, 4)).toEqual(3.1415)
-  e(Math.floor(Math.PI, { multiple: 0.2 })).toEqual(3.0)
-  e(Math.floor(Math.PI, { multiple: 0.5 })).toEqual(3)
-  e(Math.floor(4.34201, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
+t('Math.floorTo', () => {
+  e(Math.floorTo(Math.PI, 2)).toEqual(3.14)
+  e(Math.floorTo(Math.PI, 4)).toEqual(3.1415)
+  e(Math.floorTo(Math.PI, { multiple: 0.2 })).toEqual(3.0)
+  e(Math.floorTo(Math.PI, { multiple: 0.5 })).toEqual(3)
+  e(Math.floorTo(4.34201, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
 })
 
 t('Math.gcd', () => {
@@ -185,50 +192,15 @@ t('Math.gcd', () => {
 })
 
 t('Math.hash', () => {
-  e(Math.hash(0)).toEqual(0)
   e(Math.hash(1)).toEqual(2261973619)
   e(Math.hash(2)).toEqual(229111015)
   e(Math.hash(3)).toEqual(3983417082)
   e(Math.hash(4)).toEqual(2393575859)
   e(Math.hash(5)).toEqual(2793899052)
-})
-
-t('Math.isBetween', () => {
-  e(Math.isBetween(1, 0, 2)).toEqual(true)
-  e(Math.isBetween(0, 1, 2)).toEqual(false)
-  e(Math.isBetween(NEAR_ZERO, 0, 2)).toEqual(false)
-})
-
-t('Math.isInteger', () => {
-  e(Math.isInteger(0)).toEqual(true)
-  e(Math.isInteger(1)).toEqual(true)
-  e(Math.isInteger(-1)).toEqual(true)
-  e(Math.isInteger(0.5)).toEqual(false)
-  e(Math.isInteger(NEAR_ZERO)).toEqual(true)
-})
-
-t('Math.isNegative', () => {
-  e(Math.isNegative(-1)).toEqual(true)
-  e(Math.isNegative(0)).toEqual(false)
-  e(Math.isNegative(1)).toEqual(false)
-  e(Math.isNegative(NEAR_ZERO)).toEqual(false)
-  e(Math.isNegative(-NEAR_ZERO)).toEqual(false)
-})
-
-t('Math.isPositive', () => {
-  e(Math.isPositive(1)).toEqual(true)
-  e(Math.isPositive(0)).toEqual(false)
-  e(Math.isPositive(-1)).toEqual(false)
-  e(Math.isPositive(NEAR_ZERO)).toEqual(false)
-  e(Math.isPositive(-NEAR_ZERO)).toEqual(false)
-})
-
-t('Math.isZero', () => {
-  e(Math.isZero(0)).toEqual(true)
-  e(Math.isZero(NEAR_ZERO)).toEqual(true)
-  e(Math.isZero(-NEAR_ZERO)).toEqual(true)
-  e(Math.isZero(1)).toEqual(false)
-  e(Math.isZero(-1)).toEqual(false)
+  // edges
+  e(Math.hash(0)).toEqual(0)
+  e(Math.hash(-1)).toEqual(2578835075)
+  e(Math.hash(Number.MAX_SAFE_INTEGER)).toEqual(2578835075)
 })
 
 t('Math.lcm', () => {
@@ -283,6 +255,13 @@ t('Math.mode', () => {
   e(Math.mode(1, 2, 2, 3, 3, 3)).toEqual(3)
 })
 
+t('Math.norm', () => {
+  e(Math.norm(0, 4, 1)).toEqual(0.25)
+  e(Math.norm(0, 10, 5)).toEqual(0.5)
+  e(Math.norm(0, 1, 2)).toEqual(2)
+  e(Math.norm(0, NEAR_ZERO, 1)).toEqual(0)
+})
+
 t('Math.permutations', () => {
   e(Math.permutations([1, 2, 3])).toEqual([
     [1, 2, 3],
@@ -306,58 +285,47 @@ t('Math.radians', () => {
 })
 
 t('Math.range', () => {
-  e(Array.from(Math.range(0))).toEqual([])
-  e(Array.from(Math.range(3))).toEqual([0, 1, 2])
-  e(Array.from(Math.range(-3))).toEqual([0, -1, -2])
   e(Array.from(Math.range(0, 3))).toEqual([0, 1, 2, 3])
   e(Array.from(Math.range(1, 4))).toEqual([1, 2, 3, 4])
   e(Array.from(Math.range(2, -2))).toEqual([2, 1, 0, -1, -2])
   e(Array.from(Math.range(-2, 2))).toEqual([-2, -1, 0, 1, 2])
   e(Array.from(Math.range(0, 1, 0.5))).toEqual([0, 0.5, 1])
+  e(Array.from(Math.range(1, 0, -0.5))).toEqual([1, 0.5, 0])
+  e(Array.from(Math.range(2, -2, -1))).toEqual([2, 1, 0, -1, -2])
 })
 
 t('Math.rolling', () => {
-  e(Math.rolling([1, 2, 3, 4], 1)).toEqual([[1], [2], [3], [4]])
-  e(Math.rolling([1, 2, 3, 4], 2)).toEqual([
+  e(Array.from(Math.rolling([1, 2, 3, 4], 1))).toEqual([[1], [2], [3], [4]])
+  e(Array.from(Math.rolling([1, 2, 3, 4], 2))).toEqual([
     [1, 2],
     [2, 3],
     [3, 4],
   ])
-  e(Math.rolling([1, 2, 3, 4], 3)).toEqual([
+  e(Array.from(Math.rolling([1, 2, 3, 4], 3))).toEqual([
     [1, 2, 3],
     [2, 3, 4],
   ])
-  e(Math.rolling([1, 2, 3, 4], 4)).toEqual([[1, 2, 3, 4]])
-  e(Math.rolling([1, 2, 3, 4], 5)).toEqual([])
+  e(Array.from(Math.rolling([1, 2, 3, 4], 4))).toEqual([[1, 2, 3, 4]])
+  e(Array.from(Math.rolling([1, 2, 3, 4], 5))).toEqual([])
 })
 
-t('Math.round', () => {
-  e(Math.round(4.2)).toEqual(4)
-  e(Math.round(4.7)).toEqual(5)
-  e(Math.round(5.0)).toEqual(5)
-  e(Math.round(Math.PI, 2)).toEqual(3.14)
-  e(Math.round(Math.PI, 4)).toEqual(3.1416)
-  e(Math.round(Math.PI, { multiple: 0.2 })).toEqual(3.2)
-  e(Math.round(Math.PI, { multiple: 0.5 })).toEqual(3)
-  e(Math.round(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
-  e(Math.round(4.349, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
-})
-
-t('Math.sign', () => {
-  e(Math.sign(-7)).toEqual(-1)
-  e(Math.sign(0)).toEqual(0)
-  e(Math.sign(7)).toEqual(1)
+t('Math.roundTo', () => {
+  e(Math.roundTo(Math.PI, 2)).toEqual(3.14)
+  e(Math.roundTo(Math.PI, 4)).toEqual(3.1416)
+  e(Math.roundTo(Math.PI, { multiple: 0.2 })).toEqual(3.2)
+  e(Math.roundTo(Math.PI, { multiple: 0.5 })).toEqual(3)
+  e(Math.roundTo(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
+  e(Math.roundTo(4.349, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
 })
 
 t.skip('Math.slerp') // TODO
 
 t('Math.split', () => {
-  // prettier-ignore
-  e(Math.split(0, 1, 1)).toEqual([[0,1]])
-  // prettier-ignore
-  e(Math.split(0, 1, 2)).toEqual([[0,0.5], [0.5,1]])
-  // prettier-ignore
-  e(Math.split(0, 10, 4)).toEqual([[0,2.5], [2.5,5], [5,7.5], [7.5,10]])
+  e(Array.from(Math.split(0, 4, 0))).toEqual([])
+  e(Array.from(Math.split(0, 4, 1))).toEqual([2])
+  e(Array.from(Math.split(0, 4, 2))).toEqual([0, 4])
+  e(Array.from(Math.split(0, 4, 3))).toEqual([0, 2, 4])
+  e(Array.from(Math.split(0, 4, 4))).toEqual([0, 1 + 1 / 3, 2 + 2 / 3, 4])
 })
 
 t('Math.stddev', () => {
@@ -365,28 +333,17 @@ t('Math.stddev', () => {
   e(Math.stddev(1, 3, 10, 21, 42)).toBeCloseTo(16.8)
 })
 
-t('Math.subdivide', () => {
-  e(Math.subdivide(0, 1, 0)).toEqual([])
-  e(Math.subdivide(0, 1, 1)).toEqual([0.5])
-  e(Math.subdivide(0, 1, 2)).toEqual([0, 1])
-  e(Math.subdivide(0, 1, 3)).toEqual([0, 0.5, 1])
-  e(Math.subdivide(5, 15, 5)).toEqual([5, 7.5, 10, 12.5, 15])
-})
-
 t('Math.sum', () => {
   e(Math.sum(1, 2, 3)).toEqual(6)
 })
 
-t('Math.trunc', () => {
-  e(Math.trunc(4.2)).toEqual(4)
-  e(Math.trunc(4.7)).toEqual(4)
-  e(Math.trunc(5.0)).toEqual(5)
-  e(Math.trunc(Math.PI, 2)).toEqual(3.14)
-  e(Math.trunc(Math.PI, 4)).toEqual(3.1415)
-  e(Math.trunc(Math.PI, { multiple: 0.2 })).toEqual(3.0)
-  e(Math.trunc(Math.PI, { multiple: 0.5 })).toEqual(3)
-  e(Math.trunc(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
-  e(Math.trunc(4.349, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
+t('Math.truncTo', () => {
+  e(Math.truncTo(Math.PI, 2)).toEqual(3.14)
+  e(Math.truncTo(Math.PI, 4)).toEqual(3.1415)
+  e(Math.truncTo(Math.PI, { multiple: 0.2 })).toEqual(3.0)
+  e(Math.truncTo(Math.PI, { multiple: 0.5 })).toEqual(3)
+  e(Math.truncTo(4.342, { multiple: 0.01 })).toBeCloseTo(4.34, Math.TOLERANCE)
+  e(Math.truncTo(4.349, { multiple: 0.01 })).toBeCloseTo(4.35, Math.TOLERANCE)
 })
 
 t('Math.unhash', () => {
@@ -396,13 +353,6 @@ t('Math.unhash', () => {
   e(Math.unhash(3983417082)).toEqual(3)
   e(Math.unhash(2393575859)).toEqual(4)
   e(Math.unhash(2793899052)).toEqual(5)
-})
-
-t('Math.unlerp', () => {
-  e(Math.unlerp(0, 4, 1)).toEqual(0.25)
-  e(Math.unlerp(0, 10, 5)).toEqual(0.5)
-  e(Math.unlerp(0, 1, 2)).toEqual(2)
-  e(Math.unlerp(0, NEAR_ZERO, 1)).toEqual(0)
 })
 
 t('Math.variance', () => {
@@ -438,11 +388,13 @@ t('Math...', () => {
   e(Math.atanh).toEqual(M.atanh)
   e(Math.atan2).toEqual(M.atan2)
   e(Math.cbrt).toEqual(M.cbrt)
+  e(Math.ceil).toEqual(M.ceil)
   e(Math.clz32).toEqual(M.clz32)
   e(Math.cos).toEqual(M.cos)
   e(Math.cosh).toEqual(M.cosh)
   e(Math.exp).toEqual(M.exp)
   e(Math.expm1).toEqual(M.expm1)
+  e(Math.floor).toEqual(M.floor)
   e(Math.fround).toEqual(M.fround)
   e(Math.hypot).toEqual(M.hypot)
   e(Math.imul).toEqual(M.imul)
@@ -453,13 +405,11 @@ t('Math...', () => {
   e(Math.min).toEqual(M.min)
   e(Math.pow).toEqual(M.pow)
   e(Math.random).toEqual(M.random)
+  e(Math.round).toEqual(M.round)
   e(Math.sin).toEqual(M.sin)
   e(Math.sinh).toEqual(M.sinh)
   e(Math.sqrt).toEqual(M.sqrt)
   e(Math.tan).toEqual(M.tan)
   e(Math.tanh).toEqual(M.tanh)
-})
-
-t('Number...', () => {
-  e(Math.isNaN).toEqual(Number.isNaN)
+  e(Math.trunc).toEqual(M.trunc)
 })

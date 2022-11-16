@@ -14,11 +14,6 @@ _The native `Math.*` namespace constants and methods are also all re-exported, s
   - [`Math.PHI`](#mathphi)
   - [`Math.TAU`](#mathtau)
   - [`Math.TOLERANCE`](#mathtolerance)
-- [**Rounding**](#rounding)
-  - [`Math.ceilTo()`](#mathceil)
-  - [`Math.floorTo()`](#mathfloor)
-  - [`Math.roundTo()`](#mathround)
-  - [`Math.truncTo()`](#mathtrunc)
 - [**Interpolation**](#interpolation)
   - [`Math.bounce()`](#mathbounce)
   - [`Math.clamp()`](#mathclamp)
@@ -32,16 +27,17 @@ _The native `Math.*` namespace constants and methods are also all re-exported, s
   - [`Math.slerp()`](#mathslerp)
   - [`Math.unlerp()`](#mathunlerp)
   - [`Math.wrap()`](#mathwrap)
+- [**Rounding**](#rounding)
+  - [`Math.ceilTo()`](#mathceil)
+  - [`Math.floorTo()`](#mathfloor)
+  - [`Math.roundTo()`](#mathround)
+  - [`Math.truncTo()`](#mathtrunc)
 - [**Arithmetic**](#arithmetic)
   - [`Math.between()`](#mathbetween)
-  - [`Math.combinations()`](#mathcombinations)
   - [`Math.equals()`](#mathequals)
-  - [`Math.factorial()`](#mathfactorial)
   - [`Math.gcd()`](#mathgcd)
   - [`Math.lcm()`](#mathlcm)
   - [`Math.mod()`](#mathmod)
-  - [`Math.permutations()`](#mathpermutations)
-  - [`Math.quantile()`](#mathquantile)
 - [**Statistics**](#statistics)
   - [`Math.extent()`](#mathextent)
   - [`Math.mean()`](#mathmean)
@@ -51,17 +47,22 @@ _The native `Math.*` namespace constants and methods are also all re-exported, s
   - [`Math.stddev()`](#mathstddev)
   - [`Math.sum()`](#mathsum)
   - [`Math.variance()`](#mathvariance)
+- [**Combinatorics**](#combinatorics)
+  - [`Math.combinations()`](#mathcombinations)
+  - [`Math.factorial()`](#mathfactorial)
+  - [`Math.permutations()`](#mathpermutations)
+- [**Iterables**](#iterables)
+  - [`Math.array()`](#matharray)
+  - [`Math.bins()`](#mathbins)
+  - [`Math.range()`](#mathrange)
+  - [`Math.rolling()`](#mathrolling)
+  - [`Math.split()`](#mathsplit)
 - [**Conversions**](#conversions)
   - [`Math.convert()`](#mathconvert)
   - [`Math.degrees()`](#mathdegrees)
   - [`Math.hash()`](#mathhash)
   - [`Math.radians()`](#mathradians)
   - [`Math.unhash()`](#mathunhash)
-- [**Ranges**](#ranges)
-  - [`Math.range()`](#mathrange)
-  - [`Math.rolling()`](#mathrolling)
-  - [`Math.split()`](#mathsplit)
-  - [`Math.subdivide()`](#mathsubdivide)
 
 ## Constants
 
@@ -76,44 +77,6 @@ Twice the value of `Math.PI`, approximately `6.283`.
 ### `Math.TOLERANCE`
 
 The default tolerance used to ignore floating point errors, `0.000001`.
-
-## Rounding
-
-### `Math.ceilTo()`
-
-```ts
-Math.ceilTo(x: number, precision: number) => number
-Math.ceilTo(x: number, options: { multiple: number }) => number
-```
-
-Rounds `x` _up_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
-
-### `Math.floorTo()`
-
-```ts
-Math.floorTo(x: number, precision: number) => number
-Math.floorTo(x: number, options: { multiple: number }) => number
-```
-
-Rounds `x` _down_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
-
-### `Math.roundTo()`
-
-```ts
-Math.roundTo(x: number, precision: number) => number
-Math.roundTo(x: number, options: { multiple: number }) => number
-```
-
-Rounds `x` _up or down_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
-
-### `Math.truncTo()`
-
-```ts
-Math.truncTo(x: number, precision: number) => number
-Math.truncTo(x: number, options: { multiple: number }) => number
-```
-
-Rounds `x` _towards zero_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
 
 ## Interpolation
 
@@ -238,62 +201,279 @@ Clamp `x` between `min` and `max` by wrapping around back to the other side if t
 
 By default `max` is exclusive (eg. `0` to `360`), but you can pass the `inclusive` argument to change this behavior.
 
+## Rounding
+
+### `Math.ceilTo()`
+
+```ts
+Math.ceilTo(x: number, precision: number) => number
+Math.ceilTo(x: number, options: { multiple: number }) => number
+```
+
+Rounds `x` _up_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
+
+### `Math.floorTo()`
+
+```ts
+Math.floorTo(x: number, precision: number) => number
+Math.floorTo(x: number, options: { multiple: number }) => number
+```
+
+Rounds `x` _down_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
+
+### `Math.roundTo()`
+
+```ts
+Math.roundTo(x: number, precision: number) => number
+Math.roundTo(x: number, options: { multiple: number }) => number
+```
+
+Rounds `x` _up or down_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
+
+### `Math.truncTo()`
+
+```ts
+Math.truncTo(x: number, precision: number) => number
+Math.truncTo(x: number, options: { multiple: number }) => number
+```
+
+Rounds `x` _towards zero_ to the nearest value by a number of decimal places signified by `precision`, or the nearest `multiple`.
+
 ## Arithmetic
 
-### `Math.combinations()`
+### `Math.between()`
+
+```ts
+Math.between(x: number, min: number, max: number, tolerance?: number) => boolean
+```
 
 ### `Math.equals()`
 
-### `Math.factorial()`
+```ts
+Math.equals(a: number, b: number, tolerance?: number) => boolean
+```
 
 ### `Math.gcd()`
 
-### `Math.includes()`
+```ts
+Math.gcd(...numbers: number[]) => number
+```
 
 ### `Math.lcm()`
 
+```ts
+Math.lcm(...numbers: number[]) => number
+```
+
 ### `Math.mod()`
 
-### `Math.permutations()`
-
-### `Math.quantile()`
+```ts
+Math.mod(x: number, modulus: number) => number
+```
 
 ## Statistics
 
 ### `Math.extent()`
 
+```ts
+Math.extent(...numbers: number[]) => [number, number]
+```
+
 ### `Math.mean()`
+
+```ts
+Math.mean(...numbers: number[]) => number
+```
 
 ### `Math.median()`
 
+```ts
+Math.median(...numbers: number[]) => number
+```
+
 ### `Math.mode()`
+
+```ts
+Math.mode<T>(...values: T[]) => T | undefined
+```
 
 ### `Math.quantile()`
 
+```ts
+Math.quantile(...numbers: number[], p: number[], options?: { sorted: boolean }) => number
+```
+
 ### `Math.stddev()`
+
+```ts
+Math.stddev(...numbers: number[]) => number
+```
 
 ### `Math.sum()`
 
+```ts
+Math.sum(...numbers: number[]) => number
+```
+
 ### `Math.variance()`
+
+```ts
+Math.variance(...numbers: number[]) => number
+```
+
+## Combinatorics
+
+### `Math.combinations()`
+
+```ts
+Math.combinations<T>(list: T[]) => T[][]
+```
+
+### `Math.factorial()`
+
+```ts
+Math.factorial(x: number) => number
+```
+
+### `Math.permutations()`
+
+```ts
+Math.permutations<T>(list: T[]) => T[][]
+```
+
+## Iterables
+
+### `Math.array()`
+
+```ts
+Math.array(length: number) => number[]
+Math.array<T>(length: number, fill: (i: number) => T) => T[]
+```
+
+Creates a new array with `length`.
+
+You can optionally pass a `fill` mapping function, which will receive the index and can return any other value to fill the array with.
+
+Note this is just a convenience for the awkward [`Array.from`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from) syntax.
+
+### `Math.bins()`
+
+```ts
+Math.bins(start: number, end: number, n: number) => Iterable<[number, number]>
+```
+
+Return an iterable of `n` bins from `start` to `end` (inclusive). Each bin is a tuple of left and right edges of the sub-range.
+
+Technically, this is just a special combination of [`Math.split()`](#mathsplit) and [`Math.rolling()`](#mathrolling).
+
+```ts
+Math.bins(0, 3, 2)
+// [0, 1.5]
+// [1.5, 3]
+
+Math.bins(0, 3, 3)
+// [0, 1]
+// [1, 2]
+// [2, 3]
+```
+
+### `Math.range()`
+
+```ts
+Math.range(start: number, end: number, step?: number) => Iterable<number>
+```
+
+Return an iterable range beginning at `start` and going until `stop`, with optional `step` to increment by.
+
+```ts
+Math.range(1, 4)
+// 1
+// 2
+// 3
+// 4
+
+Math.range(0, 1.5, 0.5)
+// 0
+// 0.5
+// 1
+// 1.5
+```
+
+### `Math.rolling()`
+
+```ts
+Math.rolling<T>(iterable: T[], length: number) => Iterable<T[]>
+```
+
+Return a new iterable with a rolling window of `length` applied to an existing `iterable`.
+
+```ts
+Math.rolling([1, 2, 3, 4, 5], 3)
+// [1, 2, 3]
+// [2, 3, 4]
+// [3, 4, 5]
+```
+
+### `Math.split()`
+
+```ts
+Math.split(start: number, end: number, length: number) => Iterable<number>
+```
+
+Return an iterable from splitting a range from `start` to `end` into a specific `length` of steps.
+
+```ts
+Math.split(0, 5, 3)
+// 0
+// 2.5
+// 5
+
+Math.split(0, 5, 1)
+// 2.5
+
+Math.split(0, 5, 0)
+// [nothing]
+```
 
 ## Conversions
 
 ### `Math.convert()`
 
+```ts
+Math.convert(x: number, from: Units, to?: Units, options?: {
+  dpi?: number
+  precision?: number
+}) => number
+```
+
+Convert `x` defined in `from` units into `to` units.
+
+If you don't supply an output `to` units, they will default to the units your sketch's canvas is defined in. So by default calling `convert()` to will convert values in any units to the ones you're currently using.
+
 ### `Math.degrees()`
+
+```ts
+Math.degrees(radians: number) => number
+```
+
+Convert an angle in `radians` to its equivalent in degrees.
 
 ### `Math.hash()`
 
+```ts
+Math.hash(x: number) => number
+```
+
 ### `Math.radians()`
+
+```ts
+Math.radians(degrees: number) => number
+```
+
+Convert an angle in `degrees` to its equivalent in radians.
 
 ### `Math.unhash()`
 
-## Ranges
-
-### `Math.range()`
-
-### `Math.rolling()`
-
-### `Math.split()`
-
-### `Math.subdivide()`
+```ts
+Math.unhash(x: number) => number
+```

@@ -1,51 +1,65 @@
-import { Sketch, Units, UnitsSystem } from '.'
-import { CSS_CPI } from './utils'
-
-/** The golden ratio. */
-export const PHI = (1 + Math.sqrt(5)) / 2
-
-/** Twice the value of `PI`, which is often more clear. */
-export const TAU = Math.PI * 2
-
-/** A reasonable tolerance for catching floating point precision errors. */
-export const TOLERANCE = 0.000001
-
-/** The number of degrees in one radian. */
+// The number of degrees in one radian.
 const DEG_PER_RAD = 180 / Math.PI
 
-/** The number of radians in one degree. */
+// The number of radians in one degree.
 const RAD_PER_DEG = Math.PI / 180
 
-/** The number of inches in a meter. */
-const M_PER_INCH = 0.0254
+/**
+ * The golden ratio.
+ */
+export const PHI = (1 + Math.sqrt(5)) / 2
 
-/** The number of meters in an inch. */
-const INCH_PER_M = 1 / M_PER_INCH
+/**
+ * Twice the value of `PI`, which is often more clear.
+ */
+export const TAU = Math.PI * 2
 
-/** Conversions for units within their respective system. */
-const CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
-  m: ['metric', 1],
-  cm: ['metric', 1 / 100],
-  mm: ['metric', 1 / 1000],
-  in: ['imperial', 1],
-  ft: ['imperial', 12],
-  yd: ['imperial', 36],
-  pc: ['imperial', 1 / 6],
-  pt: ['imperial', 1 / 72],
+/**
+ * A reasonable tolerance for catching floating point precision errors.
+ */
+export const TOLERANCE = 0.000001
+
+/**
+ * Create an array with `length`, with optional `fill` mapping function.
+ */
+export function array(length: number): number[]
+export function array<T>(length: number, fill: (i: number) => T): T[]
+export function array(length: number, fill?: (i: number) => any): any[] {
+  return Array.from({ length }, (_, i) => {
+    return fill == null ? i : fill(i)
+  })
 }
 
-/** Check if a `value` is included in a range between `min` and `max`. */
+/**
+ * Check if `x` is between `min` and `max` (inclusive).
+ */
 export function between(
-  value: number,
+  x: number,
   min: number,
   max: number,
   tolerance = TOLERANCE
 ): boolean {
   if (min > max) [min, max] = [max, min]
-  return min + tolerance < value && value < max - tolerance
+  return min + tolerance < x && x < max - tolerance
 }
 
-/** Clamp a `value` between `min` and `max` by bouncing between the two. */
+/**
+ * Split a range from `start` to `end` into a `count` of bins.
+ *
+ * This returns an iterable with tuples for the leading and trailing edge of
+ * each of the bins.
+ */
+export function* bins(
+  start: number,
+  end: number,
+  count: number
+): Generator<[number, number], void, void> {
+  yield* rolling(split(start, end, count + 1), 2)
+}
+
+/**
+ * Clamp a `value` between `min` and `max` by bouncing between the two.
+ */
 export function bounce(value: number, min: number, max: number): number {
   if (min <= value && value <= max) return value
   let range = max - min
@@ -57,7 +71,9 @@ export function bounce(value: number, min: number, max: number): number {
   return ret
 }
 
-/** Round a `value` _up_ by `precision` or `multiple`. */
+/**
+ * Round a `value` _up_ by `precision` or `multiple`.
+ */
 export function ceilTo(value: number, precision: number): number
 export function ceilTo(value: number, options: { multiple: number }): number
 export function ceilTo(
@@ -72,12 +88,16 @@ export function ceilTo(
   }
 }
 
-/** Clamp a `value` between `min` and `max`. */
+/**
+ * Clamp a `value` between `min` and `max`.
+ */
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-/** Calculate all possible combinations of a `list`, with optional `size` or `min` and `max`. */
+/**
+ * Calculate all possible combinations of a `list`, with optional `size` or `min` and `max`.
+ */
 export function combinations<T>(list: T[]): T[][]
 export function combinations<T>(list: T[], size: number): T[][]
 export function combinations<T>(list: T[], min: number, max: number): T[][]
@@ -108,103 +128,72 @@ export function combinations<T>(list: T[], min?: number, max?: number): T[][] {
 }
 
 /**
- * Compare a `value` to a `target`, returning `-1`, `0`, or `1` depending on
- * whether it is less than, equal to, or greater than the target.
+ * Compare `x` to a `target`, returning `-1`, `0`, or `1` depending on
+ * whether it is less than, equal to, or greater than the target, respectively.
  */
-
 export function compare(
-  value: number,
+  x: number,
   target: number,
   tolerance?: number
 ): -1 | 0 | 1 {
-  return equals(value, target, tolerance) ? 0 : value > target ? 1 : -1
+  return equals(x, target, tolerance) ? 0 : x > target ? 1 : -1
 }
 
-/** Convert a `value` from one unit to another, defaulting to the sketch's units. */
-export function convert(value: number, from: Units, to?: Units): number
-export function convert(
-  value: number,
-  from: Units,
-  options: {
-    dpi?: number
-    precision?: number
-  }
-): number
-export function convert(
-  value: number,
-  from: Units,
-  to: Units,
-  options: {
-    dpi?: number
-    precision?: number
-  }
-): number
-export function convert(
-  value: number,
-  from: Units,
-  to?: Units | { dpi?: number; precision?: number },
-  options: { dpi?: number; precision?: number } = {}
-): number {
-  if (typeof to === 'object') (options = to), (to = undefined)
-  let sketch = Sketch.current()
-  let s = sketch?.settings
-  to = to ?? s?.units ?? 'px'
-  let { dpi = s?.dpi ?? CSS_CPI, precision } = options
-
-  // Early exit.
-  if (from === to) return value
-
-  // Swap pixels for inches using the dynamic `dpi`.
-  let factor = 1
-  if (from === 'px') (factor /= dpi), (from = 'in')
-  if (to === 'px') (factor *= dpi), (to = 'in')
-
-  // Swap systems if `from` and `to` aren't using the same one.
-  let [inSystem, inFactor] = CONVERSIONS[from]
-  let [outSystem, outFactor] = CONVERSIONS[to]
-  factor *= inFactor
-  factor /= outFactor
-  if (inSystem !== outSystem) {
-    factor *= inSystem === 'metric' ? INCH_PER_M : M_PER_INCH
-  }
-
-  // Calculate the result and optionally round to a fixed number of digits.
-  let result = value * factor
-  if (precision != null) result = Math.round(result / precision) * precision
-  return result
+/**
+ * Combine the `magnitude` of one number with the `sign` of another.
+ */
+export function copySign(magnitude: number, sign: number): number {
+  let ms = Math.sign(magnitude) * 0
+  let ss = Math.sign(sign) * 0
+  let res = Object.is(ms, ss) ? magnitude : -magnitude
+  return res
 }
 
-/** Convert an angle in `radians` to degrees. */
+/**
+ * Convert an angle in `radians` to degrees.
+ */
 export function degrees(radians: number): number {
   return radians * DEG_PER_RAD
 }
 
-/** Ease a normalized value `t` _in_ by a polynomial power `p`. */
+/**
+ * Ease a normalized value `t` _in_ by a polynomial power `p`.
+ */
 export function easeIn(t: number, p = 2): number {
   return t ** p
 }
 
-/** Ease a normalized value `t` _out_ by a polynomial power `p`. */
+/**
+ * Ease a normalized value `t` _out_ by a polynomial power `p`.
+ */
 export function easeOut(t: number, p = 2): number {
   return 1 - (1 - t) ** p
 }
 
-/** Ease a normalized value `t` _in then out_ by a polynomial power `p`. */
+/**
+ * Ease a normalized value `t` _in then out_ by a polynomial power `p`.
+ */
 export function easeInOut(t: number, p = 2): number {
   return ((t *= 2) <= 1 ? easeIn(t, p) : 1 + easeOut(t - 1, p)) / 2
 }
 
-/** Ease a normalized value `t` _out then in_ by a polynomial power `p`. */
+/**
+ * Ease a normalized value `t` _out then in_ by a polynomial power `p`.
+ */
 export function easeOutIn(t: number, p = 2): number {
   return ((t *= 2) <= 1 ? easeOut(t, p) : 1 + easeIn(t - 1, p)) / 2
 }
 
-/** Check if `a` and `b` are equal, with optional `tolerance`. */
+/**
+ * Check if `a` and `b` are equal, with optional `tolerance`.
+ */
 export function equals(a: number, b: number, tolerance = TOLERANCE): boolean {
   return a === b || Math.abs(a - b) <= tolerance
 }
 
-/** Calculate the extent of a list of `numbers`. */
+/**
+ * Calculate the extent of a list of `numbers`.
+ */
 export function extent(...numbers: number[]): [number, number] {
   let min = Infinity
   let max = -Infinity
@@ -219,7 +208,9 @@ export function extent(...numbers: number[]): [number, number] {
   return [min, max]
 }
 
-/** Calculate the factorial of a `value`. */
+/**
+ * Calculate the factorial of a `value`.
+ */
 export function factorial(value: number): number {
   // https://github.com/mathigon/fermat.js/blob/master/src/combinatorics.ts
   if (value === 0) return 1
@@ -229,7 +220,9 @@ export function factorial(value: number): number {
   return n
 }
 
-/** Round a `value` _down_ by `precision` or `multiple`. */
+/**
+ * Round a `value` _down_ by `precision` or `multiple`.
+ */
 export function floorTo(value: number, precision: number): number
 export function floorTo(value: number, options: { multiple: number }): number
 export function floorTo(
@@ -244,7 +237,9 @@ export function floorTo(
   }
 }
 
-/** Calculate the greatest common divisor of a set of `numbers`. */
+/**
+ * Calculate the greatest common divisor of a set of `numbers`.
+ */
 export function gcd(...numbers: number[]): number {
   // https://github.com/mathigon/fermat.js/blob/master/src/number-theory.ts
   let [a, ...rest] = numbers
@@ -256,7 +251,9 @@ export function gcd(...numbers: number[]): number {
   return a
 }
 
-/** Hash an integer `x` into another integer, from `0` to `2^32`. */
+/**
+ * Hash an integer `x` into another integer, from `1` to `2^32`.
+ */
 export function hash(x: number): number {
   // https://github.com/skeeto/hash-prospector
   x = (x ^ (x >>> 16)) >>> 0
@@ -267,7 +264,9 @@ export function hash(x: number): number {
   return x
 }
 
-/** Calculate the least common multiple of a set of `numbers`. */
+/**
+ * Calculate the least common multiple of a set of `numbers`.
+ */
 export function lcm(...numbers: number[]): number {
   let [a, ...rest] = numbers
   if (rest.length > 1) return lcm(a, lcm(...rest))
@@ -275,24 +274,32 @@ export function lcm(...numbers: number[]): number {
   return Math.abs(a * b) / gcd(a, b)
 }
 
-/** Linearly interpolate between `a` and `b` by a normalized amount `t`. */
+/**
+ * Linearly interpolate between `a` and `b` by a normalized amount `t`.
+ */
 export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t
 }
 
-/** Linearly interpolate an angle in degrees between `a` and `b` by a normalized amount `t`. */
+/**
+ * Linearly interpolate an angle in degrees between `a` and `b` by a normalized amount `t`.
+ */
 export function lerpAngle(a: number, b: number, t: number): number {
   let diff = mod(b - a, 360)
   let end = a + (diff > 180 ? diff - 360 : diff)
   return mod(lerp(a, end, t), 360)
 }
 
-/** Calculate the logarithm of `value`, with optional `base`. */
+/**
+ * Calculate the logarithm of `value`, with optional `base`.
+ */
 export function log(value: number, base?: number): number {
   return base == null ? Math.log(value) : Math.log(value) / Math.log(base)
 }
 
-/** Map a `value` between `inMin` and `inMax` to a new scale between `outMin` and `outMax`. */
+/**
+ * Map a `value` between `inMin` and `inMax` to a new scale between `outMin` and `outMax`.
+ */
 export function map(
   value: number,
   inA: number,
@@ -300,26 +307,34 @@ export function map(
   outA: number,
   outB: number
 ): number {
-  return lerp(outA, outB, unlerp(inA, inB, value))
+  return lerp(outA, outB, norm(inA, inB, value))
 }
 
-/** Calculate the mean of a set of `numbers`. */
-export function mean(...numbers: number[]): number | undefined {
+/**
+ * Calculate the mean of a set of `numbers`.
+ */
+export function mean(...numbers: number[]): number {
   if (!numbers.length) return NaN
   return sum(...numbers) / numbers.length
 }
 
-/** Calculate the median of a set of `numbers`. */
-export function median(...numbers: number[]): number | undefined {
+/**
+ * Calculate the median of a set of `numbers`.
+ */
+export function median(...numbers: number[]): number {
   return quantile(numbers, 0.5)
 }
 
-/** Calculate the (unsigned) modulo of a `value` and `modulus`. */
+/**
+ * Calculate the (unsigned) modulo of a `value` and `modulus`.
+ */
 export function mod(value: number, modulus: number): number {
   return ((value % modulus) + modulus) % modulus
 }
 
-/** Find the mode of a set of `values`. */
+/**
+ * Find the mode of a set of `values`.
+ */
 export function mode<T>(...values: T[]): T | undefined {
   if (!values.length) return
   let counts = new Map<T, number>()
@@ -341,7 +356,19 @@ export function mode<T>(...values: T[]): T | undefined {
   return mode!
 }
 
-/** Get all the permutations of a `list`. */
+/**
+ * Normalize a `value` between `a` and `b`, to a between `0` and `1`.
+ */
+
+export function norm(a: number, b: number, value: number): number {
+  let d = b - a
+  if (equals(d, 0)) return 0
+  return (value - a) / d
+}
+
+/**
+ * Get all the permutations of a `list`.
+ */
 export function permutations<T>(list: T[]): T[][] {
   // https://github.com/mathigon/fermat.js/blob/master/src/combinatorics.ts
   let perms: T[][] = []
@@ -361,7 +388,9 @@ export function permutations<T>(list: T[]): T[][] {
   return perms
 }
 
-/** Calculate the quantile `p` of a set of `values`. */
+/**
+ * Calculate the quantile `p` of a set of `values`.
+ */
 export function quantile(
   values: number[],
   p: number,
@@ -381,48 +410,59 @@ export function quantile(
   return q
 }
 
-/** Convert an angle in `degrees` to radians. */
+/**
+ * Convert an angle in `degrees` to radians.
+ */
 export function radians(degrees: number): number {
   return degrees * RAD_PER_DEG
 }
 
-/** Return a range of numbers from `start` to `end`, with optional `step` to increment by. */
-export function range(length: number): Generator<number, void, void>
-export function range(
+/**
+ * Return a range of numbers from `start` to `end`, with optional `step` to increment by.
+ */
+export function* range(
   start: number,
   end: number,
   step?: number
-): Generator<number, void, void>
-export function* range(
-  start: number,
-  end?: number,
-  step: number = 1
 ): Generator<number, void, void> {
-  // https://github.com/mathigon/core.js/blob/master/src/arrays.ts
-  if (end === undefined && start >= 0) {
-    for (let i = 0; i < start; i += step) yield i
-  } else if (end === undefined) {
-    for (let i = 0; i > start; i -= step) yield i
-  } else if (start <= end) {
-    for (let i = start; i <= end; i += step) yield i
-  } else {
-    for (let i = start; i >= end; i -= step) yield i
+  let range = end - start
+  step ??= copySign(1, range)
+  let steps = Math.floor(range / step) + 1
+  for (let i = 0, x = start; i < steps; i++, x += step) {
+    yield x
   }
 }
 
-/** Group a `list` into tuples with a rolling window of `size`. */
-export function rolling<T>(list: T[], size: 2): [T, T][]
-export function rolling<T>(list: T[], size: 3): [T, T, T][]
-export function rolling<T>(list: T[], size: 4): [T, T, T, T][]
-export function rolling<T>(list: T[], size: number): T[][]
-export function rolling<T>(list: T[], size: number): T[][] {
-  if (list.length < size) return []
-  return Array.from(range(0, list.length - size), (i) =>
-    list.slice(i, i + size)
-  )
+/**
+ * Group an `iterable` into tuples with a rolling window of `size`.
+ */
+export function rolling<T>(iterable: Iterable<T>, size: 1): Generator<[T]>
+export function rolling<T>(iterable: Iterable<T>, size: 2): Generator<[T, T]>
+export function rolling<T>(iterable: Iterable<T>, size: 3): Generator<[T, T, T]>
+export function rolling<T>(
+  iterable: Iterable<T>,
+  size: 4
+): Generator<[T, T, T, T]>
+export function rolling<T>(
+  iterable: Iterable<T>,
+  size: 5
+): Generator<[T, T, T, T, T]>
+export function rolling<T>(iterable: Iterable<T>, size: number): Generator<T[]>
+export function* rolling<T>(
+  iterable: Iterable<T>,
+  size: number
+): Generator<T[]> {
+  let win = []
+  for (let x of iterable) {
+    win.push(x)
+    if (win.length > size) win.shift()
+    if (win.length === size) yield win.slice()
+  }
 }
 
-/** Round a `value`, with optional `precision` or `multiple`. */
+/**
+ * Round a `value`, with optional `precision` or `multiple`.
+ */
 export function roundTo(value: number, precision: number): number
 export function roundTo(value: number, options: { multiple: number }): number
 export function roundTo(
@@ -437,7 +477,9 @@ export function roundTo(
   }
 }
 
-/** Spherically interpolate between `a` and `b` by a normalized amount `t` around an angle in `degrees`. */
+/**
+ * Spherically interpolate between `a` and `b` by a normalized amount `t` around an angle in `degrees`.
+ */
 export function slerp(
   a: number,
   b: number,
@@ -449,35 +491,40 @@ export function slerp(
   return Math.sin((1 - t) * r) * s * a + Math.sin(t * r) * s * b
 }
 
-/** Split a range into `n` chunks with normalized start and end edges. */
-export function split(
-  a: number,
-  b: number,
-  chunks: number
-): [number, number][] {
-  return Array.from({ length: chunks }, (_, i) => [
-    lerp(a, b, i / chunks),
-    lerp(a, b, (i + 1) / chunks),
-  ])
+/**
+ * Split a range from `start` to `end` into a specific `length` of values.
+ */
+export function* split(
+  start: number,
+  end: number,
+  length: number
+): Generator<number, void, void> {
+  if (length === 0) return
+  if (length === 1) {
+    yield (end - start) / 2
+  } else {
+    let step = (end - start) / (length - 1)
+    yield* range(start, end, step)
+  }
 }
 
-/** Calculate the standard deviation of a set of `numbers`. */
+/**
+ * Calculate the standard deviation of a set of `numbers`.
+ */
 export function stddev(...numbers: number[]): number {
   return Math.sqrt(variance(...numbers))
 }
 
-/** Subdivide a range from `a` to `b` with a number of `times`. */
-export function subdivide(a: number, b: number, times: number): number[] {
-  if (times === 1) return [lerp(a, b, 0.5)]
-  return Array.from(range(times), (i) => lerp(a, b, i / (times - 1)))
-}
-
-/** Calculate the sum of a set of `numbers` */
+/**
+ * Calculate the sum of a set of `numbers`
+ */
 export function sum(...numbers: number[]): number {
   return numbers.reduce((m, n) => m + n, 0)
 }
 
-/** Round a `value` towards zero by `precision` or `multiple`. */
+/**
+ * Round a `value` towards zero by `precision` or `multiple`.
+ */
 export function truncTo(value: number, precision: number): number
 export function truncTo(value: number, options: { multiple: number }): number
 export function truncTo(
@@ -492,7 +539,9 @@ export function truncTo(
   }
 }
 
-/** Un-hash an integer `x` back into another integer, from `0` to `2^32`. */
+/**
+ * Un-hash an integer `x` back into another integer, from `1` to `2^32`.
+ */
 export function unhash(x: number): number {
   // https://github.com/skeeto/hash-prospector
   x = (x ^ (x >>> 15) ^ (x >>> 30)) >>> 0
@@ -503,13 +552,9 @@ export function unhash(x: number): number {
   return x
 }
 
-/** Un-interpolate a `value` between `a` and `b`, to a normalized amount. */
-export function unlerp(a: number, b: number, value: number): number {
-  if (equals(b - a, 0)) return 0
-  return (value - a) / (b - a)
-}
-
-/** Calculate the variance of a set of `numbers`. */
+/**
+ * Calculate the variance of a set of `numbers`.
+ */
 export function variance(...numbers: number[]): number {
   // https://github.com/d3/d3-array/blob/main/src/variance.js
   let count = 0
@@ -524,7 +569,9 @@ export function variance(...numbers: number[]): number {
   return sum / (count - 1)
 }
 
-/** Wrap a `value` between a `min` and `max`. */
+/**
+ * Wrap a `value` between a `min` and `max`.
+ */
 export function wrap(
   value: number,
   min: number,
@@ -541,12 +588,11 @@ export function wrap(
 }
 
 /**
- * Export all of the existing `Math` and `Number` methods, so they can be used
- * without switching between the two namespaces.
+ * Export all of the existing `Math` methods, so they can be used without
+ * switching between the two namespaces.
  *
  * Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
  */
-
 let {
   E,
   LN2,
