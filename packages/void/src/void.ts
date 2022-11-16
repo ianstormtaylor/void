@@ -380,9 +380,16 @@ export function pick<V>(
  *
  * This is the same as `Math.random` but with deterministic randomness.
  */
-export function random(): number {
+export function random(): number
+export function random(min: number, max: number, step?: number): number
+export function random(min?: number, max?: number, step?: number): number {
+  if (min == null) (min = 0), (max = 1)
+  if (max == null) (max = min), (min = 0)
   let sketch = Sketch.assert()
-  return Sketch.random(sketch)
+  let value = Sketch.random(sketch) * (max - min + (step ?? 0))
+  if (step != null) value = Math.floor(value / step) * step
+  value += min
+  return value
 }
 
 /**

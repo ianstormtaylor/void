@@ -110,10 +110,10 @@ It's built as a series of helpers:
   - [`Void.int()`](./docs/void.md#voidint)
   - [`Void.pick()`](./docs/void.md#voidpick)
 - [**Interaction**](./docs/void.md#interaction)
+  - [`Void.event()`](./docs/void.md#voidevent)
   - [`Void.keyboard()`](./docs/void.md#voidkeyboard)
   - [`Void.pointer()`](./docs/void.md#voidpointer)
-  - [`Void.event()`](./docs/void.md#voidevent)
-- [**Utils**](./docs/void.md#utils)
+- [**Random**](./docs/void.md#random)
   - [`Void.random()`](./docs/void.md#voidrandom)
 
 <br/>
