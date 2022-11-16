@@ -7,7 +7,7 @@ export let SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 export let SVG_DATA_URI_PREFIX = 'data:image/svg+xml;base64,'
 
 /** The fixed DPI that CSS uses when displaying real-world units. */
-export let CSS_CPI = 96
+export let CSS_DPI = 96
 
 /** Convert an SVG string to a data URI. */
 export function svgStringToDataUri(svg: string): string {

@@ -1,15 +1,41 @@
-import { Math, Units, OUTPUT_MIME_TYPES, Random, Config, Schema } from '..'
+import {
+  Math,
+  Units,
+  OUTPUT_MIME_TYPES,
+  Random,
+  Config,
+  Schema,
+  UnitsSystem,
+} from '..'
 import { Frame, Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
   applyOrientation,
   createPrng,
-  CSS_CPI,
+  CSS_DPI,
   svgDataUriToString,
   svgElementToString,
   svgStringToDataUri,
   svgStringToElement,
   SVG_NAMESPACE,
 } from '../utils'
+
+/** The number of inches in a meter. */
+let M_PER_INCH = 0.0254
+
+/** The number of meters in an inch. */
+let INCH_PER_M = 1 / M_PER_INCH
+
+/** Conversions for units within their respective system. */
+let CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
+  m: ['metric', 1],
+  cm: ['metric', 1 / 100],
+  mm: ['metric', 1 / 1000],
+  in: ['imperial', 1],
+  ft: ['imperial', 12],
+  yd: ['imperial', 36],
+  pc: ['imperial', 1 / 6],
+  pt: ['imperial', 1 / 72],
+}
 
 /** Get the current sketch and assert one exists. */
 export function assert(): Sketch {
@@ -38,6 +64,72 @@ export function attach(sketch: Sketch): void {
   container.appendChild(el)
 }
 
+/**
+ * Convert a `value` from one unit to another.
+ *
+ * By default this uses the sketch's units as the output units, but that can be
+ * overriden with the third `to` argument.
+ */
+export function convert(
+  sketch: Sketch,
+  value: number,
+  from: Units,
+  to?: Units
+): number
+export function convert(
+  sketch: Sketch,
+  value: number,
+  from: Units,
+  options: {
+    dpi?: number
+    precision?: number
+  }
+): number
+export function convert(
+  sketch: Sketch,
+  value: number,
+  from: Units,
+  to: Units,
+  options: {
+    dpi?: number
+    precision?: number
+  }
+): number
+export function convert(
+  sketch: Sketch,
+  value: number,
+  from: Units,
+  to?: Units | { dpi?: number; precision?: number },
+  options: { dpi?: number; precision?: number } = {}
+): number {
+  if (typeof to === 'object') (options = to), (to = undefined)
+  let { settings } = sketch
+  to = to ?? settings.units ?? 'px'
+  let { dpi = settings.dpi ?? CSS_DPI, precision } = options
+
+  // Early exit.
+  if (from === to) return value
+
+  // Swap pixels for inches using the dynamic `dpi`.
+  let factor = 1
+  if (from === 'px') (factor /= dpi), (from = 'in')
+  if (to === 'px') (factor *= dpi), (to = 'in')
+
+  // Swap systems if `from` and `to` aren't using the same one.
+  let [inSystem, inFactor] = CONVERSIONS[from]
+  let [outSystem, outFactor] = CONVERSIONS[to]
+  factor *= inFactor
+  factor /= outFactor
+  if (inSystem !== outSystem) {
+    factor *= inSystem === 'metric' ? INCH_PER_M : M_PER_INCH
+  }
+
+  // Calculate the result and optionally round to a fixed number of digits.
+  let result = value * factor
+  if (precision != null) result = Math.roundTo(result, precision)
+  return result
+}
+
 /** Get the current sketch from the global `VOID` context. */
 export function current(): Sketch | undefined {
   return globalThis.VOID?.sketch
@@ -62,14 +154,14 @@ export function dimensions(
   let to: Units = mode === 'sketch' ? settings.units : 'px'
   let dpi =
     mode === 'pixel'
-      ? CSS_CPI
+      ? CSS_DPI
       : mode === 'device'
-      ? CSS_CPI * window.devicePixelRatio
+      ? CSS_DPI * window.devicePixelRatio
       : settings.dpi
   let w = width + left + right
   let h = height + top + bottom
-  let x = Math.convert(w, units, to, { dpi, precision })
-  let y = Math.convert(h, units, to, { dpi, precision })
+  let x = convert(sketch, w, units, to, { dpi, precision })
+  let y = convert(sketch, h, units, to, { dpi, precision })
   return [x, y]
 }
 
@@ -169,7 +261,7 @@ export function of(attrs: {
     output,
     seed,
     settings: {
-      dpi: CSS_CPI,
+      dpi: CSS_DPI,
       fps: 60,
       frames: Infinity,
       height: container.offsetHeight,
@@ -373,7 +465,7 @@ export async function saveSvg(sketch: Sketch): Promise<string> {
 /** Resolve a `config` object into the sketch's settings. */
 export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
   config = { ...config, ...sketch.config }
-  let { dpi = CSS_CPI, fps = 60, frames = Infinity } = config
+  let { dpi = CSS_DPI, fps = 60, frames = Infinity } = config
   let orientation = Config.orientation(config)
   let units = Config.units(config)
 

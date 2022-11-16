@@ -7,9 +7,9 @@ import {
   Narrowable,
   Pointer,
   Keyboard,
-  Math,
   Nameify,
   Nameable,
+  Units,
 } from '.'
 
 // A reference to whether the keyboard event listeners have been attached.
@@ -44,6 +44,40 @@ export function bool(name: string, options?: boolean | number): boolean {
 
   Sketch.trait(sketch, name, value, { type: 'boolean', probability, initial })
   return value
+}
+
+/**
+ * Convert a `value` from one unit to another.
+ *
+ * By default this uses the sketch's units as the output units, but that can be
+ * overriden with the third `to` argument.
+ */
+export function convert(value: number, from: Units, to?: Units): number
+export function convert(
+  value: number,
+  from: Units,
+  options: {
+    dpi?: number
+    precision?: number
+  }
+): number
+export function convert(
+  value: number,
+  from: Units,
+  to: Units,
+  options: {
+    dpi?: number
+    precision?: number
+  }
+): number
+export function convert(
+  value: number,
+  from: Units,
+  to?: Units | { dpi?: number; precision?: number },
+  options: { dpi?: number; precision?: number } = {}
+): number {
+  let sketch = Sketch.assert()
+  return Sketch.convert(sketch, value, from, to, options)
 }
 
 /**
@@ -250,8 +284,8 @@ export function pointer(): Pointer {
       if (!canvas) return
       pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
       pointer.position ??= [] as any
-      pointer.x = pointer.position![0] = Math.convert(e.offsetX, 'px')
-      pointer.y = pointer.position![1] = Math.convert(e.offsetY, 'px')
+      pointer.x = pointer.position![0] = convert(e.offsetX, 'px')
+      pointer.y = pointer.position![1] = convert(e.offsetY, 'px')
     })
 
     event('pointerleave', (e) => {

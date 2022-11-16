@@ -1,6 +1,9 @@
 {
-  "include": ["./examples", "apps/electron/test"],
-  "references": [{ "path": "./apps/electron" }, { "path": "./packages/void" }],
+  "references": [
+    { "path": "./apps/electron" },
+    { "path": "./packages/void" },
+    { "path": "./examples" }
+  ],
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
