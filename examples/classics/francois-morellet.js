@@ -1,4 +1,4 @@
-import { Random, Void } from 'void'
+import { Void } from 'void'
 
 export default function () {
   let grid = Void.pick('grid', [3, 5, 7])
@@ -41,9 +41,13 @@ export default function () {
   }
 
   Void.draw(() => {
-    let highlights = Random.sample(2, edges)
     ons.clearRect(0, 0, width, height)
     offs.clearRect(0, 0, width, height)
+
+    let highlights = edges
+      .slice()
+      .sort(() => 0.5 - Void.random())
+      .slice(0, 2)
 
     for (let [i, box] of boxes.entries()) {
       let h = highlights.at(i % highlights.length)

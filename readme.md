@@ -71,7 +71,7 @@ And finally, open the sketch file with the Void app:
 
 If you see a black circle on the screen, congrats!
 
-You can change that <kbd>Radius</kbd> trait in the sidebar and the sketch will update in realtime. This is a simple sketch that draws just one shape, but you can do a lot more…
+The <kbd>Radius</kbd> trait has a randomly generated value. You can change it in the sidebar and the sketch will update in realtime. This is a simple sketch that draws just one shape, but you can do a lot more…
 
 <br/>
 
@@ -97,11 +97,24 @@ Void is designed to make it easy to quickly iterate on sketches, so you can expl
 
 Void's API is designed to be extremely simple to use. It gives you a handful of tools that are useful when making generative art, and it delegates the rendering itself to the HTML [`<canvas>`](https://www.google.com/search?client=firefox-b-1-d&q=mdn+canvas) element
 
-It's built as a series of helper namespaces:
+It's built as a series of helpers:
 
-- [`Void`](./docs/void.md) for defining your sketch's traits and behaviors.
-- [`Math`](./docs/math.md) for helpful math utilities.
-- [`Random`](./docs/random.md) for generating seeded random variables.
+- [**Void**](./docs/void.md)
+- [**Canvas**](./docs/void.md#canvas)
+  - [`Void.draw()`](./docs/void.md#voiddraw)
+  - [`Void.layer()`](./docs/void.md#voidlayer)
+  - [`Void.settings()`](./docs/void.md#voidsettings)
+- [**Traits**](./docs/void.md#traits)
+  - [`Void.bool()`](./docs/void.md#voidbool)
+  - [`Void.float()`](./docs/void.md#voidfloat)
+  - [`Void.int()`](./docs/void.md#voidint)
+  - [`Void.pick()`](./docs/void.md#voidpick)
+- [**Interaction**](./docs/void.md#interaction)
+  - [`Void.keyboard()`](./docs/void.md#voidkeyboard)
+  - [`Void.pointer()`](./docs/void.md#voidpointer)
+  - [`Void.event()`](./docs/void.md#voidevent)
+- [**Utils**](./docs/void.md#utils)
+  - [`Void.random()`](./docs/void.md#voidrandom)
 
 <br/>
 

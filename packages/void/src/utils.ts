@@ -1,4 +1,4 @@
-import { Orientation } from '.'
+import { Orientation, Units, UnitsSystem } from '.'
 
 /** The SVG namespace string. */
 export let SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
@@ -75,4 +75,56 @@ export function createPrng(seed: number): () => number {
   state = (state + seed) | 0
   random()
   return random
+}
+
+/** The number of inches in a meter. */
+let M_PER_INCH = 0.0254
+
+/** The number of meters in an inch. */
+let INCH_PER_M = 1 / M_PER_INCH
+
+/** Conversions for units within their respective system. */
+let CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
+  m: ['metric', 1],
+  cm: ['metric', 1 / 100],
+  mm: ['metric', 1 / 1000],
+  in: ['imperial', 1],
+  ft: ['imperial', 12],
+  yd: ['imperial', 36],
+  pc: ['imperial', 1 / 6],
+  pt: ['imperial', 1 / 72],
+}
+
+/** Convert a `value` from one unit to another. */
+export function convertUnits(
+  value: number,
+  from: Units,
+  to: Units,
+  options: { dpi?: number; precision?: number } = {}
+): number {
+  if (from === to) return value
+  let { dpi = CSS_DPI, precision } = options
+
+  // Swap pixels for inches using the dynamic `dpi`.
+  let factor = 1
+  if (from === 'px') (factor /= dpi), (from = 'in')
+  if (to === 'px') (factor *= dpi), (to = 'in')
+
+  // Swap systems if `from` and `to` aren't using the same one.
+  let [inSystem, inFactor] = CONVERSIONS[from]
+  let [outSystem, outFactor] = CONVERSIONS[to]
+  factor *= inFactor
+  factor /= outFactor
+  if (inSystem !== outSystem) {
+    factor *= inSystem === 'metric' ? INCH_PER_M : M_PER_INCH
+  }
+
+  // Calculate the result and optionally round to a fixed number of digits.
+  let result = value * factor
+  if (precision != null) {
+    let p = precision ** 10
+    result = Math.round(result * p) / p
+  }
+
+  return result
 }

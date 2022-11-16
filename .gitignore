@@ -13,3 +13,5 @@ tmp/
 *.log
 *.tsbuildinfo
 apps/site
+packages/math
+packages/random

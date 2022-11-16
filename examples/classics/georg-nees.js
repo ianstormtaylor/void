@@ -1,4 +1,4 @@
-import { Math, Random, Void } from 'void'
+import { Void } from 'void'
 
 export default function () {
   let { width, height } = Void.settings({
@@ -8,18 +8,17 @@ export default function () {
 
   let ctx = Void.layer()
   let cols = Void.int('columns', 4, 16)
-  let ease = Void.float('ease', 0, 0.5, 0.01)
-  let disp = Void.int('displacement', 0, 50)
-  let rot = Void.int('rotation', 0, 360, 30)
+  let disp = Void.int('displacement', 0, 25)
+  let rot = Void.int('rotation', 0, 180, 30) * (Math.PI / 180)
   let cell = width / cols
   let half = cell / 2
 
   for (let x = 0; x < width; x += cell) {
     for (let y = 0; y < height - cell; y += cell) {
-      let t = Math.clamp(Math.easeOut(y / height, ease), 0.01, 1)
-      let angle = t * Math.radians(Random.float(-rot, rot))
-      let ox = t * Random.float(-disp, disp)
-      let oy = t * Random.float(-disp, disp)
+      let t = Math.max(y / height, 0.07) ** 1.5
+      let angle = t * (Void.random() * rot * 2 - rot)
+      let ox = t * (Void.random() * disp * 2 - disp)
+      let oy = t * (Void.random() * disp * 2 - disp)
       ctx.save()
       ctx.translate(x + ox + half, y + oy + half)
       ctx.rotate(angle)

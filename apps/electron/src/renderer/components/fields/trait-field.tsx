@@ -3,7 +3,6 @@ import { NumberField } from './number-field'
 import { capitalCase } from 'change-case'
 import { BooleanField } from './boolean-field'
 import { useTab } from '../../contexts/tab'
-import { Schema, Random } from 'void'
 import { IconButton } from '../ui/icon-button'
 import { MdOutlineLock, MdOutlineLockOpen } from 'react-icons/md'
 import { EnumField } from './enum-field'
@@ -85,27 +84,4 @@ export let TraitField = (props: { name: string }) => {
       </div>
     </div>
   )
-}
-
-/** Generate a trait value from a `schema`. */
-export function generate(schema: Schema): any {
-  switch (schema.type) {
-    case 'boolean': {
-      let { probability } = schema
-      return Random.bool(probability)
-    }
-    case 'int': {
-      let { min, max, step } = schema
-      return Random.int(min, max, step)
-    }
-    case 'float': {
-      let { min, max, step } = schema
-      return Random.float(min, max, step)
-    }
-    case 'pick': {
-      let { choices } = schema
-      let choice = Random.pick(choices)
-      return choice.value
-    }
-  }
 }

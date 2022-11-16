@@ -1,4 +1,4 @@
-import { Random, Void } from 'void'
+import { Void } from 'void'
 
 export default function () {
   let rows = Void.int('rows', 3, 7)
@@ -19,10 +19,10 @@ export default function () {
       let size = cell
       let top = x
       let left = y
-      let steps = Random.int(1, 8)
+      let steps = Math.floor(Void.random() * 8 + 1)
       let step = (size - focus) / steps
-      let xdir = Random.pick(directions)
-      let ydir = Random.pick(directions)
+      let xdir = directions[Math.floor(Void.random() * directions.length)]
+      let ydir = directions[Math.floor(Void.random() * directions.length)]
       while (size >= focus) {
         ctx.strokeRect(top, left, size, size)
         top += step / 2 + (step / 4) * xdir

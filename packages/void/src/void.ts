@@ -1,9 +1,8 @@
 import { Context } from 'svgcanvas'
-import { svgStringToDataUri } from './utils'
+import { convertUnits, svgStringToDataUri } from './utils'
 import {
   Sketch,
   Config,
-  Random,
   Narrowable,
   Pointer,
   Keyboard,
@@ -27,19 +26,22 @@ let POINTER_EVENTS: WeakMap<Sketch, true> = new WeakMap()
  * Other, when randomly generated, you can pass a `probability` which is the
  * chance that the boolean will be `true`.
  */
-
 export function bool(name: string, probability?: number): boolean
 export function bool(name: string, initial: boolean): boolean
 export function bool(name: string, options?: boolean | number): boolean {
   let sketch = Sketch.assert()
+  let { traits } = sketch
   let probability = typeof options === 'number' ? options : 0.5
   let initial = typeof options === 'boolean' ? options : undefined
-  let value = Random.bool(probability)
-  let { traits } = sketch
+  let r = random()
+  let value
+
   if (name in traits && typeof traits[name] === 'boolean') {
     value = traits[name]
   } else if (initial != null) {
     value = initial
+  } else {
+    value = r < probability
   }
 
   Sketch.trait(sketch, name, value, { type: 'boolean', probability, initial })
@@ -76,15 +78,18 @@ export function convert(
   to?: Units | { dpi?: number; precision?: number },
   options: { dpi?: number; precision?: number } = {}
 ): number {
-  let sketch = Sketch.assert()
-  return Sketch.convert(sketch, value, from, to, options)
+  if (typeof to === 'object') (options = to), (to = undefined)
+  let sketch = Sketch.current()
+  to = to ?? sketch?.settings.units ?? 'px'
+  let { dpi = sketch?.settings.dpi, precision } = options
+  if (from === to) return value
+  return convertUnits(value, from, to, { dpi, precision })
 }
 
 /**
  * Define a `draw` function with the drawing logic to render each frame of an
  * animated sketch.
  */
-
 export function draw(fn: () => void) {
   let sketch = Sketch.assert()
   sketch.draw = fn
@@ -93,7 +98,6 @@ export function draw(fn: () => void) {
 /**
  * Attach an event listener to the canvas.
  */
-
 export function event<E extends keyof GlobalEventHandlersEventMap>(
   event: E,
   callback: (e: GlobalEventHandlersEventMap[E]) => void
@@ -117,7 +121,6 @@ export function event<E extends keyof GlobalEventHandlersEventMap>(
  * default value. Or you can pass a `min`, `max`, and optional `step` and the
  * trait will be randomly generated.
  */
-
 export function float(name: string, initial: number): number
 export function float(
   name: string,
@@ -132,19 +135,25 @@ export function float(
   step?: number
 ): number {
   let sketch = Sketch.assert()
+  let { traits } = sketch
+  let r = random()
   let initial
+  let value
+
   if (max == null) {
     initial = min
     min = Number.MIN_VALUE
     max = Number.MAX_VALUE
   }
 
-  let value = Random.float(min, max, step)
-  let { traits } = sketch
   if (name in traits && typeof traits[name] === 'number') {
     value = traits[name]
   } else if (initial != null) {
     value = initial
+  } else {
+    value = r * (max - min) + (step ?? 0)
+    if (step != null) value = Math.floor(value / step) * step
+    value += min
   }
 
   Sketch.trait(sketch, name, value, { type: 'float', min, max, step, initial })
@@ -158,7 +167,6 @@ export function float(
  * default value. Or you can pass a `min`, `max`, and optional `step` and the
  * trait will be randomly generated.
  */
-
 export function int(name: string, initial: number): number
 export function int(
   name: string,
@@ -168,19 +176,25 @@ export function int(
 ): number
 export function int(name: string, min: number, max?: number, step = 1): number {
   let sketch = Sketch.assert()
+  let { traits } = sketch
+  let r = random()
   let initial
+  let value
+
   if (max == null) {
     initial = min
     min = Number.MIN_SAFE_INTEGER
     max = Number.MAX_SAFE_INTEGER
   }
 
-  let value = Random.int(min, max, step)
-  let { traits } = sketch
   if (name in traits && typeof traits[name] === 'number') {
     value = traits[name]
   } else if (initial != null) {
     value = initial
+  } else {
+    value = r * (max - min) + (step ?? 0)
+    value = Math.floor(value / step) * step
+    value += min
   }
 
   Sketch.trait(sketch, name, value, { type: 'int', min, max, step, initial })
@@ -193,7 +207,6 @@ export function int(name: string, min: number, max?: number, step = 1): number {
  * The returned object is mutable and will continue to stay up to date as keys
  * are pressed down and lifted up.
  */
-
 export function keyboard(): Keyboard {
   let sketch = Sketch.assert()
   let keyboard = Sketch.keyboard(sketch)
@@ -224,7 +237,6 @@ export function keyboard(): Keyboard {
  *
  * If the `name` argument is omitted it will be auto-generated.
  */
-
 export function layer(name?: string): CanvasRenderingContext2D {
   let sketch = Sketch.assert()
   let { settings, output, el } = sketch
@@ -271,7 +283,6 @@ export function layer(name?: string): CanvasRenderingContext2D {
  * multi-touch scenarios you'll need to attach your own event handlers with the
  * `Void.event()` method instead.
  */
-
 export function pointer(): Pointer {
   let sketch = Sketch.assert()
   let pointer = Sketch.pointer(sketch)
@@ -323,7 +334,6 @@ export function pointer(): Pointer {
  * the array or object values should be a tuple, where the first element is a
  * number representing the weight.
  */
-
 export function pick<V extends Narrowable>(name: string, choices: Choices<V>): V
 export function pick<V>(name: string, choices: Choices<V>): V
 export function pick<V extends Narrowable>(
@@ -343,18 +353,36 @@ export function pick<V>(
 ): V {
   if (choices == null) (choices = initial as Choices<V>), (initial = undefined)
   let sketch = Sketch.assert()
-  let { names, weights, mapping } = normalizeChoices(choices!)
-  let value = Random.pick(names, weights)
   let { traits } = sketch
+  let { names, weights, mapping } = normalizeChoices(choices!)
+  let r = random()
+  let value
 
   if (name in traits && traits[name] in mapping) {
     value = traits[name]
   } else if (initial !== undefined) {
     value = String(initial) // allow booleans, numbers, etc. to be real
+  } else {
+    let sum = weights.reduce((m, w) => m + w, 0)
+    let threshold = r * sum
+    let current = 0
+    let i = weights.findIndex((weight) => threshold < (current += weight))
+    value = names[i]
   }
 
   Sketch.trait(sketch, name, value, { type: 'pick', names, weights })
   return mapping[value]
+}
+
+/**
+ * Return a random number from `0` (inclusive) to `1` (exclusive) using the
+ * sketch's seeded pseudo-random number generator.
+ *
+ * This is the same as `Math.random` but with deterministic randomness.
+ */
+export function random(): number {
+  let sketch = Sketch.assert()
+  return Sketch.random(sketch)
 }
 
 /**
@@ -363,7 +391,6 @@ export function pick<V>(
  * This method returns an object of all the resolved settings of a sketch,
  * including the resolved `width` and `height` of the canvas.
  */
-
 export function settings(): Sketch['settings']
 export function settings(config: Config): Sketch['settings']
 export function settings(dimensions: Config['dimensions']): Sketch['settings']

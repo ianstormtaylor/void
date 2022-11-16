@@ -1,4 +1,4 @@
-import { Void, Random } from 'void'
+import { Void } from 'void'
 import * as scales from 'd3-scale-chromatic'
 
 // https://p5js.org/examples/interaction-follow-3.html
@@ -29,7 +29,7 @@ export default function () {
   // Define a few variables to use for the sketch.
   let target = [width / 2, height / 2]
   let points = Array.from({ length: segments }, () => {
-    return [Random.float(0, width), Random.float(0, height)]
+    return [Void.random() * width, Void.random() * height]
   })
 
   // On every frame...

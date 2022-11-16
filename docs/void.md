@@ -21,6 +21,8 @@ All the methods are fully treeshakeable, so you will only bundle what you use.
   - [`Void.keyboard()`](#voidkeyboard)
   - [`Void.pointer()`](#voidpointer)
   - [`Void.event()`](#voidevent)
+- [**Utils**](#random)
+  - [`Void.random()`](#voidrandom)
 
 ## Canvas
 
@@ -311,4 +313,27 @@ All position-related properties are expressed in the same dimensions and units y
 ```ts
 let pointer = Void.pointer()
 ctx.fillStyle = pointer.x > width / 2 ? 'red' : 'transparent'
+```
+
+## Utils
+
+### `Void.random()`
+
+```ts
+Void.random() => number
+```
+
+Returns a random number from `0` (inclusive) to `1` (exclusive)`.
+
+This is just like `Math.random` except that the randomness is determined by the sketch's seed value, so the same values will be produced every time for the same seed.
+
+```ts
+Void.random()
+// 0.384037...
+
+Void.random()
+// 0.038493...
+
+Void.random()
+// 0.985011...
 ```
