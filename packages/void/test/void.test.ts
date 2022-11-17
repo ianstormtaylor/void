@@ -96,6 +96,11 @@ test('Void.float', () => {
     e(b2).toEqual(b)
     e(c2).toEqual(c)
   })
+
+  run(() => {
+    let sample = fill(3000, () => Void.random(0, 5))
+    e(mean(...sample)).toBeCloseTo(2.5, 1)
+  })
 })
 
 test('Void.int', () => {
@@ -103,9 +108,9 @@ test('Void.int', () => {
     let a = Void.int('a', 0, 5)
     let b = Void.int('b', 0, 5)
     let c = Void.int('c', 0, 5)
-    e(a).toEqual(1)
+    e(a).toEqual(0)
     e(b).toEqual(5)
-    e(c).toEqual(2)
+    e(c).toEqual(1)
     e(sketch.traits.a).toEqual(a)
     e(sketch.traits.b).toEqual(b)
     e(sketch.traits.c).toEqual(c)
@@ -115,6 +120,11 @@ test('Void.int', () => {
     e(a2).toEqual(a)
     e(b2).toEqual(b)
     e(c2).toEqual(c)
+  })
+
+  run(() => {
+    let sample = fill(3000, () => Void.random(0, 5))
+    e(mean(...sample)).toBeCloseTo(2.5, 1)
   })
 })
 

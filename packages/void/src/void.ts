@@ -146,24 +146,18 @@ export function float(
 ): number {
   let sketch = Sketch.assert()
   let { traits } = sketch
-  let r = random()
   let initial
-  let value
-
   if (max == null) {
     initial = min
     min = Number.MIN_VALUE
     max = Number.MAX_VALUE
   }
 
+  let value = random(min, max, step)
   if (name in traits && typeof traits[name] === 'number') {
     value = traits[name]
   } else if (initial != null) {
     value = initial
-  } else {
-    value = r * (max - min) + (step ?? 0)
-    if (step != null) value = Math.floor(value / step) * step
-    value += min
   }
 
   Sketch.trait(sketch, name, value, { type: 'float', min, max, step, initial })
@@ -187,24 +181,18 @@ export function int(
 export function int(name: string, min: number, max?: number, step = 1): number {
   let sketch = Sketch.assert()
   let { traits } = sketch
-  let r = random()
   let initial
-  let value
-
   if (max == null) {
     initial = min
     min = Number.MIN_SAFE_INTEGER
     max = Number.MAX_SAFE_INTEGER
   }
 
+  let value = random(min, max, step)
   if (name in traits && typeof traits[name] === 'number') {
     value = traits[name]
   } else if (initial != null) {
     value = initial
-  } else {
-    value = r * (max - min) + (step ?? 0)
-    value = Math.floor(value / step) * step
-    value += min
   }
 
   Sketch.trait(sketch, name, value, { type: 'int', min, max, step, initial })
@@ -284,57 +272,6 @@ export function layer(name?: string): CanvasRenderingContext2D {
 }
 
 /**
- * Get a reference to the current pointer (eg. mouse, pen, finger) data.
- *
- * The returned object is mutable and will continue to stay up to date as the
- * viewer clicks, taps, or hovers.
- *
- * Note that the pointer only refers to the "primary" pointer, and to handle
- * multi-touch scenarios you'll need to attach your own event handlers with the
- * `Void.event()` method instead.
- */
-export function pointer(): Pointer {
-  let sketch = Sketch.assert()
-  let pointer = Sketch.pointer(sketch)
-
-  if (!POINTER_EVENTS.has(sketch)) {
-    event('pointermove', (e) => {
-      if (!e.isPrimary) return
-      let { el } = sketch
-      let canvas = el.querySelector('canvas')
-      if (!canvas) return
-      pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
-      pointer.position ??= [] as any
-      pointer.x = pointer.position![0] = convert(e.offsetX, 'px')
-      pointer.y = pointer.position![1] = convert(e.offsetY, 'px')
-    })
-
-    event('pointerleave', (e) => {
-      if (!e.isPrimary) return
-      pointer.x = null
-      pointer.y = null
-      pointer.position = null
-    })
-
-    event('pointerdown', (e) => {
-      if (!e.isPrimary) return
-      pointer.button = e.button
-      pointer.buttons[e.button] = true
-    })
-
-    event('pointerup', (e) => {
-      if (!e.isPrimary) return
-      pointer.button = null
-      delete pointer.buttons[e.button]
-    })
-
-    POINTER_EVENTS.set(sketch, true)
-  }
-
-  return pointer
-}
-
-/**
  * Define a trait that picks one of many `choices`.
  *
  * You may pass an `initial` value as the second argument. Otherwise, the choice
@@ -386,6 +323,57 @@ export function pick<V>(
 
   Sketch.trait(sketch, name, value, { type: 'pick', names, weights })
   return mapping[value]
+}
+
+/**
+ * Get a reference to the current pointer (eg. mouse, pen, finger) data.
+ *
+ * The returned object is mutable and will continue to stay up to date as the
+ * viewer clicks, taps, or hovers.
+ *
+ * Note that the pointer only refers to the "primary" pointer, and to handle
+ * multi-touch scenarios you'll need to attach your own event handlers with the
+ * `Void.event()` method instead.
+ */
+export function pointer(): Pointer {
+  let sketch = Sketch.assert()
+  let pointer = Sketch.pointer(sketch)
+
+  if (!POINTER_EVENTS.has(sketch)) {
+    event('pointermove', (e) => {
+      if (!e.isPrimary) return
+      let { el } = sketch
+      let canvas = el.querySelector('canvas')
+      if (!canvas) return
+      pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
+      pointer.position ??= [] as any
+      pointer.x = pointer.position![0] = convert(e.offsetX, 'px')
+      pointer.y = pointer.position![1] = convert(e.offsetY, 'px')
+    })
+
+    event('pointerleave', (e) => {
+      if (!e.isPrimary) return
+      pointer.x = null
+      pointer.y = null
+      pointer.position = null
+    })
+
+    event('pointerdown', (e) => {
+      if (!e.isPrimary) return
+      pointer.button = e.button
+      pointer.buttons[e.button] = true
+    })
+
+    event('pointerup', (e) => {
+      if (!e.isPrimary) return
+      pointer.button = null
+      delete pointer.buttons[e.button]
+    })
+
+    POINTER_EVENTS.set(sketch, true)
+  }
+
+  return pointer
 }
 
 /**
