@@ -4,7 +4,7 @@ import { useEntrypoint } from '../contexts/entrypoint'
 
 export let EditorToolbar = () => {
   let [tab, changeTab] = useTab()
-  let entrypoint = useEntrypoint()
+  let [entrypoint] = useEntrypoint()
   let path = `.../${entrypoint.path.split('/').slice(-3).join('/')}`
   return (
     <div className="relative z-10 flex items-center justify-between h-12 p-2 bg-gray-800">

@@ -2,74 +2,101 @@ import { useEffect, useState } from 'react'
 import { parse } from 'stacktrace-parser'
 import { SourceMapConsumer, RawSourceMap } from 'source-map'
 import { useEntrypoint } from '../contexts/entrypoint'
+import { BuildResult } from 'esbuild'
 
-export let EditorConsole = (props: { error: Error }) => {
+type Failure = {
+  name: string
+  message: string
+  frames: Frame[]
+}
+
+type Frame = {
+  file: string
+  line: number
+  column: number
+  method: string | null
+  text: string
+  context: Row[]
+  original: Omit<Frame, 'original'>
+}
+
+type Row = {
+  line: number
+  text: string
+}
+
+export let EditorConsole = (props: { error: Error | string | null }) => {
   let { error } = props
-  let [frames, setFrames] = useState<Frame[]>([])
+  let [failure, setFailure] = useState<Failure | null>(null)
 
   useEffect(() => {
-    parseFrames(error)
-      .then((frames) => setFrames(frames))
-      .catch((e) => console.error(e))
+    if (error == null) {
+      return
+    } else if (typeof error === 'string') {
+      resolveBuildFailure(error)
+        .then((failure) => setFailure(failure))
+        .catch((e) => console.error(e))
+    } else {
+      resolveRuntimeFailure(error)
+        .then((failure) => setFailure(failure))
+        .catch((e) => console.error(e))
+    }
   }, [error])
 
   return (
-    <div className="mx-4">
-      <div className="bg-gray-900 p-5 pt-4 max-h-80 overflow-auto rounded-t-lg">
-        <p className="mb-3 text-base font-mono">
-          <span className="text-red-500">{error.name}: </span>
-          <span className="text-gray-200">{error.message}</span>
-        </p>
-        <div className="space-y-3">
-          {frames.map((frame) => (
-            <EditorErrorFrame
-              key={`${frame.file}:${frame.line}:${frame.column}`}
-              frame={frame}
-            />
-          ))}
+    failure && (
+      <div className="mx-4">
+        <div className="bg-gray-900 p-5 pt-4 max-h-80 overflow-auto rounded-t-lg">
+          <p className="mb-3 text-base font-mono">
+            <span className="text-red-500">{failure.name}: </span>
+            <span className="text-gray-200">{failure.message}</span>
+          </p>
+          <div className="space-y-3">
+            {failure.frames.map((frame) => (
+              <EditorErrorFrame
+                key={`${frame.file}:${frame.line}:${frame.column}`}
+                frame={frame}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    )
   )
 }
 
 let EditorErrorFrame = (props: { frame: Frame }) => {
-  let entrypoint = useEntrypoint()
+  let [entrypoint] = useEntrypoint()
   let { frame } = props
   let { original } = frame
   let isSketch = frame.file === entrypoint.url
-  let [expanded, setExpanded] = useState(true)
   let pad = Math.max(...original.context.map((c) => c.line.toString().length))
-  let [first] = original.context
-  let last = original.context.at(-1)
   console.log(frame)
   return (
     <div>
       <h6 className="mt-0 text-xs text-gray-300 font-mono">
-        {isSketch && original.method == null
+        {original.method == null
           ? null
           : original.method ?? frame.method ?? '<unknown>'}
       </h6>
       <div className="text-[10px] mb-2 text-gray-400 font-mono">
         {original.file}:{original.line}:{original.column}
       </div>
-      {expanded ? (
-        <pre className="text-xs bg-gray-800 py-1">
-          <code>
-            {original.context.map((c) => {
-              return (
-                <EditorErrorLine
-                  key={c.line}
-                  row={c}
-                  line={original.line}
-                  column={original.column}
-                  pad={pad}
-                />
-              )
-            })}
-          </code>
-        </pre>
-      ) : null}
+      <pre className="text-xs bg-gray-800 py-1">
+        <code>
+          {original.context.map((c) => {
+            return (
+              <EditorErrorLine
+                key={c.line}
+                row={c}
+                line={original.line}
+                column={original.column}
+                pad={pad}
+              />
+            )
+          })}
+        </code>
+      </pre>
     </div>
   )
 }
@@ -109,19 +136,56 @@ let EditorErrorLine = (props: {
   )
 }
 
-type Frame = {
-  file: string
-  line: number
-  column: number
-  method: string | null
-  text: string
-  context: Row[]
-  original: Omit<Frame, 'original'>
+async function resolveBuildFailure(url: string): Promise<Failure | null> {
+  let origin = new URL(url).origin
+  let req = `${origin}/esbuild-errors`
+  let res = await fetch(req)
+  let errors = (await res.json()) as BuildResult['errors']
+  let [first] = errors
+  if (first == null) return null
+  let loc = first.location
+  if (!loc) return null
+  return {
+    name: 'Error',
+    message: first.text,
+    frames: [
+      {
+        file: loc.file ?? '',
+        line: loc.line ?? 0,
+        column: loc.column ?? 0,
+        text: loc.lineText ?? '',
+        method: null,
+        context: [
+          {
+            line: loc.line,
+            text: loc.lineText,
+          },
+        ],
+        original: {
+          file: loc.file ?? '',
+          line: loc.line ?? 0,
+          column: loc.column ?? 0,
+          text: loc.lineText ?? '',
+          method: null,
+          context: [
+            {
+              line: loc.line,
+              text: loc.lineText,
+            },
+          ],
+        },
+      },
+    ],
+  }
 }
 
-type Row = {
-  line: number
-  text: string
+async function resolveRuntimeFailure(error: Error): Promise<Failure> {
+  let frames = await parseFrames(error)
+  return {
+    name: error.name,
+    message: error.message,
+    frames,
+  }
 }
 
 async function parseFrames(error: Error): Promise<Frame[]> {
@@ -129,11 +193,10 @@ async function parseFrames(error: Error): Promise<Frame[]> {
   let files = new Set<string>()
   let cache: Record<string, { text: string; sourcemap: SourceMapConsumer }> = {}
 
+  // Convert local files to the proper URL scheme.
   for (let frame of frames) {
-    let { file, methodName } = frame
-
+    let { file } = frame
     if (file != null) {
-      // Convert local files to the proper URL scheme.
       if (
         file.startsWith('/') || // Posix
         /^[a-z]:\\/i.test(file) || // Win32
@@ -141,7 +204,6 @@ async function parseFrames(error: Error): Promise<Frame[]> {
       ) {
         file = frame.file = `file://${file}`
       }
-
       files.add(file)
     }
   }

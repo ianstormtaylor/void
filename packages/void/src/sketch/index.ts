@@ -1,4 +1,4 @@
-import { Config, Output, Units, Schema } from '..'
+import { Config, Units } from '..'
 
 /** The sketch-related methods. */
 export * as Sketch from './methods'
@@ -20,16 +20,7 @@ export type Sketch = {
   random?: () => number
   raf?: number
   schemas?: Record<string, Schema>
-  settings: {
-    dpi: number
-    fps: number
-    frames: number
-    height: number
-    margin: [number, number, number, number]
-    precision: number
-    units: Units
-    width: number
-  }
+  settings: Settings
   status?: 'playing' | 'paused' | 'stopped'
   traits: Record<string, any>
 }
@@ -65,6 +56,34 @@ export type Layer = {
   export?: () => string
 }
 
+/** Output settings when exporting a sketch. */
+export type Output = OutputPng | OutputJpg | OutputWebp | OutputSvg | OutputPdf
+
+/** PNG output settings. */
+export type OutputPng = {
+  type: 'png'
+}
+
+/** JPG output settings. */
+export type OutputJpg = {
+  type: 'jpg'
+  quality: number
+}
+
+export type OutputWebp = {
+  type: 'webp'
+  quality?: number
+}
+
+export type OutputSvg = {
+  type: 'svg'
+}
+
+export type OutputPdf = {
+  type: 'pdf'
+  rasterize?: boolean
+}
+
 /** Data about the mouse while a sketch is running. */
 export type Pointer = {
   type: 'mouse' | 'pen' | 'touch' | null
@@ -73,4 +92,52 @@ export type Pointer = {
   position: [number, number] | null
   button: number | null
   buttons: Record<number, true>
+}
+
+/** A schema which defines the values of a trait. */
+export type Schema = SchemaBool | SchemaInt | SchemaFloat | SchemaPick
+
+/** A schema for boolean traits. */
+export type SchemaBool = {
+  type: 'boolean'
+  probability: number
+  initial?: boolean
+}
+
+/** A schema for integer traits. */
+export type SchemaInt = {
+  type: 'int'
+  min: number
+  max: number
+  step: number
+  initial?: number
+}
+
+/** A schema for floating point number traits. */
+export type SchemaFloat = {
+  type: 'float'
+  min: number
+  max: number
+  step?: number
+  initial?: number
+}
+
+/** A schema for enum traits. */
+export type SchemaPick = {
+  type: 'pick'
+  names: string[]
+  weights: number[]
+  initial?: string
+}
+
+/** The userland-exposed settings of a sketch. */
+export type Settings = {
+  dpi: number
+  fps: number
+  frames: number
+  height: number
+  margin: [number, number, number, number]
+  precision: number | null
+  units: Units
+  width: number
 }

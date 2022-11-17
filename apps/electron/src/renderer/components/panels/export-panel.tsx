@@ -6,8 +6,8 @@ import { SidebarPanel } from '../ui/sidebar-panel'
 import { useSketch } from '../../contexts/sketch'
 
 export let ExportPanel = () => {
+  let [entrypoint] = useEntrypoint()
   let sketch = useSketch()
-  let entrypoint = useEntrypoint()
   let onDownload = useCallback(
     (type: OutputType) => {
       let div = document.createElement('div')

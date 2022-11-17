@@ -5,7 +5,6 @@ export default function () {
   let cols = Void.int('cols', 3, 7)
   let focus = Void.pick('focus', [3, 5, 6, 12, 18])
   let cell = 60
-  let directions = [-1, 0, 1]
 
   let { width, height } = Void.settings({
     dimensions: [rows * cell, cols * cell, 'mm'],
@@ -19,10 +18,11 @@ export default function () {
       let size = cell
       let top = x
       let left = y
-      let steps = Math.floor(Void.random() * 8 + 1)
+      let steps = Void.random(1, 8, 1)
       let step = (size - focus) / steps
-      let xdir = directions[Math.floor(Void.random() * directions.length)]
-      let ydir = directions[Math.floor(Void.random() * directions.length)]
+      let xdir = Void.random(-1, 1, 1)
+      let ydir = Void.random(-1, 1, 1)
+      console.log({ steps, xdir, ydir })
       while (size >= focus) {
         ctx.strokeRect(top, left, size, size)
         top += step / 2 + (step / 4) * xdir

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { Editor } from './components/editor'
 import { HashRouter, Route, Routes, useParams } from 'react-router-dom'
 import { useStore } from './contexts/store'
-import { Sketch } from 'void'
 import { TabContext } from './contexts/tab'
 import { EntrypointContext } from './contexts/entrypoint'
 import { WindowContext } from './contexts/window'
@@ -70,27 +69,15 @@ let WindowPage = () => {
 
 let TabPage = () => {
   let { id } = useParams()
-  let [config] = useStore()
-  let [construct, setConstruct] = useState<Sketch['construct'] | null>(null)
-  let tab = config.tabs[id!]
-  let entrypoint = config.entrypoints[tab?.entrypointId]
-
-  useEffect(() => {
-    if (entrypoint.url) {
-      import(/* @vite-ignore */ entrypoint.url)
-        .then((pkg) => setConstruct(() => pkg.default))
-        .catch((e) => console.error(e))
-    }
-  }, [entrypoint])
-
+  let [store] = useStore()
+  let tab = store.tabs[id!]
+  let entrypoint = store.entrypoints[tab?.entrypointId]
   return (
-    construct && (
-      <TabContext.Provider value={tab}>
-        <EntrypointContext.Provider value={entrypoint}>
-          <Editor construct={construct} />
-        </EntrypointContext.Provider>
-      </TabContext.Provider>
-    )
+    <TabContext.Provider value={tab}>
+      <EntrypointContext.Provider value={entrypoint}>
+        <Editor />
+      </EntrypointContext.Provider>
+    </TabContext.Provider>
   )
 }
 
