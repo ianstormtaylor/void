@@ -29,7 +29,7 @@ export default function () {
   // Define a few variables to use for the sketch.
   let target = [width / 2, height / 2]
   let points = Array.from({ length: segments }, () => {
-    return [Void.random() * width, Void.random() * height]
+    return [Void.random(0, width), Void.random(0, height)]
   })
 
   // On every frame...

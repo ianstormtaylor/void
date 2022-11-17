@@ -324,21 +324,21 @@ Void.random() => number
 Void.random(min: number, max: number, step?: number) => number
 ```
 
-Returns a random number, by default from `0` (inclusive) to `1` (exclusive)`.
+Returns a random number, by default from `0` (inclusive) to `1` (exclusive).
 
 This is just like `Math.random` except that the randomness is determined by the sketch's seed value, so the same values will be produced every time for the same seed.
 
-You can also pass the `min`, `max`, and optional `step` arguments to have the result in a different range, and optionally rounded to that step. Both `min` and `max` are inclusive when a `step` is provided. (Without a step technically `max` is exclusive, but the increments are so small that that's usually an implementation detail.)
+You can also pass the `min`, `max`, and optional `step` arguments to have the result in a different range, and optionally rounded to that step multiple. Both `min` and `max` are inclusive when a `step` is provided. (Without a step technically `max` is exclusive, but the increments are so small that that's usually an implementation detail.)
 
 ```ts
 Void.random()
 // 0.384037...
 
 Void.random(0, 5)
-// 2.584939...
+// 2.084939...
 
-Void.random(1, 3, 1)
-// 2
+Void.random(1, 7, 1)
+// 3
 
 Void.random(-1, 1, 0.5)
 // -0.5

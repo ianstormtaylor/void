@@ -1,21 +1,31 @@
 import { Context } from 'svgcanvas'
 import { convertUnits, svgStringToDataUri } from './utils'
-import {
-  Sketch,
-  Config,
-  Narrowable,
-  Pointer,
-  Keyboard,
-  Nameify,
-  Nameable,
-  Units,
-} from '.'
+import { Sketch, Config, Pointer, Keyboard, Units } from '.'
 
 // A reference to whether the keyboard event listeners have been attached.
 let KEYBOARD_EVENTS: WeakMap<Sketch, true> = new WeakMap()
 
 // A reference to whether the pointer event listeners have been attached.
 let POINTER_EVENTS: WeakMap<Sketch, true> = new WeakMap()
+
+// A type that can be converted to a stringified name easily.
+type Nameable = string | number | boolean | null
+
+// Convert a type to a `Nameable` type.
+type Nameify<T> = T extends Nameable ? T : string
+
+// A type that when used in generics allows narrowing of return values.
+type Narrowable =
+  | string
+  | number
+  | bigint
+  | boolean
+  | symbol
+  | object
+  | undefined
+  | void
+  | null
+  | {}
 
 /**
  * Defines a boolean trait.
@@ -358,8 +368,12 @@ export function pick<V>(
   let r = random()
   let value
 
-  if (name in traits && traits[name] in mapping) {
-    value = traits[name]
+  if (name in traits) {
+    if (traits[name] in mapping) {
+      value = traits[name]
+    } else {
+      throw new Error(`Cannot re-pick a trait named "${name}"!`)
+    }
   } else if (initial !== undefined) {
     value = String(initial) // allow booleans, numbers, etc. to be real
   } else {

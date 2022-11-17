@@ -1,35 +1,37 @@
 import { Void } from 'void'
 
-// https://www.moma.org/collection/works/37202
+// https://www.moma.org/collection/works/35484
 export default function () {
-  let { width, height } = Void.settings({ dimensions: [6, 6, 'in'] })
+  let { width, height } = Void.settings({ dimensions: [36, 36, 'in'] })
   let bg = Void.layer('background')
-  bg.fillStyle = '#E6E0D2'
+  bg.fillStyle = '#393939'
   bg.fillRect(0, 0, width, height)
 
   let ctx = Void.layer('tiles')
-  let grid = Void.int('grid', 12, 48)
-  let count = Void.int('count', 200, 1000, 100)
-  let v = Void.float('variance', 0.5, 1.5, 0.1)
+  let grid = Void.int('grid', 12, 36)
+  let count = Void.int('count', 200, 1000, 200)
   let cell = width / grid
-  let span = grid - 2
   let palette = [
-    '#b8baaa',
-    '#ac7458',
-    '#39769a',
-    '#c75c38',
-    '#e49438',
-    '#1a1211',
-    '#774763',
-    '#f1ce48',
-    '#87ac5d',
+    '#D4AB97',
+    '#A2A757',
+    '#2E3580',
+    '#95393E',
+    '#DAC34F',
+    '#86A2BA',
+    '#654470',
+    '#BE6C22',
+    '#4053A3',
+    '#BE4E39',
+    '#D79500',
+    '#C7C796',
+    '#394E5F',
+    '#C4BEBE',
+    '#7A9A82',
   ]
 
   for (let i = 0; i < count; i++) {
-    let a = Math.floor(Void.random() * span) + 1
-    let b = Math.floor(VOid.random() * span) + 1
-    let x = a * cell
-    let y = b * cell
+    let x = Void.random(0, grid, 1) * cell
+    let y = Void.random(0, grid, 1) * cell
     ctx.fillStyle = palette[Math.floor(Void.random() * palette.length)]
     ctx.fillRect(x, y, cell, cell)
   }

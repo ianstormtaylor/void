@@ -122,7 +122,7 @@ export function convertUnits(
   // Calculate the result and optionally round to a fixed number of digits.
   let result = value * factor
   if (precision != null) {
-    let p = precision ** 10
+    let p = 10 ** precision
     result = Math.round(result * p) / p
   }
 

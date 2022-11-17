@@ -9,18 +9,49 @@ import { zoomOut } from '../../shared/zoom'
 import { cloneDeep } from 'lodash'
 import { useWindowSize } from 'react-use'
 import { hashInt } from '../utils'
+import { useEntrypoint } from '../contexts/entrypoint'
 
-export let Editor = (props: { construct: Sketch['construct'] }) => {
-  let { construct } = props
+export let Editor = () => {
   let win = useWindowSize()
-  let [tab, changeTab] = useTab()
-  let [sketch, setSketch] = useState<Sketch | null>(null)
-  let [error, setError] = useState<Error | null>(null)
   let ref = useRef<HTMLDivElement>(null)
+  let [entrypoint] = useEntrypoint()
+  let [tab, changeTab] = useTab()
+  let [construct, setConstruct] = useState<Sketch['construct'] | null>(null)
+  let [sketch, setSketch] = useState<Sketch | null>(null)
+  let [error, setError] = useState<Error | string | null>(null)
+
+  // When the entrypoint url loads, try to fetch it and catch build errors.
+  useEffect(() => {
+    if (entrypoint.url != null) {
+      import(/* @vite-ignore */ entrypoint.url)
+        .then((pkg) => setConstruct(() => pkg.default))
+        .catch(() => setError(entrypoint.url))
+    }
+  }, [entrypoint.url])
+
+  // Attach event listeners for uncaught errors.
+  useEffect(() => {
+    let onError = (e: ErrorEvent) => {
+      e.preventDefault()
+      setError(e.error)
+    }
+
+    let onRejection = (e: PromiseRejectionEvent) => {
+      e.preventDefault()
+      setError(e.reason.error)
+    }
+
+    window.addEventListener('error', onError)
+    window.addEventListener('unhandledrejection', onRejection)
+    return () => {
+      window.removeEventListener('error', onError)
+      window.removeEventListener('unhandledrejection', onRejection)
+    }
+  })
 
   // When the tab changes, if the sketch is stopped, restart it.
   useEffect(() => {
-    if (!ref.current) return
+    if (!ref.current || !construct) return
 
     // Clean up any existing sketch artifacts.
     let el = ref.current
@@ -83,7 +114,7 @@ export let Editor = (props: { construct: Sketch['construct'] }) => {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div ref={ref} className="flex-1" />
             <div className="flex-0 relative">
-              {error && (
+              {error == null ? null : (
                 <div className="absolute bottom-0 w-full">
                   <EditorConsole error={error} />
                 </div>

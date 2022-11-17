@@ -1,4 +1,4 @@
-import { Units, OUTPUT_MIME_TYPES, Config, Schema } from '..'
+import { Units, Config, Schema } from '..'
 import { Frame, Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
   applyOrientation,
@@ -11,6 +11,15 @@ import {
   svgStringToElement,
   SVG_NAMESPACE,
 } from '../utils'
+
+/** A dictionary of output mime types. */
+const OUTPUT_MIME_TYPES: Record<Sketch['output']['type'], string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  pdf: 'application/pdf',
+}
 
 /** Get the current sketch and assert one exists. */
 export function assert(): Sketch {
@@ -93,7 +102,11 @@ export function exec(sketch: Sketch, fn: () => void) {
   try {
     fn()
   } catch (e) {
-    Sketch.emit(sketch, 'error', e as Error)
+    if (sketch.handlers?.error.length) {
+      Sketch.emit(sketch, 'error', e as Error)
+    } else {
+      throw e
+    }
   } finally {
     VOID.sketch = prev
   }
@@ -136,6 +149,7 @@ export function layer(sketch: Sketch, name?: string): Layer {
 export function of(attrs: {
   construct: () => void
   container: HTMLElement
+  el?: HTMLElement
   hash: string
   layers?: Sketch['layers']
   config?: Sketch['config']
@@ -145,17 +159,27 @@ export function of(attrs: {
   let {
     construct,
     container,
+    el,
     hash,
     output = { type: 'png' },
     config = {},
     layers = {},
     traits = {},
   } = attrs
+
+  if (el == null) {
+    if (typeof document !== 'undefined') {
+      el = document.createElement('div')
+    } else {
+      throw new Error('Must have `document` global present to create a sketch!')
+    }
+  }
+
   return {
     config,
     construct,
     container,
-    el: document.createElement('div'),
+    el,
     hash,
     layers,
     output,
@@ -165,7 +189,7 @@ export function of(attrs: {
       frames: Infinity,
       height: container.offsetHeight,
       margin: [0, 0, 0, 0],
-      precision: 1,
+      precision: 0,
       units: 'px',
       width: container.offsetWidth,
     },
@@ -375,15 +399,14 @@ export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
   let units = Config.units(config)
 
   // Convert the precision to the sketch's units.
-  let [precision, pu] = Config.precision(config)
-  precision = convertUnits(precision, pu, units, { dpi })
+  let precision = Config.precision(config)
 
   // Create a unit conversion helper with the sketch's default units.
   let [width, height, du] = Config.dimensions(config)
   if (width === Infinity) width = sketch.container.offsetWidth
   if (height === Infinity) height = sketch.container.offsetHeight
-  width = convertUnits(width, du, units, { precision, dpi })
-  height = convertUnits(height, du, units, { precision, dpi })
+  width = convertUnits(width, du, units, { dpi, precision })
+  height = convertUnits(height, du, units, { dpi, precision })
 
   // Apply the orientation setting to the dimensions.
   if (orientation != null) {
@@ -392,10 +415,10 @@ export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
 
   // Apply a margin, so the canvas is drawn without need to know it.
   let [mt, mr, mb, ml, mu] = Config.margin(config)
-  mt = convertUnits(mt, mu, units, { precision, dpi })
-  mr = convertUnits(mr, mu, units, { precision, dpi })
-  mb = convertUnits(mb, mu, units, { precision, dpi })
-  ml = convertUnits(ml, mu, units, { precision, dpi })
+  mt = convertUnits(mt, mu, units, { dpi, precision })
+  mr = convertUnits(mr, mu, units, { dpi, precision })
+  mb = convertUnits(mb, mu, units, { dpi, precision })
+  ml = convertUnits(ml, mu, units, { dpi, precision })
   width -= mr + ml
   height -= mt + mb
   let margin = [mt, mr, mb, ml] as [number, number, number, number]
@@ -407,7 +430,7 @@ export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
     frames,
     height,
     margin,
-    precision,
+    precision: precision ?? null,
     units,
     width,
   }

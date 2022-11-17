@@ -4,6 +4,7 @@ export default function () {
   let { width, height } = Void.settings({
     dimensions: [4, 7, 'in'],
     margin: [0.25, 'in'],
+    units: 'pt',
   })
 
   let ctx = Void.layer()
@@ -16,9 +17,9 @@ export default function () {
   for (let x = 0; x < width; x += cell) {
     for (let y = 0; y < height - cell; y += cell) {
       let t = Math.max(y / height, 0.07) ** 1.5
-      let angle = t * (Void.random() * rot * 2 - rot)
-      let ox = t * (Void.random() * disp * 2 - disp)
-      let oy = t * (Void.random() * disp * 2 - disp)
+      let angle = t * Void.random(-rot, rot)
+      let ox = t * Void.random(-disp, disp)
+      let oy = t * Void.random(-disp, disp)
       ctx.save()
       ctx.translate(x + ox + half, y + oy + half)
       ctx.rotate(angle)

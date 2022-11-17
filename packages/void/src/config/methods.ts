@@ -47,20 +47,12 @@ export function orientation(config: Config): Orientation | undefined {
 }
 
 /** Resolve the precision of a `config`. */
-export function precision(config: Config): Sizes<1> {
+export function precision(config: Config): number | undefined {
   let { precision } = config
 
   if (precision == null) {
     let u = config.units ?? dimensions(config)[2]
-    if (u == 'px') {
-      precision = [1, 'px']
-    } else if (u == 'mm' || u == 'cm' || u == 'm') {
-      precision = [1, 'mm']
-    } else if (u == 'pt' || u == 'pc' || u == 'in' || u == 'ft') {
-      precision = [1, 'pt']
-    } else {
-      throw new Error(`Unrecognized units: ${u}`)
-    }
+    if (u === 'px') precision = 0
   }
 
   return precision
@@ -69,5 +61,5 @@ export function precision(config: Config): Sizes<1> {
 /** Resolve the units of a `config`. */
 export function units(config: Config): Units {
   let u = config.units
-  return u ? u : precision(config)[1]
+  return u ? u : dimensions(config)[2]
 }

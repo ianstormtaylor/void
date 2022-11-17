@@ -1,6 +1,9 @@
 import Path from 'path'
 import crypto from 'node:crypto'
 import Esbuild from 'esbuild'
+import Fs from 'fs'
+import Http from 'http'
+import { temporaryDirectory } from 'tempy'
 import { main } from './main'
 import { Draft } from 'immer'
 import { EntrypointState } from '../../shared/store-state'
@@ -9,14 +12,16 @@ import { Tab } from './tab'
 /** A `Entrypoint` class holds a reference to a specific sketch file. */
 export class Entrypoint {
   id: string
-  #build: Esbuild.BuildResult | null
-  #serve: Esbuild.ServeResult | null
+  #builder: Esbuild.BuildResult | null
+  #watcher: Esbuild.BuildResult | null
+  #server: Http.Server | null
 
   /** Constructor a new `Entrypoint` instance by `id`. */
   constructor(id: string) {
     this.id = id
-    this.#build = null
-    this.#serve = null
+    this.#builder = null
+    this.#watcher = null
+    this.#server = null
     this.serve()
   }
 
@@ -91,26 +96,25 @@ export class Entrypoint {
 
   /** Serve the entrypoint with esbuild from memory. */
   async serve() {
-    if (this.#build || this.#serve) {
+    if (this.#builder || this.#watcher || this.#server) {
       console.log('Already serving the sketch, returning early.')
       return
     }
 
     let { path } = this
-    let dir = Path.dirname(path)
-    let file = `${Path.basename(path, Path.extname(path))}.js`
+    let file = Path.basename(path, Path.extname(path))
+    let jsFile = `${file}.js`
+    let outdir = temporaryDirectory()
+    let builder: Esbuild.BuildResult
 
     // Start a build process to watch for reloading.
-    let build = await Esbuild.build({
+    this.#watcher = await Esbuild.build({
       entryPoints: [path],
-      outdir: dir,
+      outdir,
       write: false,
-      allowOverwrite: true,
       watch: {
         onRebuild: (error) => {
-          if (error) {
-            console.error('Esbuild watch error:', error)
-          }
+          if (error) console.error('Esbuild watch error:', error)
           for (let tab of this.tabs) {
             tab.reload()
           }
@@ -118,34 +122,80 @@ export class Entrypoint {
       },
     })
 
-    // Start a serve process to serve the sketch files.
-    let serve = await Esbuild.serve(
-      { servedir: dir },
-      {
-        entryPoints: [path],
-        outdir: dir,
-        bundle: true,
-        allowOverwrite: true,
-        sourcemap: true,
-        format: 'esm',
+    let server = (this.#server = Http.createServer(async (req, res) => {
+      if (!req.url) return
+      let { pathname } = new URL(`http://${req.headers.host}${req.url}`)
+      let route = pathname.slice(1)
+      let isJs = pathname === `/${jsFile}`
+
+      if (route === 'esbuild-errors') {
+        res.statusCode = 200
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.setHeader('Content-Type', 'application/json')
+        res.write(JSON.stringify(builder?.errors ?? []))
+        res.end()
       }
-    )
 
-    this.#build = build
-    this.#serve = serve
+      if (!pathname.startsWith(`/${jsFile}`)) {
+        console.error('not found', route)
+        res.statusCode = 404
+        res.end()
+        return
+      }
 
+      try {
+        if (builder != null) {
+          builder.rebuild!()
+        } else {
+          builder ??= this.#builder = await Esbuild.build({
+            entryPoints: [path],
+            outdir,
+            bundle: true,
+            sourcemap: true,
+            sourceRoot: path,
+            incremental: true,
+            format: 'esm',
+          })
+        }
+      } catch (e) {
+        res.statusCode = 500
+        res.end()
+        return
+      }
+
+      res.statusCode = 200
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Content-Type', isJs ? 'text/javascript' : 'text/plain')
+      let outfile = Path.resolve(outdir, route)
+      let stream = Fs.createReadStream(outfile)
+      stream.pipe(res, { end: true })
+    }))
+
+    server.listen()
+    let { port } = server.address() as any
     setImmediate(() => {
       this.change((t) => {
-        t.url = `http://localhost:${serve.port}/${file}`
+        t.url = `http://localhost:${port}/${jsFile}`
       })
     })
   }
 
   /** Shutdown the entrypoint's server. */
   close() {
-    if (this.#build && this.#build.stop != null) this.#build.stop()
-    if (this.#serve) this.#serve.stop()
-    this.#build = null
-    this.#serve = null
+    if (this.#watcher && this.#watcher.stop != null) {
+      this.#watcher.stop()
+    }
+
+    if (this.#builder && this.#builder.stop != null) {
+      this.#builder.rebuild!.dispose()
+    }
+
+    if (this.#server) {
+      this.#server.close()
+    }
+
+    this.#builder = null
+    this.#watcher = null
+    this.#server = null
   }
 }

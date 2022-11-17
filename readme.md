@@ -82,6 +82,7 @@ Void is designed to make it easy to quickly iterate on sketches, so you can expl
 - **Basics**
   - [Introduction](./examples/introduction.js)
   - [Layers](./examples/layers.js)
+  - [Noise](./examples/noise.js)
   - [Animation](./examples/animation.js)
   - [Pointer](./examples/pointer.js)
 - **Classics**
