@@ -115,9 +115,9 @@ export class Entrypoint {
       watch: {
         onRebuild: (error) => {
           if (error) console.error('Esbuild watch error:', error)
-          for (let tab of this.tabs) {
-            tab.reload()
-          }
+          this.change((e) => {
+            e.timestamp = Date.now()
+          })
         },
       },
     })
@@ -145,7 +145,7 @@ export class Entrypoint {
 
       try {
         if (builder != null) {
-          builder.rebuild!()
+          await builder.rebuild!()
         } else {
           builder ??= this.#builder = await Esbuild.build({
             entryPoints: [path],
@@ -174,8 +174,9 @@ export class Entrypoint {
     server.listen()
     let { port } = server.address() as any
     setImmediate(() => {
-      this.change((t) => {
-        t.url = `http://localhost:${port}/${jsFile}`
+      this.change((e) => {
+        e.url = `http://localhost:${port}/${jsFile}`
+        e.timestamp = Date.now()
       })
     })
   }

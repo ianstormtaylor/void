@@ -23,11 +23,11 @@ export let Editor = () => {
   // When the entrypoint url loads, try to fetch it and catch build errors.
   useEffect(() => {
     if (entrypoint.url != null) {
-      import(/* @vite-ignore */ entrypoint.url)
+      import(/* @vite-ignore */ `${entrypoint.url}?t=${entrypoint.timestamp}`)
         .then((pkg) => setConstruct(() => pkg.default))
         .catch(() => setError(entrypoint.url))
     }
-  }, [entrypoint.url])
+  }, [entrypoint.url, entrypoint.timestamp])
 
   // Attach event listeners for uncaught errors.
   useEffect(() => {
@@ -59,13 +59,19 @@ export let Editor = () => {
     if (sketch) Sketch.detach(sketch)
 
     // Create a new sketch object.
+    let { seed, layers, traits, config } = tab
     let s = Sketch.of({
       construct,
       container: el,
-      hash: `0x${hashInt(tab.seed).toString(16)}`,
-      layers: cloneDeep(tab.layers),
-      traits: cloneDeep(tab.traits),
-      config: cloneDeep(tab.config),
+      layers: cloneDeep(layers),
+      traits: cloneDeep(traits),
+      config: cloneDeep(config),
+      hash: `0x${[
+        hashInt(seed),
+        hashInt(seed + 1),
+        hashInt(seed + 2),
+        hashInt(seed + 3),
+      ].map((n) => n.toString(16).slice(2))}`,
     })
 
     // Listen for errors to show the error console.

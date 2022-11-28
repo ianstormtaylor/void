@@ -27,6 +27,7 @@ export type EntrypointState = {
   id: string
   path: string
   url: string | null
+  timestamp: number | null
 }
 
 /** The saved state of the entire app. */
