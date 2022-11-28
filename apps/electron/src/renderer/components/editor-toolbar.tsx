@@ -23,6 +23,9 @@ export let EditorToolbar = () => {
         >
           <MdBuild className="text-lg" />
         </button>
+      </div>
+      <div className="text-sm text-gray-500">{path}</div>
+      <div className="flex items-center space-x-1">
         <select
           title="Zoom Level"
           value={tab.zoom ?? 1}
@@ -46,10 +49,7 @@ export let EditorToolbar = () => {
           <option value={0.25}>25%</option>
           <option value={0.125}>13%</option>
         </select>
-      </div>
-      <div className="text-sm text-gray-500">{path}</div>
-      <div className="flex items-center space-x-1">
-        <button
+        {/* <button
           title="Favorite Variant"
           className={`
             flex w-8 h-8 items-center justify-center rounded cursor-default
@@ -68,7 +68,7 @@ export let EditorToolbar = () => {
           `}
         >
           <MdGridView className="text-lg" />
-        </button>
+        </button> */}
       </div>
     </div>
   )

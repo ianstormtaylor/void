@@ -46,6 +46,7 @@ export class Entrypoint {
         id,
         path,
         url: null,
+        timestamp: null,
       }
     })
     let entrypoint = new Entrypoint(id)
