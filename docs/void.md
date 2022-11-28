@@ -4,9 +4,9 @@
 import { Void } from 'void'
 ```
 
-The `Void` namespace contains the main methods you use to configure and control sketches in Void. You use them to setup your canvas, define custom traits, and hook up interactions.
+The `Void` namespace holds the tools you use to control a sketch. You use them to size your canvas, generate random values, define custom traits, and wire up interactions.
 
-All the methods are fully treeshakeable, so you will only bundle what you use.
+Void is fully treeshake-able, so you'll only bundle methods you use.
 
 - [**Canvas**](#canvas)
   - [`Void.draw()`](#voiddraw)
@@ -21,12 +21,14 @@ All the methods are fully treeshakeable, so you will only bundle what you use.
   - [`Void.event()`](#voidevent)
   - [`Void.keyboard()`](#voidkeyboard)
   - [`Void.pointer()`](#voidpointer)
-- [**Random**](#random)
+- [**Utils**](#utils)
+  - [`Void.convert()`](#voidconvert)
+  - [`Void.fork()`](#voidfork)
   - [`Void.random()`](#voidrandom)
 
 ## Canvas
 
-The canvas methods help your setup up your sketch's layout and determine how you draw the output of your sketch.
+The canvas methods setup your sketch's layout and determine how it's drawn.
 
 ### `Void.draw()`
 
@@ -315,7 +317,52 @@ let pointer = Void.pointer()
 ctx.fillStyle = pointer.x > width / 2 ? 'red' : 'transparent'
 ```
 
-## Random
+## Utils
+
+### `Void.convert()`
+
+```ts
+Void.convert(x: number, from: Units, to?: Units, options?: {
+  dpi?: number
+  precision?: number
+}) => number
+```
+
+Converts a value `x` defined in `from` units to the equivalent in `to` units.
+
+When the `to` argument is omitted, Void will default it to the units of the current canvas. So this gives you an easy way to quickly get canvas-relative units from real-world ones.
+
+```ts
+// Set the line width to 4 millimeters, regardless of canvas resolution.
+ctx.lineWidth = Void.convert(4, 'mm')
+```
+
+### `Void.fork()`
+
+```ts
+Void.fork<T>(callback: () => T) => T
+```
+
+Runs a `callback` function with a fork of the current random seed, so that you can retrieve any amount of random numbers inside the callback and still only consume a single iteration of your seed.
+
+This is helpful in situations where you want to conditionally do some logic that requires randomness, but you want random values _after_ that logic to remain deterministic.
+
+```ts
+let count = Random.int(1, 4)
+let booleans = []
+
+// Without this fork wrapper, the loop inside this function would have ticked
+// the random seed forward between `1` and `4` times. But with the fork, it
+// only ticks forward once, so any random values after it remain deterministic.
+Random.fork(() => {
+  for (let i = 0; i < count; i++) {
+    booleans.push(Random.bool())
+  }
+})
+
+// Because of the fork above, this boolean stays deterministic.
+let after = Random.bool()
+```
 
 ### `Void.random()`
 

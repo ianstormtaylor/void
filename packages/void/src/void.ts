@@ -39,11 +39,11 @@ type Narrowable =
 export function bool(name: string, probability?: number): boolean
 export function bool(name: string, initial: boolean): boolean
 export function bool(name: string, options?: boolean | number): boolean {
-  let sketch = Sketch.assert()
-  let { traits } = sketch
-  let probability = typeof options === 'number' ? options : 0.5
-  let initial = typeof options === 'boolean' ? options : undefined
-  let r = random()
+  const sketch = Sketch.assert()
+  const { traits } = sketch
+  const probability = typeof options === 'number' ? options : 0.5
+  const initial = typeof options === 'boolean' ? options : undefined
+  const r = random()
   let value
 
   if (name in traits && typeof traits[name] === 'boolean') {
@@ -89,9 +89,9 @@ export function convert(
   options: { dpi?: number; precision?: number } = {}
 ): number {
   if (typeof to === 'object') (options = to), (to = undefined)
-  let sketch = Sketch.current()
+  const sketch = Sketch.current()
   to = to ?? sketch?.settings.units ?? 'px'
-  let { dpi = sketch?.settings.dpi, precision } = options
+  const { dpi = sketch?.settings.dpi, precision } = options
   if (from === to) return value
   return convertUnits(value, from, to, { dpi, precision })
 }
@@ -101,7 +101,7 @@ export function convert(
  * animated sketch.
  */
 export function draw(fn: () => void) {
-  let sketch = Sketch.assert()
+  const sketch = Sketch.assert()
   sketch.draw = fn
 }
 
@@ -112,14 +112,14 @@ export function event<E extends keyof GlobalEventHandlersEventMap>(
   event: E,
   callback: (e: GlobalEventHandlersEventMap[E]) => void
 ): () => void {
-  let sketch = Sketch.assert()
-  let { el } = sketch
-  let fn = (e: GlobalEventHandlersEventMap[E]) => {
+  const sketch = Sketch.assert()
+  const { el } = sketch
+  const fn = (e: GlobalEventHandlersEventMap[E]) => {
     Sketch.exec(sketch, () => callback(e))
   }
 
   el.addEventListener(event, fn)
-  let off = () => el.removeEventListener(event, fn)
+  const off = () => el.removeEventListener(event, fn)
   Sketch.on(sketch, 'stop', off)
   return off
 }
@@ -144,8 +144,8 @@ export function float(
   max?: number,
   step?: number
 ): number {
-  let sketch = Sketch.assert()
-  let { traits } = sketch
+  const sketch = Sketch.assert()
+  const { traits } = sketch
   let initial
   if (max == null) {
     initial = min
@@ -165,6 +165,15 @@ export function float(
 }
 
 /**
+ * Run a function `fn` with a fork of the current pseudo-random number generator
+ * seed, so that it only consumes one random value.
+ */
+export function fork<T>(fn: () => T): T {
+  const sketch = Sketch.assert()
+  return Sketch.fork(sketch, fn)
+}
+
+/**
  * Define an integer trait.
  *
  * You can either pass a single `initial` argument which will be used as the
@@ -178,9 +187,15 @@ export function int(
   max: number,
   step?: number
 ): number
-export function int(name: string, min: number, max?: number, step = 1): number {
-  let sketch = Sketch.assert()
-  let { traits } = sketch
+export function int(
+  name: string,
+  min: number,
+  max?: number,
+  step?: number
+): number {
+  step = step == null ? 1 : Math.trunc(step)
+  const sketch = Sketch.assert()
+  const { traits } = sketch
   let initial
   if (max == null) {
     initial = min
@@ -206,8 +221,8 @@ export function int(name: string, min: number, max?: number, step = 1): number {
  * are pressed down and lifted up.
  */
 export function keyboard(): Keyboard {
-  let sketch = Sketch.assert()
-  let keyboard = Sketch.keyboard(sketch)
+  const sketch = Sketch.assert()
+  const keyboard = Sketch.keyboard(sketch)
 
   if (!KEYBOARD_EVENTS.has(sketch)) {
     event('keydown', (e) => {
@@ -236,23 +251,23 @@ export function keyboard(): Keyboard {
  * If the `name` argument is omitted it will be auto-generated.
  */
 export function layer(name?: string): CanvasRenderingContext2D {
-  let sketch = Sketch.assert()
-  let { settings, output, el } = sketch
-  let { width, height, margin, units } = settings
-  let canvas = document.createElement('canvas')
-  let vector = output.type === 'svg' || output.type === 'pdf'
-  let ctx = vector
+  const sketch = Sketch.assert()
+  const { settings, output, el } = sketch
+  const { width, height, margin, units } = settings
+  const canvas = document.createElement('canvas')
+  const vector = output.type === 'svg' || output.type === 'pdf'
+  const ctx = vector
     ? new Context(`${width}${units}`, `${height}${units}`)
     : canvas.getContext('2d')
   if (!ctx) {
     throw new Error(`Unable to get 2D rendering context from canvas!`)
   }
 
-  let [top, , , left] = margin
-  let [totalWidth, totalHeight] = Sketch.dimensions(sketch)
-  let [pixelWidth, pixelHeight] = Sketch.dimensions(sketch, 'pixel')
-  let [deviceWidth, deviceHeight] = Sketch.dimensions(sketch, 'device')
-  let layer = Sketch.layer(sketch, name)
+  const [top, , , left] = margin
+  const [totalWidth, totalHeight] = Sketch.dimensions(sketch)
+  const [pixelWidth, pixelHeight] = Sketch.dimensions(sketch, 'pixel')
+  const [deviceWidth, deviceHeight] = Sketch.dimensions(sketch, 'device')
+  const layer = Sketch.layer(sketch, name)
   canvas.width = deviceWidth
   canvas.height = deviceHeight
   canvas.style.position = 'absolute'
@@ -299,25 +314,25 @@ export function pick<V>(
   choices?: Choices<V>
 ): V {
   if (choices == null) (choices = initial as Choices<V>), (initial = undefined)
-  let sketch = Sketch.assert()
-  let { traits } = sketch
-  let { names, weights, mapping } = normalizeChoices(choices!)
-  let r = random()
+  const sketch = Sketch.assert()
+  const { traits } = sketch
+  const { names, weights, mapping } = normalizeChoices(choices!)
+  const r = random()
   let value
 
   if (name in traits) {
     if (traits[name] in mapping) {
       value = traits[name]
     } else {
-      throw new Error(`Cannot re-pick a trait named "${name}"!`)
+      throw new Error(`Cannot re-pick traits "${name}"!`)
     }
   } else if (initial !== undefined) {
     value = String(initial) // allow booleans, numbers, etc. to be real
   } else {
-    let sum = weights.reduce((m, w) => m + w, 0)
-    let threshold = r * sum
+    const sum = weights.reduce((m, w) => m + w, 0)
+    const threshold = r * sum
     let current = 0
-    let i = weights.findIndex((weight) => threshold < (current += weight))
+    const i = weights.findIndex((weight) => threshold < (current += weight))
     value = names[i]
   }
 
@@ -336,14 +351,14 @@ export function pick<V>(
  * `Void.event()` method instead.
  */
 export function pointer(): Pointer {
-  let sketch = Sketch.assert()
-  let pointer = Sketch.pointer(sketch)
+  const sketch = Sketch.assert()
+  const pointer = Sketch.pointer(sketch)
 
   if (!POINTER_EVENTS.has(sketch)) {
     event('pointermove', (e) => {
       if (!e.isPrimary) return
-      let { el } = sketch
-      let canvas = el.querySelector('canvas')
+      const { el } = sketch
+      const canvas = el.querySelector('canvas')
       if (!canvas) return
       pointer.type = e.pointerType as 'mouse' | 'pen' | 'touch'
       pointer.position ??= [] as any
@@ -387,9 +402,14 @@ export function random(min: number, max: number, step?: number): number
 export function random(min?: number, max?: number, step?: number): number {
   if (min == null) (min = 0), (max = 1)
   if (max == null) (max = min), (min = 0)
-  let sketch = Sketch.assert()
-  let value = Sketch.random(sketch) * (max - min + (step ?? 0))
-  if (step != null) value = Math.floor(value / step) * step
+  const sketch = Sketch.assert()
+  const prng = Sketch.prng(sketch)
+  const r = prng() / 2 ** 32
+  let value = r * (max - min + (step ?? 0))
+  if (step != null) {
+    const s = 1 / step // avoid common floating point errors by dividing first
+    value = Math.floor(value * s) / s
+  }
   value += min
   return value
 }
@@ -410,8 +430,8 @@ export function settings(
     config = { dimensions: config }
   }
 
-  let sketch = Sketch.assert()
-  let settings = Sketch.settings(sketch, config ?? {})
+  const sketch = Sketch.assert()
+  const settings = Sketch.settings(sketch, config ?? {})
   return settings
 }
 
@@ -434,16 +454,16 @@ function normalizeChoices<V>(shorthand: Choices<V>): {
   weights: number[]
   mapping: Record<string, V>
 } {
-  let names: string[] = []
-  let weights: number[] = []
-  let mapping: Record<string, V> = {}
-  let entries = Array.isArray(shorthand)
+  const names: string[] = []
+  const weights: number[] = []
+  const mapping: Record<string, V> = {}
+  const entries = Array.isArray(shorthand)
     ? shorthand.entries()
     : Object.entries(shorthand)
 
-  for (let [i, v] of entries) {
-    let [weight, value] = Array.isArray(v) ? v : [1, v]
-    let name = typeof i === 'number' ? String(value) : i
+  for (const [i, v] of entries) {
+    const [weight, value] = Array.isArray(v) ? v : [1, v]
+    const name = typeof i === 'number' ? String(value) : i
     names.push(name)
     weights.push(weight)
     mapping[name] = value

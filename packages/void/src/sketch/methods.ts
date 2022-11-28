@@ -3,7 +3,7 @@ import { Frame, Handlers, Keyboard, Layer, Pointer, Sketch } from '.'
 import {
   applyOrientation,
   convertUnits,
-  createPrng,
+  Sfc32,
   CSS_DPI,
   svgDataUriToString,
   svgElementToString,
@@ -110,6 +110,15 @@ export function exec(sketch: Sketch, fn: () => void) {
   } finally {
     VOID.sketch = prev
   }
+}
+
+/** Run a `fn` with a fork of the PRNG, consuming only one random value. */
+export function fork<T>(sketch: Sketch, fn: () => T): T {
+  let p = prng(sketch)
+  sketch.prng = Sfc32(p(), p(), p(), p())
+  let ret = fn()
+  sketch.prng = p
+  return ret
 }
 
 /** Get the sketch's current frame information. */
@@ -277,10 +286,14 @@ export function pointer(sketch: Sketch): Pointer {
   })
 }
 
-/** Get a random value usig the sketch's seeded PRNG. */
-export function random(sketch: Sketch): number {
-  sketch.random ??= createPrng(Number(sketch.hash))
-  return sketch.random()
+/** Get the sketch's seeded pseudo-random number generator. */
+export function prng(sketch: Sketch): () => number {
+  return (sketch.prng ??= Sfc32(
+    ...([0, 1, 2, 3].map((n) => {
+      let i = 2 + n * 8
+      return parseInt(sketch.hash.substring(i, i + 8), 16)
+    }) as [number, number, number, number])
+  ))
 }
 
 /** Save the sketch's layers as an image. */
@@ -399,7 +412,8 @@ export function settings(sketch: Sketch, config: Config): Sketch['settings'] {
   let units = Config.units(config)
 
   // Convert the precision to the sketch's units.
-  let precision = Config.precision(config)
+  let [precision, pu] = Config.precision(config)
+  precision = convertUnits(precision, pu, units, { dpi })
 
   // Create a unit conversion helper with the sketch's default units.
   let [width, height, du] = Config.dimensions(config)

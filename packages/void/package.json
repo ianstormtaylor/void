@@ -3,20 +3,19 @@
   "version": "0.0.0",
   "license": "MIT",
   "repository": "git://github.com/ianstormtaylor/void.git",
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "exports": {
-    "import": "./dist/void.mjs",
-    "require": "./dist/void.js",
-    "types": "./dist/index.d.ts"
-  },
   "engines": {
     "node": ">=16",
     "typescript": ">=4.9"
   },
   "scripts": {
-    "build": "vite build && tsc",
+    "build": "rm -rf ./{dist} && rollup --config ./rollup.config.js",
     "coverage": "vitest run --coverage",
     "dev": "vitest watch",
     "test": "vitest run"
@@ -27,8 +26,10 @@
     "simplex-noise": "^4.0.1"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^23.0.3",
+    "@rollup/plugin-typescript": "^10.0.1",
+    "rollup": "^3.5.0",
     "vite": "*",
-    "vite-plugin-dts": "^1.6.6",
     "vitest": "*"
   }
 }

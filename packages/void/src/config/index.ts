@@ -10,7 +10,7 @@ export type Config = {
   frames?: number
   margin?: Sizes<1> | Sizes<2> | Sizes<3> | Sizes<4>
   orientation?: Orientation
-  precision?: number
+  precision?: Sizes<1>
   units?: Units
 }
 

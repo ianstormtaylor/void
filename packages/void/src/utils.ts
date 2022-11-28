@@ -1,41 +1,41 @@
 import { Orientation, Units, UnitsSystem } from '.'
 
 /** The SVG namespace string. */
-export let SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+export const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
 /** The prefix for Base64-encoded SVG data URIs. */
-export let SVG_DATA_URI_PREFIX = 'data:image/svg+xml;base64,'
+export const SVG_DATA_URI_PREFIX = 'data:image/svg+xml;base64,'
 
 /** The fixed DPI that CSS uses when displaying real-world units. */
-export let CSS_DPI = 96
+export const CSS_DPI = 96
 
 /** Convert an SVG string to a data URI. */
 export function svgStringToDataUri(svg: string): string {
-  let base64 = btoa(svg)
-  let uri = `${SVG_DATA_URI_PREFIX}${base64}`
+  const base64 = btoa(svg)
+  const uri = `${SVG_DATA_URI_PREFIX}${base64}`
   return uri
 }
 
 /** Convert an SVG data URI to an SVG string. */
 export function svgDataUriToString(uri: string): string {
-  let base64 = uri.replace(SVG_DATA_URI_PREFIX, '')
-  let string = atob(base64)
+  const base64 = uri.replace(SVG_DATA_URI_PREFIX, '')
+  const string = atob(base64)
   return string
 }
 
 /** Convert an SVG string to an SVG element. */
 export function svgStringToElement(string: string): SVGSVGElement {
-  let div = document.createElement('div')
+  const div = document.createElement('div')
   div.innerHTML = string
-  let el = div.firstChild as SVGSVGElement
+  const el = div.firstChild as SVGSVGElement
   return el
 }
 
 /** Convert an SVG element to an SVG string. */
 export function svgElementToString(el: SVGSVGElement): string {
-  let div = document.createElement('div')
+  const div = document.createElement('div')
   div.appendChild(el)
-  let string = div.innerHTML
+  const string = div.innerHTML
   return string
 }
 
@@ -60,31 +60,36 @@ export function resolveOrientation(width: number, height: number): Orientation {
   return width === height ? 'square' : width < height ? 'portrait' : 'landscape'
 }
 
-/** Create a pseudo-random number generator using the PCG algorithm, with a `seed`. */
-export function createPrng(seed: number): () => number {
-  let state = seed | 0
-  let random = () => {
-    let next = (state >>> ((state >>> 28) + 4)) ^ state
-    next = Math.imul(next, 277803737)
-    next = (next >>> 22) ^ next
-    state = Math.imul(state, 747796405) + 2891336453
-    return (next >>> 0) / 4294967296
+/** A pseudo-random number generator using the SFC32 algorithm. */
+export function Sfc32(
+  a: number,
+  b: number,
+  c: number,
+  d: number
+): () => number {
+  return () => {
+    a |= 0
+    b |= 0
+    c |= 0
+    d |= 0
+    let t = (((a + b) | 0) + d) | 0
+    d = (d + 1) | 0
+    a = b ^ (b >>> 9)
+    b = (c + (c << 3)) | 0
+    c = (c << 21) | (c >>> 11)
+    c = (c + t) | 0
+    return t >>> 0
   }
-
-  random()
-  state = (state + seed) | 0
-  random()
-  return random
 }
 
 /** The number of inches in a meter. */
-let M_PER_INCH = 0.0254
+const M_PER_INCH = 0.0254
 
 /** The number of meters in an inch. */
-let INCH_PER_M = 1 / M_PER_INCH
+const INCH_PER_M = 1 / M_PER_INCH
 
 /** Conversions for units within their respective system. */
-let CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
+const CONVERSIONS: Record<Exclude<Units, 'px'>, [UnitsSystem, number]> = {
   m: ['metric', 1],
   cm: ['metric', 1 / 100],
   mm: ['metric', 1 / 1000],
@@ -103,7 +108,7 @@ export function convertUnits(
   options: { dpi?: number; precision?: number } = {}
 ): number {
   if (from === to) return value
-  let { dpi = CSS_DPI, precision } = options
+  const { dpi = CSS_DPI, precision } = options
 
   // Swap pixels for inches using the dynamic `dpi`.
   let factor = 1
@@ -111,19 +116,19 @@ export function convertUnits(
   if (to === 'px') (factor *= dpi), (to = 'in')
 
   // Swap systems if `from` and `to` aren't using the same one.
-  let [inSystem, inFactor] = CONVERSIONS[from]
-  let [outSystem, outFactor] = CONVERSIONS[to]
+  const [inSystem, inFactor] = CONVERSIONS[from]
+  const [outSystem, outFactor] = CONVERSIONS[to]
   factor *= inFactor
   factor /= outFactor
   if (inSystem !== outSystem) {
     factor *= inSystem === 'metric' ? INCH_PER_M : M_PER_INCH
   }
 
-  // Calculate the result and optionally round to a fixed number of digits.
+  // Calculate the result and optionally truncate to a fixed number of digits.
   let result = value * factor
-  if (precision != null) {
-    let p = 10 ** precision
-    result = Math.round(result * p) / p
+  if (precision != null && precision !== 0) {
+    const p = 1 / precision
+    result = Math.trunc(result * p) / p
   }
 
   return result
