@@ -86,7 +86,7 @@ Void is designed to make it easy to quickly iterate on sketches, so you can expl
 - **Classics**
   - [Bill Kolomyjec](./examples/classics/bill-kolomyjec.js) — [original](http://recodeproject.com/artwork/v2n3random-squares)
   - [Ellsworth Kelly](./examples/classics/ellsworth-kelly.js) — [original](https://www.moma.org/collection/works/35484)
-  - [François Morellet](./examples/classics/francois-morellet.js) — [original](https://www.wikiart.org/en/francois-morellet/tirets-neon-0-90-avec-4-rythmes-interferents-191))
+  - [François Morellet](./examples/classics/francois-morellet.js) — [original](https://www.wikiart.org/en/francois-morellet/tirets-neon-0-90-avec-4-rythmes-interferents-191)
   - [Georg Nees](./examples/classics/georg-nees.js) — [original](https://collections.vam.ac.uk/item/O221321/schotter-print-nees-georg/)
   - [Vera Molnár](./examples/classics/vera-molnar.js) — [original](https://pratiques-picturales.net/article63.html)
 
