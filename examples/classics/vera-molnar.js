@@ -1,5 +1,9 @@
 import { Void } from 'void'
 
+// https://pratiques-picturales.net/article63.html
+// https://display.org.es/en/work/forms
+// https://opheliaming.medium.com/vera-moln%C3%A1r-the-computer-art-goddess-26a84efbea4b
+// https://trendland.com/art-paris-2014/
 export default function () {
   let { width } = Void.settings({
     dimensions: [36, 36, 'cm'],

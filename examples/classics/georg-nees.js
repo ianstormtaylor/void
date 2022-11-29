@@ -1,5 +1,7 @@
 import { Void } from 'void'
 
+// https://collections.vam.ac.uk/item/O221321/schotter-print-nees-georg/
+// http://www.medienkunstnetz.de/works/schotter/
 export default function () {
   let { width, height } = Void.settings({
     dimensions: [4, 7, 'in'],
