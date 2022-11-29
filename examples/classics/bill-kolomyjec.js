@@ -25,7 +25,6 @@ export default function () {
       let step = (size - focus) / steps
       let xdir = Void.random(-1, 1, 1)
       let ydir = Void.random(-1, 1, 1)
-      console.log({ steps, xdir, ydir })
       while (size >= focus) {
         ctx.strokeRect(top, left, size, size)
         top += step / 2 + (step / 4) * xdir

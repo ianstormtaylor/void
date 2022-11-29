@@ -9,12 +9,12 @@
   "main": "./out/main/index.js",
   "scripts": {
     "build": "npm run build:vite && npm run build:electron",
-    "build:electron": "dotenv -- electron-builder",
+    "build:electron": "dotenv -- electron-builder --mac --win --linux",
     "build:vite": "electron-vite build",
     "dev": "electron-vite dev",
     "debug": "./dist/$npm_package_version/mac/Void.app/Contents/MacOS/Void --remote-debugging-port=8315 --enable-logging",
     "preview": "electron-vite preview",
-    "release": "dotenv -- electron-builder --publish always"
+    "release": "dotenv -- electron-builder --mac --win --linux --publish always"
   },
   "dependencies": {
     "autoprefixer": "^10.4.7",

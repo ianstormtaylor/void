@@ -8,7 +8,7 @@ import { EditorConsole } from './editor-console'
 import { zoomOut } from '../../shared/zoom'
 import { cloneDeep } from 'lodash'
 import { useWindowSize } from 'react-use'
-import { hashInt } from '../utils'
+import { hashInt, hashSeed } from '../utils'
 import { useEntrypoint } from '../contexts/entrypoint'
 
 export let Editor = () => {
@@ -66,12 +66,7 @@ export let Editor = () => {
       layers: cloneDeep(layers),
       traits: cloneDeep(traits),
       config: cloneDeep(config),
-      hash: `0x${[
-        hashInt(seed),
-        hashInt(seed + 1),
-        hashInt(seed + 2),
-        hashInt(seed + 3),
-      ].map((n) => n.toString(16).slice(2))}`,
+      hash: hashSeed(seed),
     })
 
     // Listen for errors to show the error console.
