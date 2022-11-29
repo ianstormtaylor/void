@@ -1,5 +1,8 @@
 import { Void } from 'void'
 
+// https://www.atariarchives.org/artist/sec15.php
+// http://recodeproject.com/artwork/v2n3random-squares
+// https://github.s3.amazonaws.com/downloads/matthewepler/ReCode_Project/COMPUTER_GRAPHICS_AND_ART_Aug1977.pdf
 export default function () {
   let rows = Void.int('rows', 3, 7)
   let cols = Void.int('cols', 3, 7)

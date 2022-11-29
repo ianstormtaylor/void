@@ -1,5 +1,6 @@
 import { Void } from 'void'
 
+// https://www.wikiart.org/en/francois-morellet/tirets-neon-0-90-avec-4-rythmes-interferents-1971
 export default function () {
   let grid = Void.pick('grid', [3, 5, 7])
   let { width, height } = Void.settings({
