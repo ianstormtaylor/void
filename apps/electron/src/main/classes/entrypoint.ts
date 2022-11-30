@@ -113,7 +113,7 @@ export class Entrypoint {
     try {
       this.#watcher = await Esbuild.build({
         entryPoints: [path],
-        outdir: tmpdir + 'asd',
+        outdir: tmpdir,
         write: false,
         watch: {
           onRebuild: (error) => {
