@@ -4,7 +4,7 @@ import commonjs from '@rollup/plugin-commonjs'
 
 export default defineConfig({
   input: './src/index.ts',
-  plugins: [commonjs(), typescript()],
+  plugins: [typescript(), commonjs()],
   output: [
     {
       file: './dist/index.mjs',

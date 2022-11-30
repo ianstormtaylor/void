@@ -3,7 +3,7 @@
   "productName": "Void",
   "private": true,
   "version": "0.0.0",
-  "description": "Void is an editing studio for creative coding.",
+  "description": "A visual studio for making generative art.",
   "author": "Ian Storm Taylor",
   "license": "MIT",
   "repository": "git://github.com/ianstormtaylor/void.git",
