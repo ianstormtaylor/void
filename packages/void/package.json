@@ -19,6 +19,7 @@
     "build": "rm -rf ./{dist} && rollup --config ./rollup.config.js",
     "coverage": "vitest run --coverage",
     "dev": "vitest watch",
+    "release": "npm run build && np",
     "test": "vitest run"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^23.0.3",
     "@rollup/plugin-typescript": "^10.0.1",
+    "np": "^7.6.2",
     "rollup": "^3.5.0",
     "vite": "*",
     "vitest": "*"
