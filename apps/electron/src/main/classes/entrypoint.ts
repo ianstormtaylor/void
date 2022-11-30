@@ -130,8 +130,15 @@ export class Entrypoint {
         },
       })
     } catch (e) {
-      log.error('Esbuild failure', { id, path, error: e })
       failure = e as Esbuild.BuildFailure
+      log.error('Esbuild failure', {
+        id,
+        path,
+        failure,
+        cause: failure.cause,
+        errors: failure.errors,
+        warnings: failure.warnings,
+      })
     }
 
     this.#server = Http.createServer(async (req, res) => {
@@ -145,10 +152,9 @@ export class Entrypoint {
       })
 
       let { pathname } = new URL(`http://${headers.host}${url}`)
-      let route = pathname.slice(1)
       let isJs = pathname === `/${jsFile}`
 
-      if (route === 'esbuild-errors') {
+      if (pathname === '/esbuild-errors') {
         log.info('Handling esbuild build-time errors request…')
         res.statusCode = 200
         res.setHeader('Access-Control-Allow-Origin', '*')
@@ -181,8 +187,15 @@ export class Entrypoint {
           })
         }
       } catch (e) {
-        log.error('Esbuild building error', { id, path, error: e })
         failure = e as Esbuild.BuildFailure
+        log.error('Esbuild building error', {
+          id,
+          path,
+          failure,
+          cause: failure.cause,
+          errors: failure.errors,
+          warnings: failure.warnings,
+        })
         res.statusCode = 500
         res.end()
         return
@@ -192,7 +205,7 @@ export class Entrypoint {
       res.statusCode = 200
       res.setHeader('Access-Control-Allow-Origin', '*')
       res.setHeader('Content-Type', isJs ? 'text/javascript' : 'text/plain')
-      let outfile = Path.resolve(tmpdir, route)
+      let outfile = Path.resolve(tmpdir, pathname.slice(1))
       let stream = Fs.createReadStream(outfile)
       stream.pipe(res, { end: true })
     })
