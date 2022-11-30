@@ -36,12 +36,21 @@ export class Main {
 
   /** Create a new `Main` singleton. */
   constructor() {
-    log.info('Starting main process…', {
-      IS_DEV,
-      IS_PROD,
-      IS_MAC,
-      IS_WINDOWS,
-      IS_LINUX,
+    log.warn('Starting main process…', {
+      app: {
+        name: app.getName(),
+        version: app.getVersion(),
+        path: app.getAppPath(),
+        isPackaged: app.isPackaged,
+        isInApplicationsFolder: app.isInApplicationsFolder,
+      },
+      env: {
+        IS_DEV,
+        IS_PROD,
+        IS_MAC,
+        IS_WINDOWS,
+        IS_LINUX,
+      },
     })
 
     // Catch unhandled errors.
