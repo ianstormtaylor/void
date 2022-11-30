@@ -11,6 +11,7 @@ import { Entrypoint } from './entrypoint'
 import { createMainStore } from '../../shared/store/main'
 import { Store as SharedStore } from '../../shared/store/base'
 import updateElectronApp from 'update-electron-app'
+import log from 'electron-log'
 
 /** The `Main` object stores state about the entire app on the main thread. */
 export class Main {
@@ -66,8 +67,8 @@ export class Main {
     app.on('ready', async () => {
       // If there is already an app instance, quit so only one is ever open.
       if (!app.requestSingleInstanceLock()) {
-        console.log('ARGV', process.argv)
-        console.log('Quitting for single instance lock…')
+        log.info('ARGV', process.argv)
+        log.info('Quitting for single instance lock…')
         this.quit()
         return
       }
@@ -155,11 +156,13 @@ export class Main {
 
   /** Clear the persistent storage. */
   clear() {
+    log.info('Clearing storage…')
     this.#store.clear()
   }
 
   /** Open sketches with the active window, or create a new one. */
   async open() {
+    log.info('Showing open files dialog…')
     let result = await dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
     })
@@ -173,12 +176,14 @@ export class Main {
 
   /** Quit the app. */
   quit() {
+    log.info('Quitting…')
     app.quit()
   }
 
   /** Restore any saved windows. */
   restore() {
     for (let id in this.store.windows) {
+      log.info('Restoring window…', { id })
       let window = Window.restore(id)
       window.show()
     }
@@ -186,6 +191,7 @@ export class Main {
 
   /** Restart an app after exiting. */
   restart() {
+    log.info('Restarting app…')
     app.relaunch()
     this.quit()
   }
