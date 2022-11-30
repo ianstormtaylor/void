@@ -43,14 +43,13 @@ To get started, download the Void desktop app:
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void.dmg">
   <img width="133" height="44" alt="Download the Void desktop app for macOS." src="./docs/images/download-mac.png" />
 </a>
-
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Setup.exe">
   <img width="133" height="44" alt="Download the Void desktop app for Windows." src="./docs/images/download-windows.png" />
 </a>
-
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void.AppImage">
   <img width="133" height="44" alt="Download the Void desktop app for Linux." src="./docs/images/download-linux.png" />
 </a>
+<br/>
 
 Install the `void` package:
 
