@@ -7,6 +7,7 @@ import { main } from './main'
 import { Draft } from 'immer'
 import { TabState } from '../../shared/store-state'
 import { Entrypoint } from './entrypoint'
+import log from 'electron-log'
 
 /** A `Tab` class holds a reference to a specific sketch file. */
 export class Tab {
@@ -20,6 +21,7 @@ export class Tab {
     let view = new BrowserView({ webPreferences: { preload } })
     this.id = id
     this.view = view
+    log.info('Opening tab URL…', url)
     view.webContents.loadURL(url)
   }
 

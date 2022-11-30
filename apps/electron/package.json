@@ -22,9 +22,7 @@
     "electron-devtools-vendor": "^1.1.0",
     "electron-notarize": "^1.2.1",
     "electron-vite": "^1.0.13",
-    "esbuild": "^0.14.48",
-    "esbuild-darwin-64": "^0.14.48",
-    "esbuild-wasm": "^0.14.48",
+    "esbuild-wasm": "^0.15.16",
     "postcss": "^8.4.13",
     "tailwindcss": "^3.0.24"
   },
@@ -42,6 +40,7 @@
     "change-case": "^4.1.2",
     "electron": "19.0.3",
     "electron-builder": "^23.0.3",
+    "electron-log": "^4.4.8",
     "electron-store": "^8.0.1",
     "immer": "^9.0.15",
     "jspdf": "^2.5.1",

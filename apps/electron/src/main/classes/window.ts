@@ -6,6 +6,7 @@ import { Tab } from './tab'
 import { main } from './main'
 import { Draft } from 'immer'
 import { WindowState } from '../../shared/store-state'
+import log from 'electron-log'
 
 /** A `Window` class to hold state for a series of tabs. */
 export class Window {
@@ -56,6 +57,7 @@ export class Window {
       })
     })
 
+    log.info('Opening window URL…', url)
     window.loadURL(url)
   }
 

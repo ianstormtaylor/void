@@ -1,6 +1,6 @@
 import Path from 'path'
 import crypto from 'node:crypto'
-import Esbuild from 'esbuild'
+import Esbuild from 'esbuild-wasm'
 import Fs from 'fs'
 import Http from 'http'
 import { temporaryDirectory } from 'tempy'
