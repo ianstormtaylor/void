@@ -40,13 +40,16 @@ Void makes it easy to create and explore generative art. It gives you the workfl
 
 To get started, download the Void desktop app:
 
-<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void.dmg">
-  <img width="133" height="44" alt="Download the Void desktop app for macOS." src="./docs/images/download-mac.png" />
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-macOS-x64.dmg">
+  <img width="133" height="44" alt="Download the Void desktop app for macOS (Apple Silicon)." src="./docs/images/download-mac-silicon.png" />
 </a>
-<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Setup.exe">
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-macOS-arm64.dmg">
+  <img width="133" height="44" alt="Download the Void desktop app for macOS (Intel)." src="./docs/images/download-mac-intel.png" />
+</a>
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Windows-Setup-x64.exe">
   <img width="133" height="44" alt="Download the Void desktop app for Windows." src="./docs/images/download-windows.png" />
 </a>
-<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void.AppImage">
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Linux-x86_64.AppImage">
   <img width="133" height="44" alt="Download the Void desktop app for Linux." src="./docs/images/download-linux.png" />
 </a>
 <br/>
