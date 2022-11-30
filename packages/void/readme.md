@@ -40,7 +40,17 @@ Void makes it easy to create and explore generative art. It gives you the workfl
 
 To get started, download the Void desktop app:
 
-<img width="131" height="43" alt="Download the Void desktop app." src="./docs/images/download.png" />
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void.dmg">
+  <img width="133" height="44" alt="Download the Void desktop app for macOS." src="./docs/images/download-mac.png" />
+</a>
+
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Setup.exe">
+  <img width="133" height="44" alt="Download the Void desktop app for Windows." src="./docs/images/download-windows.png" />
+</a>
+
+<a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void.AppImage">
+  <img width="133" height="44" alt="Download the Void desktop app for Linux." src="./docs/images/download-linux.png" />
+</a>
 
 Install the `void` package:
 
