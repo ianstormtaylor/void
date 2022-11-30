@@ -37,7 +37,7 @@ export class Tab {
       m.tabs[id] = {
         id,
         entrypointId: entrypoint.id,
-        zoom: null,
+        zoom: 0.01,
         seed: 1,
         config: {},
         traits: {},
@@ -96,7 +96,7 @@ export class Tab {
     return this.view.webContents.id
   }
 
-  /** Get the tab's path. */
+  /** Get the tab's entrypoint. */
   get entrypoint() {
     return main.entrypoints[this.entrypointId]
   }
@@ -125,25 +125,6 @@ export class Tab {
    * Actions.
    */
 
-  /** Close the tab. */
-  close(options: { save?: boolean } = {}) {
-    log.info('Closing tab…', { id: this.id, options })
-    let { id, entrypoint } = this
-
-    // If this is the only active tab for the entrypoint, shut it down too.
-    if (entrypoint.tabs.length == 1) {
-      entrypoint.close()
-    }
-
-    if (!options.save) {
-      main.change((s) => {
-        delete s.tabs[id]
-      })
-    }
-
-    delete main.tabs[id]
-  }
-
   /** Open the devtools inspector for the tab. */
   inspect() {
     log.info('Inspecting tab…', { id: this.id })
@@ -156,5 +137,29 @@ export class Tab {
   reload() {
     log.info('Reloading tab…', { id: this.id })
     this.view.webContents.reload()
+  }
+
+  /**
+   * Events.
+   */
+
+  onClosed() {
+    log.info('Received tab `closed` pseudo-event…', { id: this.id })
+    let { id, entrypoint } = this
+    if (!main.tabs[id]) return
+
+    // If this is the only active tab for the entrypoint, shut it down too.
+    if (entrypoint.tabs.length == 1) {
+      entrypoint.close()
+    }
+
+    // If it's a deliberate close, remove the tab from storage.
+    if (!main.isQuitting) {
+      main.change((s) => {
+        delete s.tabs[id]
+      })
+    }
+
+    delete main.tabs[id]
   }
 }
