@@ -1,5 +1,5 @@
 import { Menu, app } from 'electron'
-import { IS_PROD } from './env'
+import { IS_DEV } from './env'
 import { main } from './classes/main'
 import { Tab } from './classes/tab'
 import { Window } from './classes/window'
@@ -65,7 +65,11 @@ export let appMenu = Menu.buildFromTemplate([
         click() {
           let tab = Tab.byActive()
           let window = Window.byActive()
-          if (window && tab) window.closeTab(tab.id)
+          if (window && tab) {
+            window.closeTab(tab.id)
+          } else if (window) {
+            window.close()
+          }
         },
       },
     ],
@@ -96,7 +100,7 @@ export let appMenu = Menu.buildFromTemplate([
   },
   {
     label: 'Development',
-    visible: !IS_PROD,
+    visible: IS_DEV,
     submenu: [
       {
         label: 'Reload Window',
