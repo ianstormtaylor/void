@@ -1,5 +1,6 @@
 {
   "name": "@apps/electron",
+  "productName": "Void",
   "private": true,
   "version": "0.0.0",
   "description": "Void is an editing studio for creative coding.",
@@ -15,7 +16,8 @@
     "debug": "./dist/$npm_package_version/mac/Void.app/Contents/MacOS/Void --remote-debugging-port=8315 --enable-logging",
     "debug:prod": "/Applications/Void.app/Contents/MacOS/Void --remote-debugging-port=8315 --enable-logging",
     "preview": "electron-vite preview",
-    "release": "npm run build:vite && npm run build:electron -- --publish always"
+    "release": "npm run build:vite && npm run build:electron -- --publish always",
+    "tail": "tail ~/Library/Logs/Void/main.log"
   },
   "dependencies": {
     "autoprefixer": "^10.4.7",
