@@ -14,7 +14,7 @@
   },
   "mac": {
     "target": ["dmg"],
-    "artifactName": "${productName} ${version} (macOS).${ext}",
+    "artifactName": "${productName}-${version}.${ext}",
     "category": "public.app-category.developer-tools",
     "hardenedRuntime": true,
     "entitlements": "./resources/entitlements.mac.plist",
@@ -31,11 +31,11 @@
   },
   "win": {
     "target": [{ "target": "nsis", "arch": ["x64"] }],
-    "artifactName": "${productName} ${version} Setup (Windows ${arch}).${ext}"
+    "artifactName": "${productName}-${version}-Setup-${arch}.${ext}"
   },
   "linux": {
     "target": ["AppImage"],
-    "artifactName": "${productName} ${version} (Linux).${ext}"
+    "artifactName": "${productName}-${version}.${ext}"
   },
   "nsis": {
     "oneClick": false,
