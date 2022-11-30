@@ -127,6 +127,7 @@ export class Tab {
 
   /** Close the tab. */
   close(options: { save?: boolean } = {}) {
+    log.info('Closing tab…', { id: this.id, options })
     let { id, entrypoint } = this
 
     // If this is the only active tab for the entrypoint, shut it down too.
@@ -145,6 +146,7 @@ export class Tab {
 
   /** Open the devtools inspector for the tab. */
   inspect() {
+    log.info('Inspecting tab…', { id: this.id })
     let w = this.view.webContents
     if (w.isDevToolsOpened()) w.closeDevTools()
     w.openDevTools()
@@ -152,7 +154,7 @@ export class Tab {
 
   /** Reload the tab. */
   reload() {
-    console.log('Reloading tab…', this.id)
+    log.info('Reloading tab…', { id: this.id })
     this.view.webContents.reload()
   }
 }
