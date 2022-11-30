@@ -107,26 +107,32 @@ export class Entrypoint {
     let file = Path.basename(path, Path.extname(path))
     let jsFile = `${file}.js`
     let tmpdir = temporaryDirectory()
+    let failure: Esbuild.BuildFailure | undefined
     log.info('Serving entrypoint…', { id, path, tmpdir })
 
-    this.#watcher = await Esbuild.build({
-      entryPoints: [path],
-      outdir: tmpdir,
-      write: false,
-      watch: {
-        onRebuild: (error) => {
-          if (error) {
-            log.error('Esbuild watcher error', { id, path, error })
-          } else {
-            log.info('Esbuild watcher rebuild', { id, path })
-          }
+    try {
+      this.#watcher = await Esbuild.build({
+        entryPoints: [path],
+        outdir: tmpdir + 'asd',
+        write: false,
+        watch: {
+          onRebuild: (error) => {
+            if (error) {
+              log.error('Esbuild watcher error', { id, path, error })
+            } else {
+              log.info('Esbuild watcher rebuild', { id, path })
+            }
 
-          this.change((e) => {
-            e.timestamp = Date.now()
-          })
+            this.change((e) => {
+              e.timestamp = Date.now()
+            })
+          },
         },
-      },
-    })
+      })
+    } catch (e) {
+      log.error('Esbuild failure', { id, path, error: e })
+      failure = e as Esbuild.BuildFailure
+    }
 
     this.#server = Http.createServer(async (req, res) => {
       if (!req.url) return
@@ -147,7 +153,7 @@ export class Entrypoint {
         res.statusCode = 200
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Content-Type', 'application/json')
-        res.write(JSON.stringify(this.#builder?.errors ?? []))
+        res.write(JSON.stringify(failure?.errors ?? []))
         res.end()
       }
 
@@ -176,6 +182,7 @@ export class Entrypoint {
         }
       } catch (e) {
         log.error('Esbuild building error', { id, path, error: e })
+        failure = e as Esbuild.BuildFailure
         res.statusCode = 500
         res.end()
         return
