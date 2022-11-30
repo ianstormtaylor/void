@@ -2,7 +2,7 @@ import { app, dialog, Menu, session } from 'electron'
 import { Draft } from 'immer'
 import ElectronStore from 'electron-store'
 import { StoreState, initialState } from '../../shared/store-state'
-import { IS_DEV, IS_MAC, IS_PROD } from '../env'
+import { IS_DEV, IS_MAC, IS_PROD, IS_LINUX, IS_WINDOWS } from '../env'
 import { initializeIpc as loadIpc } from '../ipc'
 import { appMenu, dockMenu } from '../menus'
 import { Tab } from './tab'
@@ -36,7 +36,13 @@ export class Main {
 
   /** Create a new `Main` singleton. */
   constructor() {
-    log.info('Starting main process…')
+    log.info('Starting main process…', {
+      IS_DEV,
+      IS_PROD,
+      IS_MAC,
+      IS_WINDOWS,
+      IS_LINUX,
+    })
 
     // Catch unhandled errors.
     unhandled()
