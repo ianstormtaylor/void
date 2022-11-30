@@ -50,6 +50,7 @@ To get started, download the Void desktop app:
   <img width="133" height="44" alt="Download the Void desktop app for Linux." src="./docs/images/download-linux.png" />
 </a>
 <br/>
+<br/>
 
 Install the `void` package:
 
