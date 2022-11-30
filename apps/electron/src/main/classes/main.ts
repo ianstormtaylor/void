@@ -12,6 +12,7 @@ import { createMainStore } from '../../shared/store/main'
 import { Store as SharedStore } from '../../shared/store/base'
 import updateElectronApp from 'update-electron-app'
 import log from 'electron-log'
+import unhandled from 'electron-unhandled'
 
 /** The `Main` object stores state about the entire app on the main thread. */
 export class Main {
@@ -35,6 +36,17 @@ export class Main {
 
   /** Create a new `Main` singleton. */
   constructor() {
+    log.info('Starting main process…')
+
+    // Catch unhandled errors.
+    unhandled()
+
+    // Automatically try to keep the app up to date.
+    if (IS_PROD) {
+      updateElectronApp()
+    }
+
+    // Start the config store, and a shared store for communicating with renderers.
     let store = new ElectronStore({
       defaults: initialState,
       name: IS_DEV ? 'config-dev' : 'config',
@@ -53,11 +65,6 @@ export class Main {
     this.tabs = {}
     this.entrypoints = {}
 
-    // Automatically try to keep the app up to date.
-    if (IS_PROD) {
-      updateElectronApp()
-    }
-
     shared.subscribe((state) => {
       store.set('entrypoints', state.entrypoints)
       store.set('tabs', state.tabs)
@@ -65,6 +72,8 @@ export class Main {
     })
 
     app.on('ready', async () => {
+      log.info('Received `ready` event')
+
       // If there is already an app instance, quit so only one is ever open.
       if (!app.requestSingleInstanceLock()) {
         log.info('ARGV', process.argv)
@@ -105,6 +114,7 @@ export class Main {
 
     // On macOS, this fires when clicking the dock icon.
     app.on('activate', () => {
+      log.info('Received `activated` event')
       let window = Window.byActive()
       if (window) {
         window.focus()
@@ -115,6 +125,7 @@ export class Main {
     })
 
     app.on('open-file', async (e, path) => {
+      log.info('Received `open-file` event')
       e.preventDefault()
       await app.whenReady()
       let window = Window.byFocused() ?? Window.create()
@@ -123,15 +134,18 @@ export class Main {
     })
 
     app.on('before-quit', () => {
+      log.info('Received `before-quit` event')
       this.isQuitting = true
     })
 
     app.on('quit', () => {
+      log.info('Received `quit` event')
       this.isQuitting = false
     })
 
     // On macOS, don't quit when all windows are closed.
     app.on('window-all-closed', () => {
+      log.info('Received `window-all-closed` event')
       if (!IS_MAC) this.quit()
     })
   }

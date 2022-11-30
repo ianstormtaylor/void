@@ -8,6 +8,7 @@ import { main } from './main'
 import { Draft } from 'immer'
 import { EntrypointState } from '../../shared/store-state'
 import { Tab } from './tab'
+import log from 'electron-log'
 
 /** A `Entrypoint` class holds a reference to a specific sketch file. */
 export class Entrypoint {
@@ -98,24 +99,28 @@ export class Entrypoint {
   /** Serve the entrypoint with esbuild from memory. */
   async serve() {
     if (this.#builder || this.#watcher || this.#server) {
-      console.log('Already serving the sketch, returning early.')
+      log.info('Already serving the sketch, returning early')
       return
     }
 
-    let { path } = this
+    let { id, path } = this
     let file = Path.basename(path, Path.extname(path))
     let jsFile = `${file}.js`
-    let outdir = temporaryDirectory()
-    let builder: Esbuild.BuildResult
+    let tmpdir = temporaryDirectory()
+    log.info('Serving entrypoint…', { id, path, tmpdir })
 
-    // Start a build process to watch for reloading.
     this.#watcher = await Esbuild.build({
       entryPoints: [path],
-      outdir,
+      outdir: tmpdir,
       write: false,
       watch: {
         onRebuild: (error) => {
-          if (error) console.error('Esbuild watch error:', error)
+          if (error) {
+            log.error('Esbuild watcher error', { id, path, error })
+          } else {
+            log.info('Esbuild watcher rebuild', { id, path })
+          }
+
           this.change((e) => {
             e.timestamp = Date.now()
           })
@@ -123,34 +128,45 @@ export class Entrypoint {
       },
     })
 
-    let server = (this.#server = Http.createServer(async (req, res) => {
+    this.#server = Http.createServer(async (req, res) => {
       if (!req.url) return
-      let { pathname } = new URL(`http://${req.headers.host}${req.url}`)
+      let { url, headers } = req
+      log.info('Incoming entrypoint server request…', {
+        id,
+        path,
+        url,
+        headers,
+      })
+
+      let { pathname } = new URL(`http://${headers.host}${url}`)
       let route = pathname.slice(1)
       let isJs = pathname === `/${jsFile}`
 
       if (route === 'esbuild-errors') {
+        log.info('Handling esbuild build-time errors request…')
         res.statusCode = 200
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Content-Type', 'application/json')
-        res.write(JSON.stringify(builder?.errors ?? []))
+        res.write(JSON.stringify(this.#builder?.errors ?? []))
         res.end()
       }
 
       if (!pathname.startsWith(`/${jsFile}`)) {
-        console.error('not found', route)
+        log.error('Requested file not found', { id, path, url, headers })
         res.statusCode = 404
         res.end()
         return
       }
 
       try {
-        if (builder != null) {
-          await builder.rebuild!()
+        if (this.#builder) {
+          log.info('Rebuilding with esbuild…', { id, path })
+          await this.#builder.rebuild!()
         } else {
-          builder ??= this.#builder = await Esbuild.build({
+          log.info('Starting esbuild…', { id, path })
+          this.#builder = await Esbuild.build({
             entryPoints: [path],
-            outdir,
+            outdir: tmpdir,
             bundle: true,
             sourcemap: true,
             sourceRoot: path,
@@ -159,21 +175,23 @@ export class Entrypoint {
           })
         }
       } catch (e) {
+        log.error('Esbuild building error', { id, path, error: e })
         res.statusCode = 500
         res.end()
         return
       }
 
+      log.info('Handling esbuild request…', { id, path })
       res.statusCode = 200
       res.setHeader('Access-Control-Allow-Origin', '*')
       res.setHeader('Content-Type', isJs ? 'text/javascript' : 'text/plain')
-      let outfile = Path.resolve(outdir, route)
+      let outfile = Path.resolve(tmpdir, route)
       let stream = Fs.createReadStream(outfile)
       stream.pipe(res, { end: true })
-    }))
+    })
 
-    server.listen()
-    let { port } = server.address() as any
+    this.#server.listen()
+    let { port } = this.#server.address() as any
     setImmediate(() => {
       this.change((e) => {
         e.url = `http://localhost:${port}/${jsFile}`
@@ -184,6 +202,7 @@ export class Entrypoint {
 
   /** Shutdown the entrypoint's server. */
   close() {
+    log.info('Closing entrypoint…', { id: this.id, path: this.path })
     if (this.#watcher && this.#watcher.stop != null) {
       this.#watcher.stop()
     }

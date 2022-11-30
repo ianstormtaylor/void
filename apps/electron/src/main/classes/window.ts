@@ -57,7 +57,7 @@ export class Window {
       })
     })
 
-    log.info('Opening window URL…', url)
+    log.info('Opening window URL…', { url })
     window.loadURL(url)
   }
 
@@ -182,6 +182,7 @@ export class Window {
 
   /** Activate a tab by `id` in the window. */
   activateTab(tabId: string) {
+    log.info('Activating tab…', { id: this.id, tabId })
     let tab = Tab.byId(tabId)
     this.#window.setBrowserView(tab.view)
     this.resizeView()
@@ -192,6 +193,7 @@ export class Window {
 
   /** Attach an existing tab to the window. */
   attachTab(tabId: string) {
+    log.info('Attaching tab…', { id: this.id, tabId })
     this.change((w) => {
       if (!w.tabIds.includes(tabId)) {
         w.tabIds.push(tabId)
@@ -201,6 +203,7 @@ export class Window {
 
   /** Close the window. */
   close(options: { save?: boolean } = {}) {
+    log.info('Closing window…', { id: this.id, options })
     for (let tab of this.tabs) {
       tab.close(options)
     }
@@ -216,6 +219,7 @@ export class Window {
 
   /** Close one of the window's tabs. */
   closeTab(tabId: string) {
+    log.info('Closing tab…', { id: this.id, tabId })
     let tab = Tab.byId(tabId)
     this.detachTab(tab.id)
     tab.close()
@@ -223,6 +227,7 @@ export class Window {
 
   /** Detach a tab from the window, without closing it. */
   detachTab(tabId: string) {
+    log.info('Detaching tab…', { id: this.id, tabId })
     let index = this.tabIds.indexOf(tabId)
     if (index == -1)
       throw new Error(`Cannot detach tab that isn't attached: ${tabId}`)
@@ -246,16 +251,19 @@ export class Window {
 
   /** Focus the window. */
   focus() {
+    log.info('Focusing window…', { id: this.id })
     this.#window.focus()
   }
 
   /** Hide the window. */
   hide() {
+    log.info('Hiding window…', { id: this.id })
     this.#window.hide()
   }
 
   /** Toggle the developer tools for the window. */
   inspect() {
+    log.info('Inspecting window…', { id: this.id })
     let w = this.#window.webContents
     if (w.isDevToolsOpened()) w.closeDevTools()
     w.openDevTools()
@@ -263,6 +271,7 @@ export class Window {
 
   /** Open a sketch `path` in a new tab in the window. */
   openTab(path: string): Tab {
+    log.info('Opening tab…', { id: this.id, path })
     let tab = Tab.create(path)
     this.attachTab(tab.id)
     this.activateTab(tab.id)
@@ -271,6 +280,7 @@ export class Window {
 
   /** Reload the window. */
   reload() {
+    log.info('Reloading window…', { id: this.id })
     this.#window.reload()
   }
 
@@ -285,6 +295,7 @@ export class Window {
 
   /** Show the window. */
   show() {
+    log.info('Showing window…', { id: this.id })
     this.#window.setBounds(this.bounds)
     this.#window.show()
     this.resizeView() // compat: required to keep the view aligned
