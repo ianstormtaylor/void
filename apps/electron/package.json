@@ -9,14 +9,13 @@
   "repository": "git://github.com/ianstormtaylor/void.git",
   "main": "./out/main/index.js",
   "scripts": {
-    "build": "npm run build:vite && npm run build:electron",
-    "build:electron": "dotenv -- electron-builder --mac --win --linux",
-    "build:vite": "electron-vite build",
+    "build": "electron-vite build && dotenv -- electron-builder --mac --win --linux",
+    "build:preview": "electron-vite build --mode preview && dotenv -- electron-builder --mac -c.mac.identity=null",
     "dev": "electron-vite dev",
+    "dev:preview": "electron-vite preview --mode preview",
     "debug": "./dist/$npm_package_version/mac/Void.app/Contents/MacOS/Void --remote-debugging-port=8315 --enable-logging",
-    "debug:prod": "/Applications/Void.app/Contents/MacOS/Void --remote-debugging-port=8315 --enable-logging",
-    "preview": "electron-vite preview",
-    "release": "npm run build:vite && npm run build:electron -- --publish always",
+    "debug:release": "/Applications/Void.app/Contents/MacOS/Void --remote-debugging-port=8315 --enable-logging",
+    "release": "npm run build -- --publish always",
     "tail": "tail ~/Library/Logs/Void/main.log"
   },
   "dependencies": {

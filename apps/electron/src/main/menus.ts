@@ -1,5 +1,5 @@
 import { Menu, app } from 'electron'
-import { IS_DEV } from './env'
+import { IS_PROD } from './env'
 import { main } from './classes/main'
 import { Tab } from './classes/tab'
 import { Window } from './classes/window'
@@ -96,7 +96,7 @@ export let appMenu = Menu.buildFromTemplate([
   },
   {
     label: 'Development',
-    visible: IS_DEV,
+    visible: !IS_PROD,
     submenu: [
       {
         label: 'Reload Window',

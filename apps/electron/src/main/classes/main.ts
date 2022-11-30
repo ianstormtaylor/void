@@ -2,7 +2,8 @@ import { app, dialog, Menu, session } from 'electron'
 import { Draft } from 'immer'
 import ElectronStore from 'electron-store'
 import { StoreState, initialState } from '../../shared/store-state'
-import { IS_DEV, IS_MAC, IS_PROD, IS_LINUX, IS_WINDOWS } from '../env'
+import { IS_DEV, IS_MAC, IS_PROD, MODE } from '../env'
+import * as ENV from '../env'
 import { initializeIpc as loadIpc } from '../ipc'
 import { appMenu, dockMenu } from '../menus'
 import { Tab } from './tab'
@@ -37,19 +38,12 @@ export class Main {
   /** Create a new `Main` singleton. */
   constructor() {
     log.warn('Starting main process…', {
+      ENV,
       app: {
         name: app.getName(),
         version: app.getVersion(),
         path: app.getAppPath(),
         isPackaged: app.isPackaged,
-        isInApplicationsFolder: app.isInApplicationsFolder,
-      },
-      env: {
-        IS_DEV,
-        IS_PROD,
-        IS_MAC,
-        IS_WINDOWS,
-        IS_LINUX,
       },
     })
 
@@ -64,7 +58,7 @@ export class Main {
     // Start the config store, and a shared store for communicating with renderers.
     let store = new ElectronStore({
       defaults: initialState,
-      name: IS_DEV ? 'config-dev' : 'config',
+      name: `config-${MODE}`,
     })
 
     let shared = createMainStore({

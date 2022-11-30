@@ -7,8 +7,9 @@ export let IS_WINDOWS = process.platform === 'win32'
 export let IS_LINUX = process.platform === 'linux'
 
 // Development vs. production
-export let IS_PROD = process.env.NODE_ENV === 'production'
-export let IS_DEV = !IS_PROD
+export let MODE = import.meta.env.MODE
+export let IS_DEV = MODE === 'development'
+export let IS_PROD = !IS_DEV
 
 // The URL to the server entrypoint.
 export let RENDERER_URL = app.isPackaged
