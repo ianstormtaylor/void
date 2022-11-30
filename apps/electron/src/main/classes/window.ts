@@ -215,6 +215,7 @@ export class Window {
     }
 
     delete main.windows[this.id]
+    this.#window.close()
   }
 
   /** Close one of the window's tabs. */
