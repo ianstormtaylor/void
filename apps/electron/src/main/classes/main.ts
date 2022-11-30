@@ -14,6 +14,7 @@ import { Store as SharedStore } from '../../shared/store/base'
 import updateElectronApp from 'update-electron-app'
 import log from 'electron-log'
 import unhandled from 'electron-unhandled'
+import fixPath from 'fix-path'
 
 /** The `Main` object stores state about the entire app on the main thread. */
 export class Main {
@@ -49,6 +50,9 @@ export class Main {
 
     // Catch unhandled errors.
     unhandled()
+
+    // Fix the PATH so that `node` is available for spawning processes.
+    fixPath()
 
     // Automatically try to keep the app up to date.
     if (IS_PROD) {
