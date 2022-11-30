@@ -2,7 +2,7 @@
   "name": "@apps/electron",
   "productName": "Void",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A visual studio for making generative art.",
   "author": "Ian Storm Taylor",
   "license": "MIT",

@@ -9,6 +9,7 @@ import { Draft } from 'immer'
 import { EntrypointState } from '../../shared/store-state'
 import { Tab } from './tab'
 import log from 'electron-log'
+import { app } from 'electron'
 
 /** A `Entrypoint` class holds a reference to a specific sketch file. */
 export class Entrypoint {
@@ -24,6 +25,11 @@ export class Entrypoint {
     this.#watcher = null
     this.#server = null
     this.serve()
+
+    // Ensure that the running processes are stopped when the app quits.
+    app.on('will-quit', () => {
+      this.close()
+    })
   }
 
   /**
@@ -220,9 +226,9 @@ export class Entrypoint {
     })
   }
 
-  /** Shutdown the entrypoint's server. */
+  /** Shut down the entrypoint's running processes. */
   close() {
-    log.info('Closing entrypoint…', { id: this.id, path: this.path })
+    log.info('Stopping entrypoint…', { id: this.id, path: this.path })
     if (this.#watcher && this.#watcher.stop != null) {
       this.#watcher.stop()
     }

@@ -151,6 +151,10 @@ export class Main {
       this.isQuitting = true
     })
 
+    app.on('will-quit', () => {
+      log.info('Received `will-quit` event')
+    })
+
     app.on('quit', () => {
       log.info('Received `quit` event')
       this.isQuitting = false

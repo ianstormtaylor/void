@@ -34,11 +34,29 @@ export class Window {
     this.id = id
     this.#window = window
 
+    // When the window is closed, close all its tabs too.
     window.on('closed', () => {
-      this.close({ save: main.isQuitting })
+      log.info('Received window `closed` event', { id: this.id })
+      if (!main.windows[id]) return
+
+      // Trigger a pseudo-event on the tabs.
+      for (let tab of this.tabs) {
+        tab.onClosed()
+      }
+
+      // If this is a deliberate close, remove the window from storage.
+      if (!main.isQuitting) {
+        main.change((s) => {
+          delete s.windows[id]
+        })
+      }
+
+      delete main.windows[id]
     })
 
+    // When the window resizes, update it's bounds and resize its tab view.
     window.on('resize', () => {
+      log.info('Received window `resize` event', { id: this.id })
       let bounds = this.#window.getBounds()
       this.change((w) => {
         w.x = bounds.x
@@ -49,7 +67,9 @@ export class Window {
       this.resizeView()
     })
 
-    window.on('moved', () => {
+    // When the window moves, update it's position in storage.
+    window.on('move', () => {
+      log.info('Received window `move` event', { id: this.id })
       let [x, y] = this.#window.getPosition()
       this.change((w) => {
         w.x = x
@@ -202,19 +222,8 @@ export class Window {
   }
 
   /** Close the window. */
-  close(options: { save?: boolean } = {}) {
-    log.info('Closing window…', { id: this.id, options })
-    for (let tab of this.tabs) {
-      tab.close(options)
-    }
-
-    if (!options.save) {
-      main.change((s) => {
-        delete s.windows[this.id]
-      })
-    }
-
-    delete main.windows[this.id]
+  close() {
+    log.info('Closing window…', { id: this.id })
     this.#window.close()
   }
 
@@ -223,7 +232,7 @@ export class Window {
     log.info('Closing tab…', { id: this.id, tabId })
     let tab = Tab.byId(tabId)
     this.detachTab(tab.id)
-    tab.close()
+    tab.onClosed()
   }
 
   /** Detach a tab from the window, without closing it. */
@@ -299,6 +308,6 @@ export class Window {
     log.info('Showing window…', { id: this.id })
     this.#window.setBounds(this.bounds)
     this.#window.show()
-    this.resizeView() // compat: required to keep the view aligned
+    this.resizeView() // required to keep the view aligned
   }
 }
