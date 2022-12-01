@@ -56,7 +56,7 @@ export class Main {
 
     // Automatically try to keep the app up to date.
     if (IS_PROD) {
-      updateElectronApp()
+      updateElectronApp({ logger: log })
     }
 
     // Start the config store, and a shared store for communicating with renderers.

@@ -1,8 +1,8 @@
 import { Void } from 'void'
 
 export default function () {
-  let cell = Void.int('cell', 5, 20)
-  let weight = Void.int('weight', 1, 5)
+  let cell = Void.float('cell', 0.1, 1, 0.1)
+  let weight = Void.float('weight', 0.01, 0.07, 0.01)
   let cap = Void.pick('cap', ['square', 'round', 'butt'])
 
   let { width, height } = Void.settings({
