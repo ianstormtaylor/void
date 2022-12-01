@@ -16,7 +16,7 @@
     "dev": "electron-vite dev",
     "dev:preview": "electron-vite preview --mode preview",
     "logs": "code ~/Library/Logs/Void/main.log",
-    "release": "npm run build -- --publish always"
+    "publish": "npm run build -- --publish always"
   },
   "dependencies": {
     "autoprefixer": "^10.4.7",

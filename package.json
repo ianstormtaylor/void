@@ -1,7 +1,7 @@
 {
   "name": "void-monorepo",
   "private": true,
-  "version": "0.0.0",
+  "version": "3.0.1",
   "license": "MIT",
   "repository": "git://github.com/ianstormtaylor/void.git",
   "workspaces": [
@@ -10,7 +10,9 @@
     "examples"
   ],
   "scripts": {
-    "clean": "rm -rf ./node_modules && rm -rf ./{apps,packages}/*/{.rollup.cache,coverage,dist,node_modules,out,tsconfig.tsbuildinfo}"
+    "clean": "rm -rf ./node_modules && rm -rf ./{apps,packages}/*/{.rollup.cache,coverage,dist,node_modules,out,tsconfig.tsbuildinfo}",
+    "publish": "npm run --workspaces --if-present publish",
+    "version": "npm version --workspaces --include-workspace-root --allow-same-version --git-tag-version=false"
   },
   "devDependencies": {
     "prettier": "^2.6.2",

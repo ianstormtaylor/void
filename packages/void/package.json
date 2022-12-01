@@ -19,7 +19,7 @@
     "build": "rm -rf ./{dist} && rollup --config ./rollup.config.js",
     "coverage": "vitest run --coverage",
     "dev": "vitest watch",
-    "release": "npm run build && npm run test && npm version",
+    "publish": "npm run build && npm run test && npm publish",
     "test": "vitest run"
   },
   "dependencies": {},
