@@ -1,6 +1,6 @@
 {
   "name": "void",
-  "version": "1.0.2",
+  "version": "3.0.1",
   "description": "A toolkit for making generative art.",
   "license": "MIT",
   "repository": "git://github.com/ianstormtaylor/void.git",
@@ -19,19 +19,14 @@
     "build": "rm -rf ./{dist} && rollup --config ./rollup.config.js",
     "coverage": "vitest run --coverage",
     "dev": "vitest watch",
-    "release": "npm run build && np",
+    "release": "npm run build && npm run test && npm version",
     "test": "vitest run"
   },
-  "dependencies": {
-    "@types/d3-random": "^3.0.1",
-    "d3-random": "^3.0.1",
-    "simplex-noise": "^4.0.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@rollup/plugin-commonjs": "^23.0.3",
     "@rollup/plugin-typescript": "^10.0.1",
     "@vitest/coverage-c8": "^0.25.3",
-    "np": "^7.6.2",
     "rollup": "^3.5.0",
     "vite": "*",
     "vitest": "*"

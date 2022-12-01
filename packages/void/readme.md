@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./docs/images/banner-dark.png">
-    <img alt="The Void logo." src="./docs/images/banner-light.png">
+    <img alt="Void" src="./docs/images/banner-light.png">
   </picture>
 </p>
 <p align="center">
@@ -41,16 +41,16 @@ Void makes it easy to create and explore generative art. It gives you the workfl
 To get started, download the Void desktop app:
 
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-macOS-arm64.dmg">
-  <img width="248" height="44" alt="Download the Void desktop app for macOS (Apple Silicon)." src="./docs/images/download-mac-silicon.png" />
+  <img width="248" height="44" alt="Download for Mac (Apple Silicon)" src="./docs/images/download-mac-silicon.png" />
 </a>
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-macOS-x64.dmg">
-  <img width="182" height="44" alt="Download the Void desktop app for macOS (Intel)." src="./docs/images/download-mac-intel.png" />
+  <img width="182" height="44" alt="Download for Mac (Intel)" src="./docs/images/download-mac-intel.png" />
 </a>
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Windows-Setup-x64.exe">
-  <img width="133" height="44" alt="Download the Void desktop app for Windows." src="./docs/images/download-windows.png" />
+  <img width="133" height="44" alt="Download for Windows" src="./docs/images/download-windows.png" />
 </a>
 <a href="https://github.com/ianstormtaylor/void/releases/latest/download/Void-Linux-x86_64.AppImage">
-  <img width="133" height="44" alt="Download the Void desktop app for Linux." src="./docs/images/download-linux.png" />
+  <img width="133" height="44" alt="Download for Linux" src="./docs/images/download-linux.png" />
 </a>
 <br/>
 <br/>

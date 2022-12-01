@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "dependencies": {
-    "void": "*",
-    "simplex-noise": "^4.0.1"
+    "@types/d3-scale-chromatic": "^3.0.0",
+    "d3-scale-chromatic": "^3.0.0",
+    "simplex-noise": "^4.0.1",
+    "void": "*"
   }
 }
