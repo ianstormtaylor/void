@@ -3,6 +3,7 @@
 .vscode/
 
 # Build outputs
+coverage/
 dist/
 out/
 node_modules/
